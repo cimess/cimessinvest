@@ -1,0 +1,18 @@
+<svg width="380" height="73" viewBox="0 0 380 73" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brand name -->
+  <text
+    x="50%"
+    y="50"
+    font-family="'Palatino Linotype', Palatino, Book Antiqua, serif"
+    font-size="38"
+    font-weight="400"
+    letter-spacing="6"
+    text-anchor="middle"
+    fill="#111111"
+  >TI_STITCHES</text>
+
+  <!-- Decorative underline with centre dot -->
+  <line x1="10" y1="62" x2="170" y2="62" stroke="#111111" stroke-width="1"/>
+  <circle cx="190" cy="62" r="3" fill="#111111"/>
+  <line x1="210" y1="62" x2="370" y2="62" stroke="#111111" stroke-width="1"/>
+</svg>

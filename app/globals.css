@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel:wght@400..900&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Inter:wght@300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
+
+@import "tailwindcss";
+
+/* Google Fonts for Luxury Fashion Architecture */
+
+/* --- Dynamic Theme CSS Custom Properties --- */
+:root {
+  /* Default Font Families (Overridable via dynamic style injection) */
+
+  --font-brand: "Bodoni Moda", serif;
+  --font-heading: var(--font-playfair), "Cormorant Garamond", serif; 
+  --font-body: var(--font-geist-sans), "Jost", sans-serif;           
+
+
+
+  /* Default Color Palette (Warm Cream, Muted Gold, Rich Black) */
+  --color-primary: #1A1A1A;
+  --color-accent: #C9A96E;
+  --color-bg: #F5F0EB;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B5E54;
+  --color-border: #E0D5C9;
+}
+
+@theme {
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-border: var(--color-border);
+}
+
+/* Base resets & typography classes */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* Custom Typography Helpers */
+.font-brand {
+  font-family: var(--font-brand);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Utility layout helpers */
+.app-x-padding {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .app-x-padding {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@media (min-width: 768px) {
+  .app-x-padding {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+.app-max-width {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Continuous Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+/* GSAP Bento Gallery Grid Styles */
+.gallery-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gallery--bento {
+  display: grid;
+  gap: 1.5vh;
+  grid-template-columns: repeat(3, 30vw);
+  grid-template-rows: repeat(4, 22vh);
+  justify-content: center;
+  align-content: center;
+}
+
+.gallery--bento .gallery__item:nth-child(1) { grid-area: 1 / 1 / 3 / 2; }
+.gallery--bento .gallery__item:nth-child(2) { grid-area: 1 / 2 / 2 / 3; }
+.gallery--bento .gallery__item:nth-child(3) { grid-area: 2 / 2 / 4 / 3; }
+.gallery--bento .gallery__item:nth-child(4) { grid-area: 1 / 3 / 3 / 3; }
+.gallery--bento .gallery__item:nth-child(5) { grid-area: 3 / 1 / 5 / 2; }
+.gallery--bento .gallery__item:nth-child(6) { grid-area: 3 / 3 / 5 / 4; }
+.gallery--bento .gallery__item:nth-child(7) { grid-area: 4 / 2 / 5 / 3; }
+
+
+/* --- Lenis Smooth Scroll Core Styles --- */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}

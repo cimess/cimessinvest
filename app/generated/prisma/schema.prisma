@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlanType {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// 1. Manager Identity & Auth Table
+model User {
+  id                  String             @id @default(cuid())
+  companyName         String
+  email               String             @unique
+  phone               String
+  password            String // Hashed password
+  authorizationKey    String // 1-Time External Authorization Key
+  paymentVerified     Boolean            @default(false)
+  planSelected        PlanType           @default(STARTER)
+  subscription_id     String? // e.g., "sub_123"
+  subscription_status SubscriptionStatus @default(INACTIVE)
+  storageUsed         Int? // in MB 
+  storageLimit        Int? // in MB
+  transactions        Transaction[]
+  role                UserRole           @default(ADMIN)
+
+  // OTP Password Reset fields
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transaction {
+  id                 String            @id @default(cuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reference          String            @unique
+  amount             Int // Amount in Kobo (e.g. 500000 = 5000 NGN)
+  planSelected       PlanType
+  customStorageMB    Int? // Custom/Negotiated storage limit for Enterprise plan
+  status             TransactionStatus @default(PENDING)
+  paystackAccessCode String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+// 2. Garment Catalog Images Table
+model Image {
+  id        String   @id @default(cuid())
+  url       String // Image URL
+  title     String? // Garment name (e.g. "Royal Agbada Ensemble")
+  size      Int? // in bytes
+  type      String? // Image or Video
+  category  String // Collection category (e.g. "Ceremonial", "Signature")
+  createdAt DateTime @default(now())
+
+  @@index([category, createdAt(sort: Desc)])
+}
+
+// 3. Site Theme & Settings Table
+model SiteSetting {
+  id                String  @id @default(cuid())
+  primaryColor      String  @default("#1A1A1A")
+  accentColor       String  @default("#C9A96E")
+  backgroundColor   String  @default("#F5F0EB")
+  showDefaultImages Boolean @default(true)
+  appendDefaults    Boolean @default(false)
+  removeAllDefaults Boolean @default(false)
+  whatsappNumber    String?
+  companyName       String?
+
+  // --- Landing Page Customization Fields ---
+  heroVideoUrl      String?
+  tailorBioText     String?
+  tailorBioImage    String?
+  heroGridImages    String[] @default([])
+  rawMaterialImages String[] @default([])
+
+  updatedAt DateTime @updatedAt
+}
+
+// 4. Analytics & Conversion Metrics Table
+model AnalyticsMetrics {
+  id             String   @id @default(cuid())
+  date           DateTime @unique @default(now())
+  pageViews      Int      @default(0)
+  whatsappClicks Int      @default(0)
+}

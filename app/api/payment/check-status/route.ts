@@ -1,0 +1,76 @@
+import { NextResponse } from "next/server";
+import { finalizeTransactionVerification } from "@/app/api/service/payment.service";
+import { checkUserStorage } from "@/app/api/workers/storageWorker";
+import { prisma } from "@/app/lib/prisma/prisma";
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const reference = searchParams.get("reference");
+
+    if (!reference) {
+      return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
+    }
+
+    // 1. Fetch transaction record
+    const transaction = await prisma.transaction.findUnique({
+      where: { reference },
+      include: { user: true },
+    });
+
+    if (!transaction) {
+      return NextResponse.json({ error: "Transaction reference not found" }, { status: 404 });
+    }
+
+    // 2. Edge Case A Handling: If status is PENDING, run on-the-fly verification fallback
+    let verification = null;
+    if (transaction.status !== "COMPLETED") {
+      verification = await finalizeTransactionVerification(reference);
+    }
+
+    const isPaid = transaction.status === "COMPLETED" || verification?.success === true;
+
+    if (!isPaid) {
+      return NextResponse.json(
+        {
+          success: false,
+          status: "PENDING",
+          message: "Payment verification in progress. Please wait...",
+        },
+        { status: 200 }
+      );
+    }
+
+    // 3. Retrieve storage metrics (preserves used storage and displays extended limit)
+    const storageStats = await checkUserStorage(transaction.userId, false);
+
+    return NextResponse.json({
+      success: true,
+      status: "APPROVED",
+      message: "Payment verified successfully. Subscription active and storage extended.",
+      transaction: {
+        reference: transaction.reference,
+        amount: transaction.amount / 100, // converted from kobo to NGN
+        planSelected: transaction.planSelected,
+        status: "COMPLETED",
+      },
+      plan: {
+        selected: transaction.planSelected,
+        status: "ACTIVE",
+      },
+      storage: {
+        limitMB: storageStats.storageLimitMB,
+        usedMB: storageStats.storageUsedMB,
+        remainingMB: storageStats.remainingStorageMB,
+        usedPercentage: storageStats.usedPercentage,
+        formatted: storageStats.formatted,
+      },
+    });
+  } catch (error) {
+    console.error("Check Status API Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error checking payment status" },
+      { status: 500 }
+    );
+  }
+}

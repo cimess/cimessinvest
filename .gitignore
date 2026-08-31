@@ -1,0 +1,51 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Environment files (Secrets & Keys)
+.env
+.env.*
+!.env.example
+
+# AI Agent folders & IDE settings
+.agents/
+.claude/
+.windsurf/
+.gemini/
+.vscode/
+.idea/
+
+# Next.js & Build output
+/.next/
+/out/
+/build/
+/dist/
+*.tsbuildinfo
+
+# Testing & Coverage
+/coverage
+
+# Debug & Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS & System Junk
+.DS_Store
+Thumbs.db
+*.pem
+
+# Deployment (Vercel)
+.vercel
+
+# Local Databases (if any)
+*.db
+*.sqlite
