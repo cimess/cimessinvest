@@ -57,6 +57,7 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/api/payment") ||
     path.startsWith("/api/verifyToken") ||
     path.startsWith("/api/image") ||
+     path.startsWith("/api/collections") ||
     path.startsWith("/api/health") ||
     path === "/favicon.ico" ||
     path === "/unauthorized"
