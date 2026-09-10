@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="manager@tistiches.com"
+                  placeholder="manager@cimessinvest.com"
                   className="w-full pl-9 pr-3 py-2.5 bg-black/50 border border-white/10 rounded text-xs text-white focus:border-[#C9A96E] outline-none"
                 />
               </div>

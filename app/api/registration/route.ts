@@ -51,10 +51,10 @@ export async function POST(req: Request) {
 
     // 4. Hash Password & Create Authorization Key
     const hashedPassword = await bcrypt.hash(password, 10);
-    const authorizationKey = `TST-${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
+    const authorizationKey = `CMS-${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
 
     // 5. Generate 6-Digit Email Verification OTP Code (Expires in 15 mins)
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiryDate = new Date();
     expiryDate.setMinutes(expiryDate.getMinutes() + 15);
 

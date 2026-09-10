@@ -133,9 +133,27 @@ exports.Prisma.UserScalarFieldEnum = {
   subscription_status: 'subscription_status',
   storageUsed: 'storageUsed',
   storageLimit: 'storageLimit',
+  monthlyVisits: 'monthlyVisits',
+  trafficLimit: 'trafficLimit',
+  trafficNotified80: 'trafficNotified80',
+  trafficNotified100: 'trafficNotified100',
+  lastTrafficReset: 'lastTrafficReset',
   role: 'role',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomPlanQuoteScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  plan: 'plan',
+  authorizedAmountKobo: 'authorizedAmountKobo',
+  authorizedStorageMB: 'authorizedStorageMB',
+  authorizedTrafficLimit: 'authorizedTrafficLimit',
+  notes: 'notes',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -160,6 +178,8 @@ exports.Prisma.ImageScalarFieldEnum = {
   size: 'size',
   type: 'type',
   category: 'category',
+  group: 'group',
+  placement: 'placement',
   createdAt: 'createdAt'
 };
 
@@ -214,6 +234,7 @@ exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
 };
 
 exports.UserRole = exports.$Enums.UserRole = {
+  SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
   USER: 'USER'
 };
@@ -226,6 +247,7 @@ exports.TransactionStatus = exports.$Enums.TransactionStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  CustomPlanQuote: 'CustomPlanQuote',
   Transaction: 'Transaction',
   Image: 'Image',
   SiteSetting: 'SiteSetting',

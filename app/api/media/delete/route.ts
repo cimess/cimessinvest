@@ -25,7 +25,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    const { id, url, resourceType = "image" } = await req.json();
+    let bodyId: string | undefined;
+    let bodyUrl: string | undefined;
+    let resourceType = "image";
+
+    try {
+      const body = await req.json();
+      bodyId = body?.id;
+      bodyUrl = body?.url;
+      resourceType = body?.resourceType || "image";
+    } catch {
+      // Request might have no body if sent with query params
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = bodyId || searchParams.get("id");
+    const url = bodyUrl || searchParams.get("url");
 
     if (!id && !url) {
       return NextResponse.json(
@@ -102,13 +117,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Clean up reference in SiteSetting if present
+    // Clean up reference in SiteSetting if present (BUG-02 fix: filter out deleted URL completely)
     if (siteSettingRecord && isUrlInSiteSetting) {
       const updatedHeroGrid = Array.isArray(siteSettingRecord.heroGridImages)
-        ? siteSettingRecord.heroGridImages.map((img) => (img === targetUrl ? "" : img))
+        ? siteSettingRecord.heroGridImages.filter((img) => typeof img === "string" && img.length > 0 && img !== targetUrl)
         : [];
       const updatedRawMaterial = Array.isArray(siteSettingRecord.rawMaterialImages)
-        ? siteSettingRecord.rawMaterialImages.map((img) => (img === targetUrl ? "" : img))
+        ? siteSettingRecord.rawMaterialImages.filter((img) => typeof img === "string" && img.length > 0 && img !== targetUrl)
         : [];
 
       await prisma.siteSetting.update({
@@ -136,4 +151,9 @@ export async function POST(req: NextRequest) {
     const msg = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
+}
+
+// BUG-01 fix: Export DELETE handler to match frontend api.delete calls
+export async function DELETE(req: NextRequest) {
+  return POST(req);
 }

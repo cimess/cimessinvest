@@ -11,8 +11,8 @@ export async function GET(req: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization");
 
-    // Protect Cron route in production
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Protect Cron route (fail closed if CRON_SECRET is not configured or token mismatches)
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
     }
 
@@ -25,6 +25,12 @@ export async function GET(req: NextRequest) {
         companyName: true,
         planSelected: true,
         updatedAt: true,
+        transactions: {
+          where: { status: "COMPLETED" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { createdAt: true },
+        },
       },
     });
 
@@ -33,10 +39,7 @@ export async function GET(req: NextRequest) {
 
     for (const user of activeUsers) {
       // Calculate 30-day subscription cycle from latest completed payment or account creation
-      const lastTransaction = await prisma.transaction.findFirst({
-        where: { userId: user.id, status: "COMPLETED" },
-        orderBy: { createdAt: "desc" },
-      });
+      const lastTransaction = user.transactions[0] || null;
 
       const subStartDate = lastTransaction ? lastTransaction.createdAt : user.updatedAt;
       const subEndDate = new Date(subStartDate);

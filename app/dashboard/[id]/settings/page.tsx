@@ -97,8 +97,8 @@ export default function UserSettingsPage() {
       console.warn("Could not load settings from server:", err);
       setFormData((prev) => ({
         ...prev,
-        companyName: session?.user?.name || "Ti Stiches Atelier",
-        email: session?.user?.email || "manager@tistiches.com",
+        companyName: session?.user?.name || "cimessinvest",
+        email: session?.user?.email || "manager@cimessinvest.com",
         phone: "+234 800 000 0000",
         whatsappNumber: "+234 800 000 0000",
       }));
@@ -328,7 +328,7 @@ export default function UserSettingsPage() {
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                 required
-                placeholder="Ti Stiches Atelier"
+                placeholder="cimessinvest"
                 className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded text-xs text-white"
               />
             </div>

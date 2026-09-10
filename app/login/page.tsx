@@ -47,11 +47,10 @@ export default function LoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-[#1A1A1A]/80" />
 
-        {/* Brand Header */}
         <div className="relative z-10">
           <Link href="/" className="inline-block">
             <span className="font-brand text-2xl tracking-[0.3em] text-[#C9A96E] uppercase font-bold">
-              TI STICHES
+              CIMESSINVEST
             </span>
           </Link>
         </div>
@@ -80,11 +79,10 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-20">
         <div className="w-full max-w-md space-y-8">
           
-          {/* Mobile Brand Logo */}
           <div className="lg:hidden text-center">
             <Link href="/">
               <span className="font-brand text-xl tracking-[0.3em] text-[#C9A96E] uppercase font-bold">
-                TI STICHES
+                CIMESSINVEST
               </span>
             </Link>
           </div>
@@ -118,7 +116,7 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="artisan@tistiches.com"
+                  placeholder="artisan@cimessinvest.com"
                   className="w-full bg-black/40 border border-white/10 px-11 py-3.5 text-sm text-[#F5F0EB] placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors"
                 />
               </div>

@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { finalizeTransactionVerification } from "@/app/api/service/payment.service";
 import { checkUserStorage } from "@/app/api/workers/storageWorker";
 import { prisma } from "@/app/lib/prisma/prisma";
+import { auth } from "@/app/auth";
 
 export async function GET(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id && !session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized: Active session required" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const reference = searchParams.get("reference");
 
@@ -20,6 +26,16 @@ export async function GET(req: Request) {
 
     if (!transaction) {
       return NextResponse.json({ error: "Transaction reference not found" }, { status: 404 });
+    }
+
+    // Ownership check: Requester must own this transaction or be a Superadmin
+    const currentUserId = session.user.id;
+    const currentUserEmail = session.user.email;
+    const isSuperAdmin = (session.user.role || "").toUpperCase() === "SUPERADMIN";
+    const isOwner = transaction.userId === currentUserId || transaction.user?.email === currentUserEmail;
+
+    if (!isOwner && !isSuperAdmin) {
+      return NextResponse.json({ error: "Forbidden: You do not own this transaction" }, { status: 403 });
     }
 
     // 2. Edge Case A Handling: If status is PENDING, run on-the-fly verification fallback
@@ -73,4 +89,8 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(req: Request) {
+  return GET(req);
 }

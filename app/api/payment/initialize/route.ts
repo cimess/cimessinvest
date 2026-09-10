@@ -10,19 +10,36 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { planSelected, callbackUrl, customAmountKobo, customStorageMB } = body;
+    const { planSelected, callbackUrl } = body;
 
     const validPlans: PlanType[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
     const plan: PlanType = validPlans.includes((planSelected || "").toUpperCase())
       ? (planSelected.toUpperCase() as PlanType)
       : "STARTER";
 
+    // 1. Check if an approved CustomPlanQuote exists for this user (Superadmin authorized deal)
+    let authorizedCustomAmountKobo: number | undefined;
+    let authorizedCustomStorageMB: number | undefined;
+
+    if (plan === "ENTERPRISE") {
+      const { prisma } = await import("@/app/lib/prisma/prisma");
+      const activeQuote = await prisma.customPlanQuote.findFirst({
+        where: { userId: session.user.id, status: "APPROVED" },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (activeQuote) {
+        authorizedCustomAmountKobo = activeQuote.authorizedAmountKobo;
+        authorizedCustomStorageMB = activeQuote.authorizedStorageMB;
+      }
+    }
+
     const paymentInitResult = await initializePaystackTransaction({
       userId: session.user.id,
       email: session.user.email || "",
       planSelected: plan,
-      customAmountKobo: plan === "ENTERPRISE" ? customAmountKobo : undefined,
-      customStorageMB: plan === "ENTERPRISE" ? customStorageMB : undefined,
+      customAmountKobo: authorizedCustomAmountKobo,
+      customStorageMB: authorizedCustomStorageMB,
       callbackUrl,
     });
 

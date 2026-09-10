@@ -6,6 +6,9 @@ import {
   getForgotPasswordOtpEmailHtml,
   getSignupOtpEmailHtml,
   getPaymentReceiptEmailHtml,
+  getTrafficWarning80EmailHtml,
+  getTrafficLimit100EmailHtml,
+  getSuperadminOtpEmailHtml,
 } from "@/app/lib/email/templates";
 import { prisma } from "@/app/lib/prisma/prisma";
 
@@ -15,7 +18,10 @@ export type EmailEventType =
   | "SUBSCRIPTION_DUE"
   | "FORGOT_PASSWORD_OTP"
   | "SIGNUP_OTP"
-  | "PAYMENT_RECEIPT";
+  | "PAYMENT_RECEIPT"
+  | "TRAFFIC_WARNING_80"
+  | "TRAFFIC_LIMIT_100"
+  | "SUPERADMIN_SECURITY_OTP";
 
 export interface BaseEmailEvent {
   type: EmailEventType;
@@ -72,13 +78,44 @@ export interface PaymentReceiptEvent extends BaseEmailEvent {
   storageLimitMB: number;
 }
 
+export interface TrafficWarning80Event extends BaseEmailEvent {
+  type: "TRAFFIC_WARNING_80";
+  userName: string;
+  monthlyVisits: number;
+  trafficLimit: number;
+  usedPercentage: number;
+  planName?: string;
+  upgradeUrl?: string;
+}
+
+export interface TrafficLimit100Event extends BaseEmailEvent {
+  type: "TRAFFIC_LIMIT_100";
+  userName: string;
+  monthlyVisits: number;
+  trafficLimit: number;
+  usedPercentage: number;
+  planName?: string;
+  upgradeUrl?: string;
+}
+
+export interface SuperadminSecurityOtpEvent extends BaseEmailEvent {
+  type: "SUPERADMIN_SECURITY_OTP";
+  toEmail: string;
+  otpCode: string;
+  purpose: "INITIALIZATION" | "RECOVERY";
+  expiresInMinutes?: number;
+}
+
 export type EmailEvent =
   | WelcomeEvent
   | StorageWarning80Event
   | SubscriptionDueEvent
   | ForgotPasswordOtpEvent
   | SignupOtpEvent
-  | PaymentReceiptEvent;
+  | PaymentReceiptEvent
+  | TrafficWarning80Event
+  | TrafficLimit100Event
+  | SuperadminSecurityOtpEvent;
 
 /**
  * Worker handler to process incoming email dispatch events.
@@ -165,6 +202,36 @@ export async function processEmailEvent(event: EmailEvent) {
         });
         break;
 
+      case "TRAFFIC_WARNING_80":
+        templateData = getTrafficWarning80EmailHtml({
+          userName,
+          monthlyVisits: event.monthlyVisits,
+          trafficLimit: event.trafficLimit,
+          usedPercentage: event.usedPercentage,
+          planName: event.planName,
+          upgradeUrl: event.upgradeUrl,
+        });
+        break;
+
+      case "TRAFFIC_LIMIT_100":
+        templateData = getTrafficLimit100EmailHtml({
+          userName,
+          monthlyVisits: event.monthlyVisits,
+          trafficLimit: event.trafficLimit,
+          usedPercentage: event.usedPercentage,
+          planName: event.planName,
+          upgradeUrl: event.upgradeUrl,
+        });
+        break;
+
+      case "SUPERADMIN_SECURITY_OTP":
+        templateData = getSuperadminOtpEmailHtml({
+          otpCode: event.otpCode,
+          purpose: event.purpose,
+          expiresInMinutes: event.expiresInMinutes,
+        });
+        break;
+
       default:
         console.error("[EmailWorker] Unknown event type:", (event as { type: string }).type);
         return { success: false, error: "Unknown event type" };
@@ -211,4 +278,16 @@ export async function triggerSignupOTP(params: Omit<SignupOtpEvent, "type">) {
 
 export async function triggerPaymentReceiptEmail(params: Omit<PaymentReceiptEvent, "type">) {
   return processEmailEvent({ type: "PAYMENT_RECEIPT", ...params });
+}
+
+export async function triggerTrafficWarning80(params: Omit<TrafficWarning80Event, "type">) {
+  return processEmailEvent({ type: "TRAFFIC_WARNING_80", ...params });
+}
+
+export async function triggerTrafficLimit100(params: Omit<TrafficLimit100Event, "type">) {
+  return processEmailEvent({ type: "TRAFFIC_LIMIT_100", ...params });
+}
+
+export async function triggerSuperadminSecurityOTP(params: Omit<SuperadminSecurityOtpEvent, "type">) {
+  return processEmailEvent({ type: "SUPERADMIN_SECURITY_OTP", ...params });
 }

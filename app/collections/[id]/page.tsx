@@ -42,7 +42,7 @@ export default async function ImagePreviewPage({ params }: Props) {
 
   const title = `${category.toUpperCase()} Piece #${id}`;
   const imageUrl = `/bg-img/native1.jpg`;
-  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://tistiches.com"}/image/${category}/${id}`;
+  const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://cimessinvest.com"}/image/${category}/${id}`;
 
   const whatsappUrl = buildWhatsAppItemUrl({
     phone: config.whatsappNumber,

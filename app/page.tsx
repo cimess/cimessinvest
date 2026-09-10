@@ -25,7 +25,16 @@ export const revalidate = 0;
 export default async function Home() {
   // 1. Fetch site setting & owner user status
   const siteSetting = await prisma.siteSetting.findFirst().catch(() => null);
-  const userOwner = await prisma.user.findFirst().catch(() => null);
+  const userOwner = await prisma.user.findFirst({ where: { role: { not: "SUPERADMIN" } } }).catch(() => null);
+
+  // Meter page traffic visit asynchronously (triggers 80% / 100% quota warnings if hit)
+  if (userOwner) {
+    import("@/app/api/workers/trafficWorker").then(({ recordAtelierVisit }) => {
+      recordAtelierVisit(userOwner.id).catch((err) =>
+        console.error("[TrafficWorker] Visit recording error:", err)
+      );
+    });
+  }
 
   // 2. Access Control: If subscription is INACTIVE, lock public page
   if (userOwner && userOwner.subscription_status === "INACTIVE") {
@@ -63,10 +72,14 @@ export default async function Home() {
     );
   }
 
+  // Fetch items eligible for Landing Page Story (placement: "both", "story", or null) directly from DB (PERF-06)
   const collectionsFromDb = await prisma.image
     .findMany({
+      where: {
+        OR: [{ placement: "both" }, { placement: "story" }, { placement: null }],
+      },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 8,
     })
     .catch(() => []);
 
@@ -74,18 +87,18 @@ export default async function Home() {
   const primaryColor = siteSetting?.primaryColor || "#1A1A1A";
   const accentColor = siteSetting?.accentColor || "#C9A96E";
   const backgroundColor = siteSetting?.backgroundColor || "#F5F0EB";
-  const whatsappNumber = siteSetting?.whatsappNumber || DEFAULT_SITE_CONFIG.whatsappNumber;
-  const brandName = siteSetting?.companyName || DEFAULT_SITE_CONFIG.brandName;
+  const whatsappNumber = siteSetting?.whatsappNumber || userOwner?.phone || DEFAULT_SITE_CONFIG.whatsappNumber;
+  const brandName = siteSetting?.companyName?.trim() || userOwner?.companyName?.trim() || DEFAULT_SITE_CONFIG.brandName;
 
   // 4. Dynamic Hero Video / Image
   const heroData = {
     ...DEFAULT_HERO_DATA,
-    headline: siteSetting?.companyName ? `${siteSetting.companyName.toUpperCase()}` : DEFAULT_HERO_DATA.headline,
+    headline: brandName ? `${brandName.toUpperCase()}` : DEFAULT_HERO_DATA.headline,
     mediaSrc: siteSetting?.heroVideoUrl || DEFAULT_HERO_DATA.mediaSrc,
     mediaType: siteSetting?.heroVideoUrl ? ("video" as const) : DEFAULT_HERO_DATA.mediaType,
   };
 
-  // 5. Featured items (Hero Grid + Catalog Items)
+  // 5. Featured items (Custom Uploads prioritized first + Appended Defaults)
   const gridWithDefaults = DEFAULT_FEATURED_ITEMS.slice(0, 4).map((defaultItem, idx) => {
     const customImg = siteSetting?.heroGridImages?.[idx];
     if (customImg && customImg.trim() !== "") {
@@ -102,6 +115,8 @@ export default async function Home() {
     id: item.id,
     title: item.title || "Custom Native Wear",
     category: item.category,
+    group: item.group || "Native",
+    placement: item.placement || "both",
     image: item.url,
   }));
 
@@ -110,9 +125,11 @@ export default async function Home() {
   if (siteSetting?.removeAllDefaults || siteSetting?.showDefaultImages === false) {
     featuredItems = dbFormatted.length > 0 ? dbFormatted : gridWithDefaults;
   } else if (siteSetting?.appendDefaults) {
-    featuredItems = [...gridWithDefaults, ...dbFormatted, ...DEFAULT_FEATURED_ITEMS.slice(4)];
+    // Custom uploaded items placed FIRST, defaults appended after
+    featuredItems = [...dbFormatted, ...gridWithDefaults, ...DEFAULT_FEATURED_ITEMS.slice(4)];
   } else {
-    featuredItems = dbFormatted.length > 0 ? [...gridWithDefaults, ...dbFormatted] : gridWithDefaults;
+    // Custom items first, followed by default showcases
+    featuredItems = dbFormatted.length > 0 ? [...dbFormatted, ...gridWithDefaults] : gridWithDefaults;
   }
 
   // 6. Designer Story (Tailor Bio)

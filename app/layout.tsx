@@ -16,8 +16,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Ti Stiches | Bespoke Native Fashion",
-  description: "High-fashion bespoke West African native wear platform.",
+  title: "cimessinvest | Bespoke Fashion & Luxury Commerce Platform",
+  description: "High-fashion bespoke native wear and luxury atelier management platform powered by cimessinvest.",
 };  
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

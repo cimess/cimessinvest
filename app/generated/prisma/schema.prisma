@@ -24,6 +24,7 @@ enum SubscriptionStatus {
 }
 
 enum UserRole {
+  SUPERADMIN
   ADMIN
   USER
 }
@@ -48,8 +49,17 @@ model User {
   subscription_status SubscriptionStatus @default(INACTIVE)
   storageUsed         Int? // in MB 
   storageLimit        Int? // in MB
-  transactions        Transaction[]
-  role                UserRole           @default(ADMIN)
+
+  // Traffic & Quota Tracking
+  monthlyVisits      Int      @default(0)
+  trafficLimit       Int?     @default(2000)
+  trafficNotified80  Boolean  @default(false)
+  trafficNotified100 Boolean  @default(false)
+  lastTrafficReset   DateTime @default(now())
+
+  transactions Transaction[]
+  customQuotes CustomPlanQuote[]
+  role         UserRole          @default(ADMIN)
 
   // OTP Password Reset fields
   resetToken       String?
@@ -57,6 +67,22 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CustomPlanQuote {
+  id                     String   @id @default(cuid())
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   PlanType @default(ENTERPRISE)
+  authorizedAmountKobo   Int // Amount in Kobo
+  authorizedStorageMB    Int // Storage in MB
+  authorizedTrafficLimit Int? // Monthly Traffic Limit
+  notes                  String?
+  status                 String   @default("APPROVED") // "APPROVED" | "CLAIMED" | "EXPIRED"
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId, status])
 }
 
 model Transaction {
@@ -82,10 +108,13 @@ model Image {
   title     String? // Garment name (e.g. "Royal Agbada Ensemble")
   size      Int? // in bytes
   type      String? // Image or Video
-  category  String // Collection category (e.g. "Ceremonial", "Signature")
+  category  String // Collection category (e.g. "Agbada", "Senator", "Joggers")
+  group     String?  @default("Native") // "Native" | "Modern"
+  placement String?  @default("both") // "collection" | "story" | "both"
   createdAt DateTime @default(now())
 
   @@index([category, createdAt(sort: Desc)])
+  @@index([group, createdAt(sort: Desc)])
 }
 
 // 3. Site Theme & Settings Table

@@ -58,7 +58,7 @@ export async function initializePaystackTransaction({
       ? customAmountKobo
       : PLAN_PRICES_KOBO[planSelected] || PLAN_PRICES_KOBO.STARTER;
 
-  const reference = `TST-REF-${Date.now()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+  const reference = `CMS-REF-${Date.now()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 
   // Save Pending Transaction in DB
   await prisma.transaction.create({
@@ -91,6 +91,7 @@ export async function initializePaystackTransaction({
       reference,
       callback_url: callbackUrl || `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/dashboard/payment/callback`,
       metadata: {
+        platform: "cimessinvest",
         userId,
         planSelected,
         customStorageMB,
@@ -203,6 +204,30 @@ export async function finalizeTransactionVerification(reference: string) {
     newStorageLimitMB = transaction.customStorageMB;
   }
 
+  // Plan traffic defaults
+  const planTrafficLimits: Record<string, number> = {
+    STARTER: 2000,
+    PROFESSIONAL: 15000,
+    ENTERPRISE: 50000,
+  };
+  let newTrafficLimit = planTrafficLimits[transaction.planSelected] || 2000;
+
+  // Check if user has an approved custom quote to claim
+  const activeQuote = await prisma.customPlanQuote.findFirst({
+    where: { userId: transaction.userId, status: "APPROVED" },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (activeQuote) {
+    if (activeQuote.authorizedTrafficLimit) {
+      newTrafficLimit = activeQuote.authorizedTrafficLimit;
+    }
+    await prisma.customPlanQuote.update({
+      where: { id: activeQuote.id },
+      data: { status: "CLAIMED" },
+    });
+  }
+
   const updatedUser = await prisma.user.update({
     where: { id: transaction.userId },
     data: {
@@ -210,6 +235,9 @@ export async function finalizeTransactionVerification(reference: string) {
       subscription_status: "ACTIVE",
       planSelected: transaction.planSelected,
       storageLimit: newStorageLimitMB,
+      trafficLimit: newTrafficLimit,
+      trafficNotified80: false,
+      trafficNotified100: false,
     },
   });
 

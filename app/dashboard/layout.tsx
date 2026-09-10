@@ -42,7 +42,7 @@ export default function DashboardLayout({
         {/* Mobile Top Header (Visible only on mobile screens) */}
         <div className="lg:hidden h-14 px-4 flex items-center justify-between border-b border-[#C9A96E]/20 bg-[#1A1A1A] text-[#F5F0EB] shrink-0 sticky top-0 z-20">
           <span className="font-brand text-xs tracking-[0.25em] text-[#C9A96E] font-bold uppercase">
-            TI STICHES
+            CIMESSINVEST
           </span>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

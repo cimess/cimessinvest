@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-// --- UNCOMMENT WHEN NEXTAUTH IS READY ---
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -36,21 +35,15 @@ export interface AnalyticsData {
 }
 
 export default function AnalyticsDashboardPage() {
-  // --- UNCOMMENT WHEN NEXTAUTH SESSION IS READY ---
-  // const { data: session } = useSession();
+  const { data: session } = useSession();
   
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- UNCOMMENT & REPLACE WITH DYNAMIC SESSION DATA WHEN READY ---
-  // const authorizationKey = session?.user?.authorizationKey || "[ENCRYPTION_KEY]";
-  // const companyName = session?.user?.companyName || "Tistiches Atelier";
-  // const email = session?.user?.email || "manager@tistiches.com";
-
-  const authorizationKey = "[ENCRYPTION_KEY]";
-  const companyName = "Tistiches Atelier";
-  const email = "manager@tistiches.com";
+  const authorizationKey = (session?.user as any)?.authorizationKey || "[ENCRYPTION_KEY]";
+  const companyName = (session?.user as any)?.companyName || "cimessinvest";
+  const email = session?.user?.email || "manager@cimessinvest.com";
 
   // Fetch Analytics Metrics from External API
   const fetchAnalytics = useCallback(async () => {

@@ -9,17 +9,12 @@ export async function GET() {
     let userId = session?.user?.id;
 
     if (!userId && session?.user?.email) {
-      const dbUser = await prisma.user.findFirst({ where: { email: session.user.email } });
+      const dbUser = await prisma.user.findFirst({ where: { email: session.user.email }, select: { id: true } });
       userId = dbUser?.id;
     }
 
     if (!userId) {
-      const fallbackUser = await prisma.user.findFirst();
-      userId = fallbackUser?.id;
-    }
-
-    if (!userId) {
-      return NextResponse.json({ error: "User session not found" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized access: Active session required" }, { status: 401 });
     }
 
     const history = await getSubscriptionHistoryAndStatus(userId);

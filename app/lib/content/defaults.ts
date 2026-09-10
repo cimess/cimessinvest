@@ -10,7 +10,7 @@ import {
 } from "./types";
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  brandName: process.env.NEXT_PUBLIC_BRAND_NAME || "Tistiches",
+  brandName: process.env.NEXT_PUBLIC_BRAND_NAME || "cimessinvest",
   whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "0000000",
   whatsappMessage: "Hello, I would like to inquire about booking a private fitting for your native collection.",
   ctaLabel: "Book Your Fitting",
@@ -54,13 +54,14 @@ export const DEFAULT_DESIGNER_DATA: DesignerData = {
 };
 
 export const DEFAULT_FEATURED_ITEMS: FeaturedItem[] = [
-  { id: "1", title: "Royal Agbada Ensemble", category: "Ceremonial", image: "/bg-img/native1.jpeg" },
-  { id: "2", title: "Sculpted Kaftan", category: "Signature", image: "/bg-img/native2.jpeg" },
-  { id: "3", title: "Imperial Senator Suit", category: "Executive", image: "/bg-img/native3.jpeg" },
-  { id: "4", title: "Hand-Embroidered Tunic", category: "Artisanal", image: "/bg-img/native7.jpeg" },
-  { id: "5", title: "Grand Aso-Oke Agbada", category: "Heritage", image: "/bg-img/native5.jpeg" },
-  { id: "6", title: "Modern Minimalist Kaftan", category: "Contemporary", image: "/bg-img/native12.jpg" },
-  { id: "7", title: "Velvet Accent Senator", category: "Luxury", image: "/bg-img/native8.jpg" }
+  { id: "1", title: "Royal Agbada Ensemble", category: "Agbada", group: "Native", placement: "both", image: "/bg-img/native1.jpeg" },
+  { id: "2", title: "Sculpted Kaftan", category: "Kaftan", group: "Native", placement: "both", image: "/bg-img/native2.jpeg" },
+  { id: "3", title: "Imperial Senator Suit", category: "Senator Suit", group: "Native", placement: "both", image: "/bg-img/native3.jpeg" },
+  { id: "4", title: "Hand-Embroidered Buba", category: "Buba & Sokoto", group: "Native", placement: "both", image: "/bg-img/native7.jpeg" },
+  { id: "5", title: "Grand Aso-Oke Agbada", category: "Aso-Oke / Kembe", group: "Native", placement: "both", image: "/bg-img/native5.jpeg" },
+  { id: "6", title: "Luxury Tailored Joggers", category: "Joggers & Sweats", group: "Modern", placement: "both", image: "/bg-img/native12.jpg" },
+  { id: "7", title: "Urban Street Hoodie", category: "Hoodies & Sweatshirts", group: "Modern", placement: "both", image: "/bg-img/native8.jpg" },
+  { id: "8", title: "Minimalist Graphic Tee", category: "T-Shirts & Tops", group: "Modern", placement: "both", image: "/bg-img/native9.jpg" }
 ];
 
 export const DEFAULT_PROCESS_STEPS: ProcessStep[] = [

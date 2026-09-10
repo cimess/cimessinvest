@@ -15,20 +15,20 @@ type Props = {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
 await connection();
 
-  const settings = await prisma.siteSetting.findFirst();
-const user = await prisma.user.findFirst();
+  const settings = await prisma.siteSetting.findFirst().catch(() => null);
+  const user = await prisma.user.findFirst({ where: { role: { not: "SUPERADMIN" } } }).catch(() => null);
 
   const { category, id } = await params;
   const { img, url } = await searchParams;
 
-  const clothName = `${category.toUpperCase()} Piece #${id}`;
-  // Cloudinary URL or local public static fallback
-  const imageUrl = img || url || `/bg-img/${category}${id}.jpeg`;
+  const dbItem = await prisma.image.findUnique({ where: { id } }).catch(() => null);
 
+  const clothName = dbItem?.title || `${category.toUpperCase()} Piece #${id}`;
+  // Cloudinary URL or local public static fallback
+  const imageUrl = img || url || dbItem?.url || `/bg-img/${category}${id}.jpeg`;
 
   // Fallback to defaults if DB fails
-  const brandName = settings?.companyName || user?.companyName ;
- 
+  const brandName = settings?.companyName?.trim() || user?.companyName?.trim() || "cimessinvest";
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
@@ -51,17 +51,20 @@ const user = await prisma.user.findFirst();
 
 // 2. High-Resolution Design Preview Page
 export default async function ImagePreviewPage({ params, searchParams }: Props) {
-    await connection();
+  await connection();
   const { category, id } = await params;
   const { img, url } = await searchParams;
 
+  const [settings, user, dbItem] = await Promise.all([
+    prisma.siteSetting.findFirst().catch(() => null),
+    prisma.user.findFirst({ where: { role: { not: "SUPERADMIN" } } }).catch(() => null),
+    prisma.image.findUnique({ where: { id } }).catch(() => null),
+  ]);
 
-    const settings = await prisma.siteSetting.findFirst();
-const user = await prisma.user.findFirst();
-
-  const title = `${category.toUpperCase()} Piece #${id}`;
+  const title = dbItem?.title || `${category.toUpperCase()} Piece #${id}`;
+  const garmentCategory = dbItem?.category || category;
   // Cloudinary URL or local public static fallback
-  const imageUrl = img || url || `/bg-img/${category}${id}.jpg`;
+  const imageUrl = img || url || dbItem?.url || `/bg-img/${category}${id}.jpg`;
 
   const pageUrl = `${process.env.NEXT_PUBLIC_SITE_URL || ""}/image/${category}/${id}`;
 
@@ -99,7 +102,7 @@ const user = await prisma.user.findFirst();
           {/* Details & WhatsApp CTA */}
           <div className="lg:col-span-5 flex flex-col space-y-6">
             <span className="text-xs uppercase tracking-[0.3em] text-[#C9A96E] font-semibold">
-              Bespoke {category}
+              Bespoke {garmentCategory}
             </span>
 
             <h1 className="text-3xl sm:text-5xl font-heading text-[#F5F0EB]">

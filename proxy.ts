@@ -3,10 +3,10 @@ import { auth } from "@/app/auth";
 
 // 1. Strict Matrix Permissions (Hierarchy Access Control for Pages and APIs)
 const ROLE_PERMISSIONS: Record<string, string[]> = {
+  SUPERADMIN: ["/superadmin", "/api/superadmin", "/dashboard", "/api/dashboard"],
   ADMIN: ["/dashboard", "/api/dashboard"],
   MANAGER: ["/dashboard", "/api/dashboard"],
-  manager: ["/dashboard", "/api/dashboard"],
-  admin: ["/dashboard", "/api/dashboard"],
+  USER: ["/dashboard", "/api/dashboard"],
 };
 
 // Helper function to safely clear all session cookie variants from the response
@@ -47,7 +47,10 @@ export async function proxy(req: NextRequest) {
 
   // 3. PUBLIC & STATIC ALLOWLIST (Bypass checks for static assets, NextAuth, etc.)
   if (
-    path==="/"|| 
+    path === "/" || 
+    path === "/superadmin/login" ||
+    path.startsWith("/api/superadmin/init") ||
+    path.startsWith("/api/superadmin/recovery") ||
     path.startsWith("/api/brand") ||
     path.startsWith("/_next") ||
     path.startsWith("/bg-img") ||
@@ -57,7 +60,7 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/api/payment") ||
     path.startsWith("/api/verifyToken") ||
     path.startsWith("/api/image") ||
-     path.startsWith("/api/collections") ||
+    path.startsWith("/api/collections") ||
     path.startsWith("/api/health") ||
     path === "/favicon.ico" ||
     path === "/unauthorized"
@@ -70,7 +73,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // 4. LOGIN / SIGNUP ACCESSIBILITY (If authenticated, redirect to dashboard)
-  if (path === "/login" || path === "/signup") {
+  if (path === "/login" || path === "/signup" || path === "/superadmin/login") {
     if (token) return redirectToDashboard(token.role as string, req);
     const response = NextResponse.next();
     if (!token && activeCookieName) {
@@ -92,12 +95,38 @@ export async function proxy(req: NextRequest) {
       return addSecurityHeaders(response);
     }
 
+    // Direct unauthenticated superadmin access to dedicated superadmin login
+    if (path.startsWith("/superadmin")) {
+      const superadminLoginResponse = NextResponse.redirect(new URL("/superadmin/login", req.url));
+      clearInvalidCookies(req, superadminLoginResponse);
+      return addSecurityHeaders(superadminLoginResponse);
+    }
+
     const sessionExpiredResponse = NextResponse.redirect(new URL("/", req.url));
     clearInvalidCookies(req, sessionExpiredResponse);
     return addSecurityHeaders(sessionExpiredResponse);
   }
 
-  // 6. ROLE-BASED SEGREGATION GUARD FOR DASHBOARD & APIS
+  // 6. SUPERADMIN EXCLUSIVE ROUTE GUARD
+  if (
+    (path.startsWith("/superadmin") && path !== "/superadmin/login") ||
+    (path.startsWith("/api/superadmin") && !path.startsWith("/api/superadmin/init") && !path.startsWith("/api/superadmin/recovery"))
+  ) {
+    const userRole = (token.role as string || "").toUpperCase();
+    if (userRole !== "SUPERADMIN") {
+      if (path.startsWith("/api/")) {
+        return addSecurityHeaders(
+          NextResponse.json(
+            { error: "Forbidden: Superadmin credentials required" },
+            { status: 403 }
+          )
+        );
+      }
+      return addSecurityHeaders(NextResponse.redirect(new URL("/unauthorized", req.url)));
+    }
+  }
+
+  // 7. ROLE-BASED SEGREGATION GUARD FOR DASHBOARD & APIS
   if (path.startsWith("/dashboard") || path.startsWith("/api/dashboard")) {
     const userRole = (token.role as string) || "";
     const allowedPaths =
@@ -120,16 +149,19 @@ export async function proxy(req: NextRequest) {
   return addSecurityHeaders(NextResponse.next());
 }
 
-// 7. DASHBOARD ROUTER HELPER
+// 8. DASHBOARD ROUTER HELPER
 function redirectToDashboard(role: string, req: NextRequest) {
-  const r = (role || "").toLowerCase();
-  if (r === "manager" || r === "admin") {
+  const r = (role || "").toUpperCase();
+  if (r === "SUPERADMIN") {
+    return NextResponse.redirect(new URL("/superadmin", req.url));
+  }
+  if (r === "MANAGER" || r === "ADMIN" || r === "USER") {
     return NextResponse.redirect(new URL("/dashboard/1/payment", req.url));
   }
   return NextResponse.redirect(new URL("/", req.url));
 }
 
-// 8. ADVANCED SECURITY HEADERS
+// 9. ADVANCED SECURITY HEADERS
 function addSecurityHeaders(response: NextResponse) {
   const headers = response.headers;
   headers.set("X-Frame-Options", "DENY");
@@ -140,7 +172,14 @@ function addSecurityHeaders(response: NextResponse) {
   return response;
 }
 
-// 9. HIGH-PERFORMANCE MATCHER CONFIGURATION
+// 10. HIGH-PERFORMANCE MATCHER CONFIGURATION
 export const config = {
-  matcher: ["/", "/login", "/signup", "/dashboard/:path*", "/api/:path*"],
+  matcher: [
+    "/",
+    "/login",
+    "/signup",
+    "/dashboard/:path*",
+    "/superadmin/:path*",
+    "/api/:path*",
+  ],
 };

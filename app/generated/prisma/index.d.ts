@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model CustomPlanQuote
+ * 
+ */
+export type CustomPlanQuote = $Result.DefaultSelection<Prisma.$CustomPlanQuotePayload>
+/**
  * Model Transaction
  * 
  */
@@ -61,6 +66,7 @@ export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof Subscr
 
 
 export const UserRole: {
+  SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
   USER: 'USER'
 };
@@ -224,6 +230,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customPlanQuote`: Exposes CRUD operations for the **CustomPlanQuote** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomPlanQuotes
+    * const customPlanQuotes = await prisma.customPlanQuote.findMany()
+    * ```
+    */
+  get customPlanQuote(): Prisma.CustomPlanQuoteDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.transaction`: Exposes CRUD operations for the **Transaction** model.
@@ -712,6 +728,7 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    CustomPlanQuote: 'CustomPlanQuote',
     Transaction: 'Transaction',
     Image: 'Image',
     SiteSetting: 'SiteSetting',
@@ -731,7 +748,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "transaction" | "image" | "siteSetting" | "analyticsMetrics"
+      modelProps: "user" | "customPlanQuote" | "transaction" | "image" | "siteSetting" | "analyticsMetrics"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -806,6 +823,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      CustomPlanQuote: {
+        payload: Prisma.$CustomPlanQuotePayload<ExtArgs>
+        fields: Prisma.CustomPlanQuoteFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomPlanQuoteFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomPlanQuoteFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          findFirst: {
+            args: Prisma.CustomPlanQuoteFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomPlanQuoteFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          findMany: {
+            args: Prisma.CustomPlanQuoteFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>[]
+          }
+          create: {
+            args: Prisma.CustomPlanQuoteCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          createMany: {
+            args: Prisma.CustomPlanQuoteCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomPlanQuoteCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>[]
+          }
+          delete: {
+            args: Prisma.CustomPlanQuoteDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          update: {
+            args: Prisma.CustomPlanQuoteUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomPlanQuoteDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomPlanQuoteUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomPlanQuoteUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomPlanQuoteUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanQuotePayload>
+          }
+          aggregate: {
+            args: Prisma.CustomPlanQuoteAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomPlanQuote>
+          }
+          groupBy: {
+            args: Prisma.CustomPlanQuoteGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomPlanQuoteGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomPlanQuoteCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomPlanQuoteCountAggregateOutputType> | number
           }
         }
       }
@@ -1229,6 +1320,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    customPlanQuote?: CustomPlanQuoteOmit
     transaction?: TransactionOmit
     image?: ImageOmit
     siteSetting?: SiteSettingOmit
@@ -1314,10 +1406,12 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     transactions: number
+    customQuotes: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
+    customQuotes?: boolean | UserCountOutputTypeCountCustomQuotesArgs
   }
 
   // Custom InputTypes
@@ -1336,6 +1430,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TransactionWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCustomQuotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomPlanQuoteWhereInput
   }
 
 
@@ -1358,11 +1459,15 @@ export namespace Prisma {
   export type UserAvgAggregateOutputType = {
     storageUsed: number | null
     storageLimit: number | null
+    monthlyVisits: number | null
+    trafficLimit: number | null
   }
 
   export type UserSumAggregateOutputType = {
     storageUsed: number | null
     storageLimit: number | null
+    monthlyVisits: number | null
+    trafficLimit: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -1378,6 +1483,11 @@ export namespace Prisma {
     subscription_status: $Enums.SubscriptionStatus | null
     storageUsed: number | null
     storageLimit: number | null
+    monthlyVisits: number | null
+    trafficLimit: number | null
+    trafficNotified80: boolean | null
+    trafficNotified100: boolean | null
+    lastTrafficReset: Date | null
     role: $Enums.UserRole | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -1398,6 +1508,11 @@ export namespace Prisma {
     subscription_status: $Enums.SubscriptionStatus | null
     storageUsed: number | null
     storageLimit: number | null
+    monthlyVisits: number | null
+    trafficLimit: number | null
+    trafficNotified80: boolean | null
+    trafficNotified100: boolean | null
+    lastTrafficReset: Date | null
     role: $Enums.UserRole | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -1418,6 +1533,11 @@ export namespace Prisma {
     subscription_status: number
     storageUsed: number
     storageLimit: number
+    monthlyVisits: number
+    trafficLimit: number
+    trafficNotified80: number
+    trafficNotified100: number
+    lastTrafficReset: number
     role: number
     resetToken: number
     resetTokenExpiry: number
@@ -1430,11 +1550,15 @@ export namespace Prisma {
   export type UserAvgAggregateInputType = {
     storageUsed?: true
     storageLimit?: true
+    monthlyVisits?: true
+    trafficLimit?: true
   }
 
   export type UserSumAggregateInputType = {
     storageUsed?: true
     storageLimit?: true
+    monthlyVisits?: true
+    trafficLimit?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -1450,6 +1574,11 @@ export namespace Prisma {
     subscription_status?: true
     storageUsed?: true
     storageLimit?: true
+    monthlyVisits?: true
+    trafficLimit?: true
+    trafficNotified80?: true
+    trafficNotified100?: true
+    lastTrafficReset?: true
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -1470,6 +1599,11 @@ export namespace Prisma {
     subscription_status?: true
     storageUsed?: true
     storageLimit?: true
+    monthlyVisits?: true
+    trafficLimit?: true
+    trafficNotified80?: true
+    trafficNotified100?: true
+    lastTrafficReset?: true
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -1490,6 +1624,11 @@ export namespace Prisma {
     subscription_status?: true
     storageUsed?: true
     storageLimit?: true
+    monthlyVisits?: true
+    trafficLimit?: true
+    trafficNotified80?: true
+    trafficNotified100?: true
+    lastTrafficReset?: true
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -1597,6 +1736,11 @@ export namespace Prisma {
     subscription_status: $Enums.SubscriptionStatus
     storageUsed: number | null
     storageLimit: number | null
+    monthlyVisits: number
+    trafficLimit: number | null
+    trafficNotified80: boolean
+    trafficNotified100: boolean
+    lastTrafficReset: Date
     role: $Enums.UserRole
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -1636,12 +1780,18 @@ export namespace Prisma {
     subscription_status?: boolean
     storageUsed?: boolean
     storageLimit?: boolean
+    monthlyVisits?: boolean
+    trafficLimit?: boolean
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: boolean
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     transactions?: boolean | User$transactionsArgs<ExtArgs>
+    customQuotes?: boolean | User$customQuotesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1658,6 +1808,11 @@ export namespace Prisma {
     subscription_status?: boolean
     storageUsed?: boolean
     storageLimit?: boolean
+    monthlyVisits?: boolean
+    trafficLimit?: boolean
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: boolean
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -1678,6 +1833,11 @@ export namespace Prisma {
     subscription_status?: boolean
     storageUsed?: boolean
     storageLimit?: boolean
+    monthlyVisits?: boolean
+    trafficLimit?: boolean
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: boolean
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -1698,6 +1858,11 @@ export namespace Prisma {
     subscription_status?: boolean
     storageUsed?: boolean
     storageLimit?: boolean
+    monthlyVisits?: boolean
+    trafficLimit?: boolean
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: boolean
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -1705,9 +1870,10 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "authorizationKey" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "authorizationKey" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "monthlyVisits" | "trafficLimit" | "trafficNotified80" | "trafficNotified100" | "lastTrafficReset" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
+    customQuotes?: boolean | User$customQuotesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1717,6 +1883,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
+      customQuotes: Prisma.$CustomPlanQuotePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1731,6 +1898,11 @@ export namespace Prisma {
       subscription_status: $Enums.SubscriptionStatus
       storageUsed: number | null
       storageLimit: number | null
+      monthlyVisits: number
+      trafficLimit: number | null
+      trafficNotified80: boolean
+      trafficNotified100: boolean
+      lastTrafficReset: Date
       role: $Enums.UserRole
       resetToken: string | null
       resetTokenExpiry: Date | null
@@ -2131,6 +2303,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    customQuotes<T extends User$customQuotesArgs<ExtArgs> = {}>(args?: Subset<T, User$customQuotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2172,6 +2345,11 @@ export namespace Prisma {
     readonly subscription_status: FieldRef<"User", 'SubscriptionStatus'>
     readonly storageUsed: FieldRef<"User", 'Int'>
     readonly storageLimit: FieldRef<"User", 'Int'>
+    readonly monthlyVisits: FieldRef<"User", 'Int'>
+    readonly trafficLimit: FieldRef<"User", 'Int'>
+    readonly trafficNotified80: FieldRef<"User", 'Boolean'>
+    readonly trafficNotified100: FieldRef<"User", 'Boolean'>
+    readonly lastTrafficReset: FieldRef<"User", 'DateTime'>
     readonly role: FieldRef<"User", 'UserRole'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
@@ -2594,6 +2772,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.customQuotes
+   */
+  export type User$customQuotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    where?: CustomPlanQuoteWhereInput
+    orderBy?: CustomPlanQuoteOrderByWithRelationInput | CustomPlanQuoteOrderByWithRelationInput[]
+    cursor?: CustomPlanQuoteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomPlanQuoteScalarFieldEnum | CustomPlanQuoteScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2609,6 +2811,1176 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CustomPlanQuote
+   */
+
+  export type AggregateCustomPlanQuote = {
+    _count: CustomPlanQuoteCountAggregateOutputType | null
+    _avg: CustomPlanQuoteAvgAggregateOutputType | null
+    _sum: CustomPlanQuoteSumAggregateOutputType | null
+    _min: CustomPlanQuoteMinAggregateOutputType | null
+    _max: CustomPlanQuoteMaxAggregateOutputType | null
+  }
+
+  export type CustomPlanQuoteAvgAggregateOutputType = {
+    authorizedAmountKobo: number | null
+    authorizedStorageMB: number | null
+    authorizedTrafficLimit: number | null
+  }
+
+  export type CustomPlanQuoteSumAggregateOutputType = {
+    authorizedAmountKobo: number | null
+    authorizedStorageMB: number | null
+    authorizedTrafficLimit: number | null
+  }
+
+  export type CustomPlanQuoteMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    plan: $Enums.PlanType | null
+    authorizedAmountKobo: number | null
+    authorizedStorageMB: number | null
+    authorizedTrafficLimit: number | null
+    notes: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomPlanQuoteMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    plan: $Enums.PlanType | null
+    authorizedAmountKobo: number | null
+    authorizedStorageMB: number | null
+    authorizedTrafficLimit: number | null
+    notes: string | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomPlanQuoteCountAggregateOutputType = {
+    id: number
+    userId: number
+    plan: number
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit: number
+    notes: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CustomPlanQuoteAvgAggregateInputType = {
+    authorizedAmountKobo?: true
+    authorizedStorageMB?: true
+    authorizedTrafficLimit?: true
+  }
+
+  export type CustomPlanQuoteSumAggregateInputType = {
+    authorizedAmountKobo?: true
+    authorizedStorageMB?: true
+    authorizedTrafficLimit?: true
+  }
+
+  export type CustomPlanQuoteMinAggregateInputType = {
+    id?: true
+    userId?: true
+    plan?: true
+    authorizedAmountKobo?: true
+    authorizedStorageMB?: true
+    authorizedTrafficLimit?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomPlanQuoteMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    plan?: true
+    authorizedAmountKobo?: true
+    authorizedStorageMB?: true
+    authorizedTrafficLimit?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomPlanQuoteCountAggregateInputType = {
+    id?: true
+    userId?: true
+    plan?: true
+    authorizedAmountKobo?: true
+    authorizedStorageMB?: true
+    authorizedTrafficLimit?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CustomPlanQuoteAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomPlanQuote to aggregate.
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlanQuotes to fetch.
+     */
+    orderBy?: CustomPlanQuoteOrderByWithRelationInput | CustomPlanQuoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomPlanQuoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlanQuotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlanQuotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomPlanQuotes
+    **/
+    _count?: true | CustomPlanQuoteCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CustomPlanQuoteAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CustomPlanQuoteSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomPlanQuoteMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomPlanQuoteMaxAggregateInputType
+  }
+
+  export type GetCustomPlanQuoteAggregateType<T extends CustomPlanQuoteAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomPlanQuote]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomPlanQuote[P]>
+      : GetScalarType<T[P], AggregateCustomPlanQuote[P]>
+  }
+
+
+
+
+  export type CustomPlanQuoteGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomPlanQuoteWhereInput
+    orderBy?: CustomPlanQuoteOrderByWithAggregationInput | CustomPlanQuoteOrderByWithAggregationInput[]
+    by: CustomPlanQuoteScalarFieldEnum[] | CustomPlanQuoteScalarFieldEnum
+    having?: CustomPlanQuoteScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomPlanQuoteCountAggregateInputType | true
+    _avg?: CustomPlanQuoteAvgAggregateInputType
+    _sum?: CustomPlanQuoteSumAggregateInputType
+    _min?: CustomPlanQuoteMinAggregateInputType
+    _max?: CustomPlanQuoteMaxAggregateInputType
+  }
+
+  export type CustomPlanQuoteGroupByOutputType = {
+    id: string
+    userId: string
+    plan: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit: number | null
+    notes: string | null
+    status: string
+    createdAt: Date
+    updatedAt: Date
+    _count: CustomPlanQuoteCountAggregateOutputType | null
+    _avg: CustomPlanQuoteAvgAggregateOutputType | null
+    _sum: CustomPlanQuoteSumAggregateOutputType | null
+    _min: CustomPlanQuoteMinAggregateOutputType | null
+    _max: CustomPlanQuoteMaxAggregateOutputType | null
+  }
+
+  type GetCustomPlanQuoteGroupByPayload<T extends CustomPlanQuoteGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomPlanQuoteGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomPlanQuoteGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomPlanQuoteGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomPlanQuoteGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomPlanQuoteSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    plan?: boolean
+    authorizedAmountKobo?: boolean
+    authorizedStorageMB?: boolean
+    authorizedTrafficLimit?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlanQuote"]>
+
+  export type CustomPlanQuoteSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    plan?: boolean
+    authorizedAmountKobo?: boolean
+    authorizedStorageMB?: boolean
+    authorizedTrafficLimit?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlanQuote"]>
+
+  export type CustomPlanQuoteSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    plan?: boolean
+    authorizedAmountKobo?: boolean
+    authorizedStorageMB?: boolean
+    authorizedTrafficLimit?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlanQuote"]>
+
+  export type CustomPlanQuoteSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    plan?: boolean
+    authorizedAmountKobo?: boolean
+    authorizedStorageMB?: boolean
+    authorizedTrafficLimit?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CustomPlanQuoteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "plan" | "authorizedAmountKobo" | "authorizedStorageMB" | "authorizedTrafficLimit" | "notes" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["customPlanQuote"]>
+  export type CustomPlanQuoteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CustomPlanQuoteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type CustomPlanQuoteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomPlanQuotePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomPlanQuote"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      plan: $Enums.PlanType
+      authorizedAmountKobo: number
+      authorizedStorageMB: number
+      authorizedTrafficLimit: number | null
+      notes: string | null
+      status: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["customPlanQuote"]>
+    composites: {}
+  }
+
+  type CustomPlanQuoteGetPayload<S extends boolean | null | undefined | CustomPlanQuoteDefaultArgs> = $Result.GetResult<Prisma.$CustomPlanQuotePayload, S>
+
+  type CustomPlanQuoteCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomPlanQuoteFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomPlanQuoteCountAggregateInputType | true
+    }
+
+  export interface CustomPlanQuoteDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomPlanQuote'], meta: { name: 'CustomPlanQuote' } }
+    /**
+     * Find zero or one CustomPlanQuote that matches the filter.
+     * @param {CustomPlanQuoteFindUniqueArgs} args - Arguments to find a CustomPlanQuote
+     * @example
+     * // Get one CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomPlanQuoteFindUniqueArgs>(args: SelectSubset<T, CustomPlanQuoteFindUniqueArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomPlanQuote that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomPlanQuoteFindUniqueOrThrowArgs} args - Arguments to find a CustomPlanQuote
+     * @example
+     * // Get one CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomPlanQuoteFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomPlanQuoteFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomPlanQuote that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteFindFirstArgs} args - Arguments to find a CustomPlanQuote
+     * @example
+     * // Get one CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomPlanQuoteFindFirstArgs>(args?: SelectSubset<T, CustomPlanQuoteFindFirstArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomPlanQuote that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteFindFirstOrThrowArgs} args - Arguments to find a CustomPlanQuote
+     * @example
+     * // Get one CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomPlanQuoteFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomPlanQuoteFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomPlanQuotes that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomPlanQuotes
+     * const customPlanQuotes = await prisma.customPlanQuote.findMany()
+     * 
+     * // Get first 10 CustomPlanQuotes
+     * const customPlanQuotes = await prisma.customPlanQuote.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customPlanQuoteWithIdOnly = await prisma.customPlanQuote.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomPlanQuoteFindManyArgs>(args?: SelectSubset<T, CustomPlanQuoteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomPlanQuote.
+     * @param {CustomPlanQuoteCreateArgs} args - Arguments to create a CustomPlanQuote.
+     * @example
+     * // Create one CustomPlanQuote
+     * const CustomPlanQuote = await prisma.customPlanQuote.create({
+     *   data: {
+     *     // ... data to create a CustomPlanQuote
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomPlanQuoteCreateArgs>(args: SelectSubset<T, CustomPlanQuoteCreateArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomPlanQuotes.
+     * @param {CustomPlanQuoteCreateManyArgs} args - Arguments to create many CustomPlanQuotes.
+     * @example
+     * // Create many CustomPlanQuotes
+     * const customPlanQuote = await prisma.customPlanQuote.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomPlanQuoteCreateManyArgs>(args?: SelectSubset<T, CustomPlanQuoteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomPlanQuotes and returns the data saved in the database.
+     * @param {CustomPlanQuoteCreateManyAndReturnArgs} args - Arguments to create many CustomPlanQuotes.
+     * @example
+     * // Create many CustomPlanQuotes
+     * const customPlanQuote = await prisma.customPlanQuote.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomPlanQuotes and only return the `id`
+     * const customPlanQuoteWithIdOnly = await prisma.customPlanQuote.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomPlanQuoteCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomPlanQuoteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomPlanQuote.
+     * @param {CustomPlanQuoteDeleteArgs} args - Arguments to delete one CustomPlanQuote.
+     * @example
+     * // Delete one CustomPlanQuote
+     * const CustomPlanQuote = await prisma.customPlanQuote.delete({
+     *   where: {
+     *     // ... filter to delete one CustomPlanQuote
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomPlanQuoteDeleteArgs>(args: SelectSubset<T, CustomPlanQuoteDeleteArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomPlanQuote.
+     * @param {CustomPlanQuoteUpdateArgs} args - Arguments to update one CustomPlanQuote.
+     * @example
+     * // Update one CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomPlanQuoteUpdateArgs>(args: SelectSubset<T, CustomPlanQuoteUpdateArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomPlanQuotes.
+     * @param {CustomPlanQuoteDeleteManyArgs} args - Arguments to filter CustomPlanQuotes to delete.
+     * @example
+     * // Delete a few CustomPlanQuotes
+     * const { count } = await prisma.customPlanQuote.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomPlanQuoteDeleteManyArgs>(args?: SelectSubset<T, CustomPlanQuoteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomPlanQuotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomPlanQuotes
+     * const customPlanQuote = await prisma.customPlanQuote.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomPlanQuoteUpdateManyArgs>(args: SelectSubset<T, CustomPlanQuoteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomPlanQuotes and returns the data updated in the database.
+     * @param {CustomPlanQuoteUpdateManyAndReturnArgs} args - Arguments to update many CustomPlanQuotes.
+     * @example
+     * // Update many CustomPlanQuotes
+     * const customPlanQuote = await prisma.customPlanQuote.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomPlanQuotes and only return the `id`
+     * const customPlanQuoteWithIdOnly = await prisma.customPlanQuote.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomPlanQuoteUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomPlanQuoteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomPlanQuote.
+     * @param {CustomPlanQuoteUpsertArgs} args - Arguments to update or create a CustomPlanQuote.
+     * @example
+     * // Update or create a CustomPlanQuote
+     * const customPlanQuote = await prisma.customPlanQuote.upsert({
+     *   create: {
+     *     // ... data to create a CustomPlanQuote
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomPlanQuote we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomPlanQuoteUpsertArgs>(args: SelectSubset<T, CustomPlanQuoteUpsertArgs<ExtArgs>>): Prisma__CustomPlanQuoteClient<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomPlanQuotes.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteCountArgs} args - Arguments to filter CustomPlanQuotes to count.
+     * @example
+     * // Count the number of CustomPlanQuotes
+     * const count = await prisma.customPlanQuote.count({
+     *   where: {
+     *     // ... the filter for the CustomPlanQuotes we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomPlanQuoteCountArgs>(
+      args?: Subset<T, CustomPlanQuoteCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomPlanQuoteCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomPlanQuote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomPlanQuoteAggregateArgs>(args: Subset<T, CustomPlanQuoteAggregateArgs>): Prisma.PrismaPromise<GetCustomPlanQuoteAggregateType<T>>
+
+    /**
+     * Group by CustomPlanQuote.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanQuoteGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomPlanQuoteGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomPlanQuoteGroupByArgs['orderBy'] }
+        : { orderBy?: CustomPlanQuoteGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomPlanQuoteGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomPlanQuoteGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomPlanQuote model
+   */
+  readonly fields: CustomPlanQuoteFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomPlanQuote.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomPlanQuoteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomPlanQuote model
+   */
+  interface CustomPlanQuoteFieldRefs {
+    readonly id: FieldRef<"CustomPlanQuote", 'String'>
+    readonly userId: FieldRef<"CustomPlanQuote", 'String'>
+    readonly plan: FieldRef<"CustomPlanQuote", 'PlanType'>
+    readonly authorizedAmountKobo: FieldRef<"CustomPlanQuote", 'Int'>
+    readonly authorizedStorageMB: FieldRef<"CustomPlanQuote", 'Int'>
+    readonly authorizedTrafficLimit: FieldRef<"CustomPlanQuote", 'Int'>
+    readonly notes: FieldRef<"CustomPlanQuote", 'String'>
+    readonly status: FieldRef<"CustomPlanQuote", 'String'>
+    readonly createdAt: FieldRef<"CustomPlanQuote", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomPlanQuote", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomPlanQuote findUnique
+   */
+  export type CustomPlanQuoteFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlanQuote to fetch.
+     */
+    where: CustomPlanQuoteWhereUniqueInput
+  }
+
+  /**
+   * CustomPlanQuote findUniqueOrThrow
+   */
+  export type CustomPlanQuoteFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlanQuote to fetch.
+     */
+    where: CustomPlanQuoteWhereUniqueInput
+  }
+
+  /**
+   * CustomPlanQuote findFirst
+   */
+  export type CustomPlanQuoteFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlanQuote to fetch.
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlanQuotes to fetch.
+     */
+    orderBy?: CustomPlanQuoteOrderByWithRelationInput | CustomPlanQuoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomPlanQuotes.
+     */
+    cursor?: CustomPlanQuoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlanQuotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlanQuotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomPlanQuotes.
+     */
+    distinct?: CustomPlanQuoteScalarFieldEnum | CustomPlanQuoteScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlanQuote findFirstOrThrow
+   */
+  export type CustomPlanQuoteFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlanQuote to fetch.
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlanQuotes to fetch.
+     */
+    orderBy?: CustomPlanQuoteOrderByWithRelationInput | CustomPlanQuoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomPlanQuotes.
+     */
+    cursor?: CustomPlanQuoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlanQuotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlanQuotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomPlanQuotes.
+     */
+    distinct?: CustomPlanQuoteScalarFieldEnum | CustomPlanQuoteScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlanQuote findMany
+   */
+  export type CustomPlanQuoteFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlanQuotes to fetch.
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlanQuotes to fetch.
+     */
+    orderBy?: CustomPlanQuoteOrderByWithRelationInput | CustomPlanQuoteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomPlanQuotes.
+     */
+    cursor?: CustomPlanQuoteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlanQuotes from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlanQuotes.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomPlanQuotes.
+     */
+    distinct?: CustomPlanQuoteScalarFieldEnum | CustomPlanQuoteScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlanQuote create
+   */
+  export type CustomPlanQuoteCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomPlanQuote.
+     */
+    data: XOR<CustomPlanQuoteCreateInput, CustomPlanQuoteUncheckedCreateInput>
+  }
+
+  /**
+   * CustomPlanQuote createMany
+   */
+  export type CustomPlanQuoteCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomPlanQuotes.
+     */
+    data: CustomPlanQuoteCreateManyInput | CustomPlanQuoteCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomPlanQuote createManyAndReturn
+   */
+  export type CustomPlanQuoteCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomPlanQuotes.
+     */
+    data: CustomPlanQuoteCreateManyInput | CustomPlanQuoteCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomPlanQuote update
+   */
+  export type CustomPlanQuoteUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomPlanQuote.
+     */
+    data: XOR<CustomPlanQuoteUpdateInput, CustomPlanQuoteUncheckedUpdateInput>
+    /**
+     * Choose, which CustomPlanQuote to update.
+     */
+    where: CustomPlanQuoteWhereUniqueInput
+  }
+
+  /**
+   * CustomPlanQuote updateMany
+   */
+  export type CustomPlanQuoteUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomPlanQuotes.
+     */
+    data: XOR<CustomPlanQuoteUpdateManyMutationInput, CustomPlanQuoteUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomPlanQuotes to update
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * Limit how many CustomPlanQuotes to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomPlanQuote updateManyAndReturn
+   */
+  export type CustomPlanQuoteUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomPlanQuotes.
+     */
+    data: XOR<CustomPlanQuoteUpdateManyMutationInput, CustomPlanQuoteUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomPlanQuotes to update
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * Limit how many CustomPlanQuotes to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomPlanQuote upsert
+   */
+  export type CustomPlanQuoteUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomPlanQuote to update in case it exists.
+     */
+    where: CustomPlanQuoteWhereUniqueInput
+    /**
+     * In case the CustomPlanQuote found by the `where` argument doesn't exist, create a new CustomPlanQuote with this data.
+     */
+    create: XOR<CustomPlanQuoteCreateInput, CustomPlanQuoteUncheckedCreateInput>
+    /**
+     * In case the CustomPlanQuote was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomPlanQuoteUpdateInput, CustomPlanQuoteUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomPlanQuote delete
+   */
+  export type CustomPlanQuoteDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
+    /**
+     * Filter which CustomPlanQuote to delete.
+     */
+    where: CustomPlanQuoteWhereUniqueInput
+  }
+
+  /**
+   * CustomPlanQuote deleteMany
+   */
+  export type CustomPlanQuoteDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomPlanQuotes to delete
+     */
+    where?: CustomPlanQuoteWhereInput
+    /**
+     * Limit how many CustomPlanQuotes to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomPlanQuote without action
+   */
+  export type CustomPlanQuoteDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlanQuote
+     */
+    select?: CustomPlanQuoteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlanQuote
+     */
+    omit?: CustomPlanQuoteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanQuoteInclude<ExtArgs> | null
   }
 
 
@@ -3805,6 +5177,8 @@ export namespace Prisma {
     size: number | null
     type: string | null
     category: string | null
+    group: string | null
+    placement: string | null
     createdAt: Date | null
   }
 
@@ -3815,6 +5189,8 @@ export namespace Prisma {
     size: number | null
     type: string | null
     category: string | null
+    group: string | null
+    placement: string | null
     createdAt: Date | null
   }
 
@@ -3825,6 +5201,8 @@ export namespace Prisma {
     size: number
     type: number
     category: number
+    group: number
+    placement: number
     createdAt: number
     _all: number
   }
@@ -3845,6 +5223,8 @@ export namespace Prisma {
     size?: true
     type?: true
     category?: true
+    group?: true
+    placement?: true
     createdAt?: true
   }
 
@@ -3855,6 +5235,8 @@ export namespace Prisma {
     size?: true
     type?: true
     category?: true
+    group?: true
+    placement?: true
     createdAt?: true
   }
 
@@ -3865,6 +5247,8 @@ export namespace Prisma {
     size?: true
     type?: true
     category?: true
+    group?: true
+    placement?: true
     createdAt?: true
     _all?: true
   }
@@ -3962,6 +5346,8 @@ export namespace Prisma {
     size: number | null
     type: string | null
     category: string
+    group: string | null
+    placement: string | null
     createdAt: Date
     _count: ImageCountAggregateOutputType | null
     _avg: ImageAvgAggregateOutputType | null
@@ -3991,6 +5377,8 @@ export namespace Prisma {
     size?: boolean
     type?: boolean
     category?: boolean
+    group?: boolean
+    placement?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -4001,6 +5389,8 @@ export namespace Prisma {
     size?: boolean
     type?: boolean
     category?: boolean
+    group?: boolean
+    placement?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -4011,6 +5401,8 @@ export namespace Prisma {
     size?: boolean
     type?: boolean
     category?: boolean
+    group?: boolean
+    placement?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -4021,10 +5413,12 @@ export namespace Prisma {
     size?: boolean
     type?: boolean
     category?: boolean
+    group?: boolean
+    placement?: boolean
     createdAt?: boolean
   }
 
-  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "url" | "title" | "size" | "type" | "category" | "createdAt", ExtArgs["result"]["image"]>
+  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "url" | "title" | "size" | "type" | "category" | "group" | "placement" | "createdAt", ExtArgs["result"]["image"]>
 
   export type $ImagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Image"
@@ -4036,6 +5430,8 @@ export namespace Prisma {
       size: number | null
       type: string | null
       category: string
+      group: string | null
+      placement: string | null
       createdAt: Date
     }, ExtArgs["result"]["image"]>
     composites: {}
@@ -4466,6 +5862,8 @@ export namespace Prisma {
     readonly size: FieldRef<"Image", 'Int'>
     readonly type: FieldRef<"Image", 'String'>
     readonly category: FieldRef<"Image", 'String'>
+    readonly group: FieldRef<"Image", 'String'>
+    readonly placement: FieldRef<"Image", 'String'>
     readonly createdAt: FieldRef<"Image", 'DateTime'>
   }
     
@@ -7012,6 +8410,11 @@ export namespace Prisma {
     subscription_status: 'subscription_status',
     storageUsed: 'storageUsed',
     storageLimit: 'storageLimit',
+    monthlyVisits: 'monthlyVisits',
+    trafficLimit: 'trafficLimit',
+    trafficNotified80: 'trafficNotified80',
+    trafficNotified100: 'trafficNotified100',
+    lastTrafficReset: 'lastTrafficReset',
     role: 'role',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
@@ -7020,6 +8423,22 @@ export namespace Prisma {
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const CustomPlanQuoteScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    plan: 'plan',
+    authorizedAmountKobo: 'authorizedAmountKobo',
+    authorizedStorageMB: 'authorizedStorageMB',
+    authorizedTrafficLimit: 'authorizedTrafficLimit',
+    notes: 'notes',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CustomPlanQuoteScalarFieldEnum = (typeof CustomPlanQuoteScalarFieldEnum)[keyof typeof CustomPlanQuoteScalarFieldEnum]
 
 
   export const TransactionScalarFieldEnum: {
@@ -7045,6 +8464,8 @@ export namespace Prisma {
     size: 'size',
     type: 'type',
     category: 'category',
+    group: 'group',
+    placement: 'placement',
     createdAt: 'createdAt'
   };
 
@@ -7175,20 +8596,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'UserRole'
-   */
-  export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
-    
-
-
-  /**
-   * Reference to a field of type 'UserRole[]'
-   */
-  export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
-    
-
-
-  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -7199,6 +8606,20 @@ export namespace Prisma {
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'UserRole'
+   */
+  export type EnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole'>
+    
+
+
+  /**
+   * Reference to a field of type 'UserRole[]'
+   */
+  export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'UserRole[]'>
     
 
 
@@ -7249,12 +8670,18 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFilter<"User"> | $Enums.SubscriptionStatus
     storageUsed?: IntNullableFilter<"User"> | number | null
     storageLimit?: IntNullableFilter<"User"> | number | null
+    monthlyVisits?: IntFilter<"User"> | number
+    trafficLimit?: IntNullableFilter<"User"> | number | null
+    trafficNotified80?: BoolFilter<"User"> | boolean
+    trafficNotified100?: BoolFilter<"User"> | boolean
+    lastTrafficReset?: DateTimeFilter<"User"> | Date | string
     role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     transactions?: TransactionListRelationFilter
+    customQuotes?: CustomPlanQuoteListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -7270,12 +8697,18 @@ export namespace Prisma {
     subscription_status?: SortOrder
     storageUsed?: SortOrderInput | SortOrder
     storageLimit?: SortOrderInput | SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrderInput | SortOrder
+    trafficNotified80?: SortOrder
+    trafficNotified100?: SortOrder
+    lastTrafficReset?: SortOrder
     role?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     transactions?: TransactionOrderByRelationAggregateInput
+    customQuotes?: CustomPlanQuoteOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -7294,12 +8727,18 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFilter<"User"> | $Enums.SubscriptionStatus
     storageUsed?: IntNullableFilter<"User"> | number | null
     storageLimit?: IntNullableFilter<"User"> | number | null
+    monthlyVisits?: IntFilter<"User"> | number
+    trafficLimit?: IntNullableFilter<"User"> | number | null
+    trafficNotified80?: BoolFilter<"User"> | boolean
+    trafficNotified100?: BoolFilter<"User"> | boolean
+    lastTrafficReset?: DateTimeFilter<"User"> | Date | string
     role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     transactions?: TransactionListRelationFilter
+    customQuotes?: CustomPlanQuoteListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -7315,6 +8754,11 @@ export namespace Prisma {
     subscription_status?: SortOrder
     storageUsed?: SortOrderInput | SortOrder
     storageLimit?: SortOrderInput | SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrderInput | SortOrder
+    trafficNotified80?: SortOrder
+    trafficNotified100?: SortOrder
+    lastTrafficReset?: SortOrder
     role?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
@@ -7343,11 +8787,98 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusWithAggregatesFilter<"User"> | $Enums.SubscriptionStatus
     storageUsed?: IntNullableWithAggregatesFilter<"User"> | number | null
     storageLimit?: IntNullableWithAggregatesFilter<"User"> | number | null
+    monthlyVisits?: IntWithAggregatesFilter<"User"> | number
+    trafficLimit?: IntNullableWithAggregatesFilter<"User"> | number | null
+    trafficNotified80?: BoolWithAggregatesFilter<"User"> | boolean
+    trafficNotified100?: BoolWithAggregatesFilter<"User"> | boolean
+    lastTrafficReset?: DateTimeWithAggregatesFilter<"User"> | Date | string
     role?: EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type CustomPlanQuoteWhereInput = {
+    AND?: CustomPlanQuoteWhereInput | CustomPlanQuoteWhereInput[]
+    OR?: CustomPlanQuoteWhereInput[]
+    NOT?: CustomPlanQuoteWhereInput | CustomPlanQuoteWhereInput[]
+    id?: StringFilter<"CustomPlanQuote"> | string
+    userId?: StringFilter<"CustomPlanQuote"> | string
+    plan?: EnumPlanTypeFilter<"CustomPlanQuote"> | $Enums.PlanType
+    authorizedAmountKobo?: IntFilter<"CustomPlanQuote"> | number
+    authorizedStorageMB?: IntFilter<"CustomPlanQuote"> | number
+    authorizedTrafficLimit?: IntNullableFilter<"CustomPlanQuote"> | number | null
+    notes?: StringNullableFilter<"CustomPlanQuote"> | string | null
+    status?: StringFilter<"CustomPlanQuote"> | string
+    createdAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type CustomPlanQuoteOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type CustomPlanQuoteWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CustomPlanQuoteWhereInput | CustomPlanQuoteWhereInput[]
+    OR?: CustomPlanQuoteWhereInput[]
+    NOT?: CustomPlanQuoteWhereInput | CustomPlanQuoteWhereInput[]
+    userId?: StringFilter<"CustomPlanQuote"> | string
+    plan?: EnumPlanTypeFilter<"CustomPlanQuote"> | $Enums.PlanType
+    authorizedAmountKobo?: IntFilter<"CustomPlanQuote"> | number
+    authorizedStorageMB?: IntFilter<"CustomPlanQuote"> | number
+    authorizedTrafficLimit?: IntNullableFilter<"CustomPlanQuote"> | number | null
+    notes?: StringNullableFilter<"CustomPlanQuote"> | string | null
+    status?: StringFilter<"CustomPlanQuote"> | string
+    createdAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type CustomPlanQuoteOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CustomPlanQuoteCountOrderByAggregateInput
+    _avg?: CustomPlanQuoteAvgOrderByAggregateInput
+    _max?: CustomPlanQuoteMaxOrderByAggregateInput
+    _min?: CustomPlanQuoteMinOrderByAggregateInput
+    _sum?: CustomPlanQuoteSumOrderByAggregateInput
+  }
+
+  export type CustomPlanQuoteScalarWhereWithAggregatesInput = {
+    AND?: CustomPlanQuoteScalarWhereWithAggregatesInput | CustomPlanQuoteScalarWhereWithAggregatesInput[]
+    OR?: CustomPlanQuoteScalarWhereWithAggregatesInput[]
+    NOT?: CustomPlanQuoteScalarWhereWithAggregatesInput | CustomPlanQuoteScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomPlanQuote"> | string
+    userId?: StringWithAggregatesFilter<"CustomPlanQuote"> | string
+    plan?: EnumPlanTypeWithAggregatesFilter<"CustomPlanQuote"> | $Enums.PlanType
+    authorizedAmountKobo?: IntWithAggregatesFilter<"CustomPlanQuote"> | number
+    authorizedStorageMB?: IntWithAggregatesFilter<"CustomPlanQuote"> | number
+    authorizedTrafficLimit?: IntNullableWithAggregatesFilter<"CustomPlanQuote"> | number | null
+    notes?: StringNullableWithAggregatesFilter<"CustomPlanQuote"> | string | null
+    status?: StringWithAggregatesFilter<"CustomPlanQuote"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"CustomPlanQuote"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomPlanQuote"> | Date | string
   }
 
   export type TransactionWhereInput = {
@@ -7442,6 +8973,8 @@ export namespace Prisma {
     size?: IntNullableFilter<"Image"> | number | null
     type?: StringNullableFilter<"Image"> | string | null
     category?: StringFilter<"Image"> | string
+    group?: StringNullableFilter<"Image"> | string | null
+    placement?: StringNullableFilter<"Image"> | string | null
     createdAt?: DateTimeFilter<"Image"> | Date | string
   }
 
@@ -7452,6 +8985,8 @@ export namespace Prisma {
     size?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     category?: SortOrder
+    group?: SortOrderInput | SortOrder
+    placement?: SortOrderInput | SortOrder
     createdAt?: SortOrder
   }
 
@@ -7465,6 +9000,8 @@ export namespace Prisma {
     size?: IntNullableFilter<"Image"> | number | null
     type?: StringNullableFilter<"Image"> | string | null
     category?: StringFilter<"Image"> | string
+    group?: StringNullableFilter<"Image"> | string | null
+    placement?: StringNullableFilter<"Image"> | string | null
     createdAt?: DateTimeFilter<"Image"> | Date | string
   }, "id">
 
@@ -7475,6 +9012,8 @@ export namespace Prisma {
     size?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     category?: SortOrder
+    group?: SortOrderInput | SortOrder
+    placement?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: ImageCountOrderByAggregateInput
     _avg?: ImageAvgOrderByAggregateInput
@@ -7493,6 +9032,8 @@ export namespace Prisma {
     size?: IntNullableWithAggregatesFilter<"Image"> | number | null
     type?: StringNullableWithAggregatesFilter<"Image"> | string | null
     category?: StringWithAggregatesFilter<"Image"> | string
+    group?: StringNullableWithAggregatesFilter<"Image"> | string | null
+    placement?: StringNullableWithAggregatesFilter<"Image"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Image"> | Date | string
   }
 
@@ -7660,12 +9201,18 @@ export namespace Prisma {
     subscription_status?: $Enums.SubscriptionStatus
     storageUsed?: number | null
     storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
     role?: $Enums.UserRole
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -7681,12 +9228,18 @@ export namespace Prisma {
     subscription_status?: $Enums.SubscriptionStatus
     storageUsed?: number | null
     storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
     role?: $Enums.UserRole
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -7702,12 +9255,18 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -7723,12 +9282,18 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -7744,6 +9309,11 @@ export namespace Prisma {
     subscription_status?: $Enums.SubscriptionStatus
     storageUsed?: number | null
     storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
     role?: $Enums.UserRole
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -7764,6 +9334,11 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7784,9 +9359,104 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteCreateInput = {
+    id?: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCustomQuotesInput
+  }
+
+  export type CustomPlanQuoteUncheckedCreateInput = {
+    id?: string
+    userId: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomPlanQuoteUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCustomQuotesNestedInput
+  }
+
+  export type CustomPlanQuoteUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteCreateManyInput = {
+    id?: string
+    userId: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomPlanQuoteUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7888,6 +9558,8 @@ export namespace Prisma {
     size?: number | null
     type?: string | null
     category: string
+    group?: string | null
+    placement?: string | null
     createdAt?: Date | string
   }
 
@@ -7898,6 +9570,8 @@ export namespace Prisma {
     size?: number | null
     type?: string | null
     category: string
+    group?: string | null
+    placement?: string | null
     createdAt?: Date | string
   }
 
@@ -7908,6 +9582,8 @@ export namespace Prisma {
     size?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: StringFieldUpdateOperationsInput | string
+    group?: NullableStringFieldUpdateOperationsInput | string | null
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7918,6 +9594,8 @@ export namespace Prisma {
     size?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: StringFieldUpdateOperationsInput | string
+    group?: NullableStringFieldUpdateOperationsInput | string | null
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7928,6 +9606,8 @@ export namespace Prisma {
     size?: number | null
     type?: string | null
     category: string
+    group?: string | null
+    placement?: string | null
     createdAt?: Date | string
   }
 
@@ -7938,6 +9618,8 @@ export namespace Prisma {
     size?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: StringFieldUpdateOperationsInput | string
+    group?: NullableStringFieldUpdateOperationsInput | string | null
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7948,6 +9630,8 @@ export namespace Prisma {
     size?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableStringFieldUpdateOperationsInput | string | null
     category?: StringFieldUpdateOperationsInput | string
+    group?: NullableStringFieldUpdateOperationsInput | string | null
+    placement?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8186,6 +9870,28 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
   export type EnumUserRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
     in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
@@ -8204,21 +9910,16 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
-  export type DateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
   export type TransactionListRelationFilter = {
     every?: TransactionWhereInput
     some?: TransactionWhereInput
     none?: TransactionWhereInput
+  }
+
+  export type CustomPlanQuoteListRelationFilter = {
+    every?: CustomPlanQuoteWhereInput
+    some?: CustomPlanQuoteWhereInput
+    none?: CustomPlanQuoteWhereInput
   }
 
   export type SortOrderInput = {
@@ -8227,6 +9928,10 @@ export namespace Prisma {
   }
 
   export type TransactionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomPlanQuoteOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -8243,6 +9948,11 @@ export namespace Prisma {
     subscription_status?: SortOrder
     storageUsed?: SortOrder
     storageLimit?: SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrder
+    trafficNotified80?: SortOrder
+    trafficNotified100?: SortOrder
+    lastTrafficReset?: SortOrder
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -8253,6 +9963,8 @@ export namespace Prisma {
   export type UserAvgOrderByAggregateInput = {
     storageUsed?: SortOrder
     storageLimit?: SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -8268,6 +9980,11 @@ export namespace Prisma {
     subscription_status?: SortOrder
     storageUsed?: SortOrder
     storageLimit?: SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrder
+    trafficNotified80?: SortOrder
+    trafficNotified100?: SortOrder
+    lastTrafficReset?: SortOrder
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -8288,6 +10005,11 @@ export namespace Prisma {
     subscription_status?: SortOrder
     storageUsed?: SortOrder
     storageLimit?: SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrder
+    trafficNotified80?: SortOrder
+    trafficNotified100?: SortOrder
+    lastTrafficReset?: SortOrder
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -8298,6 +10020,8 @@ export namespace Prisma {
   export type UserSumOrderByAggregateInput = {
     storageUsed?: SortOrder
     storageLimit?: SortOrder
+    monthlyVisits?: SortOrder
+    trafficLimit?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -8380,6 +10104,36 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
   export type EnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
     in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
@@ -8404,29 +10158,60 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+  export type CustomPlanQuoteCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomPlanQuoteAvgOrderByAggregateInput = {
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrder
+  }
+
+  export type CustomPlanQuoteMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomPlanQuoteMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomPlanQuoteSumOrderByAggregateInput = {
+    authorizedAmountKobo?: SortOrder
+    authorizedStorageMB?: SortOrder
+    authorizedTrafficLimit?: SortOrder
   }
 
   export type EnumTransactionStatusFilter<$PrismaModel = never> = {
@@ -8434,11 +10219,6 @@ export namespace Prisma {
     in?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumTransactionStatusFilter<$PrismaModel> | $Enums.TransactionStatus
-  }
-
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
   }
 
   export type TransactionCountOrderByAggregateInput = {
@@ -8490,22 +10270,6 @@ export namespace Prisma {
     customStorageMB?: SortOrder
   }
 
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
   export type EnumTransactionStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.TransactionStatus | EnumTransactionStatusFieldRefInput<$PrismaModel>
     in?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
@@ -8523,6 +10287,8 @@ export namespace Prisma {
     size?: SortOrder
     type?: SortOrder
     category?: SortOrder
+    group?: SortOrder
+    placement?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8537,6 +10303,8 @@ export namespace Prisma {
     size?: SortOrder
     type?: SortOrder
     category?: SortOrder
+    group?: SortOrder
+    placement?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8547,6 +10315,8 @@ export namespace Prisma {
     size?: SortOrder
     type?: SortOrder
     category?: SortOrder
+    group?: SortOrder
+    placement?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8650,11 +10420,25 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
+  export type CustomPlanQuoteCreateNestedManyWithoutUserInput = {
+    create?: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput> | CustomPlanQuoteCreateWithoutUserInput[] | CustomPlanQuoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CustomPlanQuoteCreateOrConnectWithoutUserInput | CustomPlanQuoteCreateOrConnectWithoutUserInput[]
+    createMany?: CustomPlanQuoteCreateManyUserInputEnvelope
+    connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+  }
+
   export type TransactionUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<TransactionCreateWithoutUserInput, TransactionUncheckedCreateWithoutUserInput> | TransactionCreateWithoutUserInput[] | TransactionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutUserInput | TransactionCreateOrConnectWithoutUserInput[]
     createMany?: TransactionCreateManyUserInputEnvelope
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput> | CustomPlanQuoteCreateWithoutUserInput[] | CustomPlanQuoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CustomPlanQuoteCreateOrConnectWithoutUserInput | CustomPlanQuoteCreateOrConnectWithoutUserInput[]
+    createMany?: CustomPlanQuoteCreateManyUserInputEnvelope
+    connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -8685,16 +10469,24 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type DateTimeFieldUpdateOperationsInput = {
+    set?: Date | string
+  }
+
   export type EnumUserRoleFieldUpdateOperationsInput = {
     set?: $Enums.UserRole
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
-  }
-
-  export type DateTimeFieldUpdateOperationsInput = {
-    set?: Date | string
   }
 
   export type TransactionUpdateManyWithoutUserNestedInput = {
@@ -8711,6 +10503,20 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type CustomPlanQuoteUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput> | CustomPlanQuoteCreateWithoutUserInput[] | CustomPlanQuoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CustomPlanQuoteCreateOrConnectWithoutUserInput | CustomPlanQuoteCreateOrConnectWithoutUserInput[]
+    upsert?: CustomPlanQuoteUpsertWithWhereUniqueWithoutUserInput | CustomPlanQuoteUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CustomPlanQuoteCreateManyUserInputEnvelope
+    set?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    disconnect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    delete?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    update?: CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput | CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CustomPlanQuoteUpdateManyWithWhereWithoutUserInput | CustomPlanQuoteUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
+  }
+
   export type TransactionUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<TransactionCreateWithoutUserInput, TransactionUncheckedCreateWithoutUserInput> | TransactionCreateWithoutUserInput[] | TransactionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutUserInput | TransactionCreateOrConnectWithoutUserInput[]
@@ -8725,18 +10531,38 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput> | CustomPlanQuoteCreateWithoutUserInput[] | CustomPlanQuoteUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: CustomPlanQuoteCreateOrConnectWithoutUserInput | CustomPlanQuoteCreateOrConnectWithoutUserInput[]
+    upsert?: CustomPlanQuoteUpsertWithWhereUniqueWithoutUserInput | CustomPlanQuoteUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: CustomPlanQuoteCreateManyUserInputEnvelope
+    set?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    disconnect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    delete?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+    update?: CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput | CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: CustomPlanQuoteUpdateManyWithWhereWithoutUserInput | CustomPlanQuoteUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutCustomQuotesInput = {
+    create?: XOR<UserCreateWithoutCustomQuotesInput, UserUncheckedCreateWithoutCustomQuotesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCustomQuotesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutCustomQuotesNestedInput = {
+    create?: XOR<UserCreateWithoutCustomQuotesInput, UserUncheckedCreateWithoutCustomQuotesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCustomQuotesInput
+    upsert?: UserUpsertWithoutCustomQuotesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCustomQuotesInput, UserUpdateWithoutCustomQuotesInput>, UserUncheckedUpdateWithoutCustomQuotesInput>
+  }
+
   export type UserCreateNestedOneWithoutTransactionsInput = {
     create?: XOR<UserCreateWithoutTransactionsInput, UserUncheckedCreateWithoutTransactionsInput>
     connectOrCreate?: UserCreateOrConnectWithoutTransactionsInput
     connect?: UserWhereUniqueInput
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type EnumTransactionStatusFieldUpdateOperationsInput = {
@@ -8827,6 +10653,28 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
   export type NestedEnumUserRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
     in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
@@ -8845,17 +10693,6 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
-  export type NestedDateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -8871,17 +10708,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
-  }
-
-  export type NestedIntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -8956,51 +10782,6 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
-  export type NestedEnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
-    in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
-    notIn?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
-    not?: NestedEnumUserRoleWithAggregatesFilter<$PrismaModel> | $Enums.UserRole
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumUserRoleFilter<$PrismaModel>
-    _max?: NestedEnumUserRoleFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type NestedEnumTransactionStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.TransactionStatus | EnumTransactionStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumTransactionStatusFilter<$PrismaModel> | $Enums.TransactionStatus
-  }
-
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -9026,6 +10807,51 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumUserRoleWithAggregatesFilter<$PrismaModel> | $Enums.UserRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumUserRoleFilter<$PrismaModel>
+    _max?: NestedEnumUserRoleFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumTransactionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.TransactionStatus | EnumTransactionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TransactionStatus[] | ListEnumTransactionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumTransactionStatusFilter<$PrismaModel> | $Enums.TransactionStatus
   }
 
   export type NestedEnumTransactionStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -9072,6 +10898,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CustomPlanQuoteCreateWithoutUserInput = {
+    id?: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomPlanQuoteUncheckedCreateWithoutUserInput = {
+    id?: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomPlanQuoteCreateOrConnectWithoutUserInput = {
+    where: CustomPlanQuoteWhereUniqueInput
+    create: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput>
+  }
+
+  export type CustomPlanQuoteCreateManyUserInputEnvelope = {
+    data: CustomPlanQuoteCreateManyUserInput | CustomPlanQuoteCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TransactionUpsertWithWhereUniqueWithoutUserInput = {
     where: TransactionWhereUniqueInput
     update: XOR<TransactionUpdateWithoutUserInput, TransactionUncheckedUpdateWithoutUserInput>
@@ -9104,6 +10964,158 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
   }
 
+  export type CustomPlanQuoteUpsertWithWhereUniqueWithoutUserInput = {
+    where: CustomPlanQuoteWhereUniqueInput
+    update: XOR<CustomPlanQuoteUpdateWithoutUserInput, CustomPlanQuoteUncheckedUpdateWithoutUserInput>
+    create: XOR<CustomPlanQuoteCreateWithoutUserInput, CustomPlanQuoteUncheckedCreateWithoutUserInput>
+  }
+
+  export type CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput = {
+    where: CustomPlanQuoteWhereUniqueInput
+    data: XOR<CustomPlanQuoteUpdateWithoutUserInput, CustomPlanQuoteUncheckedUpdateWithoutUserInput>
+  }
+
+  export type CustomPlanQuoteUpdateManyWithWhereWithoutUserInput = {
+    where: CustomPlanQuoteScalarWhereInput
+    data: XOR<CustomPlanQuoteUpdateManyMutationInput, CustomPlanQuoteUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type CustomPlanQuoteScalarWhereInput = {
+    AND?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
+    OR?: CustomPlanQuoteScalarWhereInput[]
+    NOT?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
+    id?: StringFilter<"CustomPlanQuote"> | string
+    userId?: StringFilter<"CustomPlanQuote"> | string
+    plan?: EnumPlanTypeFilter<"CustomPlanQuote"> | $Enums.PlanType
+    authorizedAmountKobo?: IntFilter<"CustomPlanQuote"> | number
+    authorizedStorageMB?: IntFilter<"CustomPlanQuote"> | number
+    authorizedTrafficLimit?: IntNullableFilter<"CustomPlanQuote"> | number | null
+    notes?: StringNullableFilter<"CustomPlanQuote"> | string | null
+    status?: StringFilter<"CustomPlanQuote"> | string
+    createdAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
+  }
+
+  export type UserCreateWithoutCustomQuotesInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutCustomQuotesInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutCustomQuotesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCustomQuotesInput, UserUncheckedCreateWithoutCustomQuotesInput>
+  }
+
+  export type UserUpsertWithoutCustomQuotesInput = {
+    update: XOR<UserUpdateWithoutCustomQuotesInput, UserUncheckedUpdateWithoutCustomQuotesInput>
+    create: XOR<UserCreateWithoutCustomQuotesInput, UserUncheckedCreateWithoutCustomQuotesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCustomQuotesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCustomQuotesInput, UserUncheckedUpdateWithoutCustomQuotesInput>
+  }
+
+  export type UserUpdateWithoutCustomQuotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCustomQuotesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type UserCreateWithoutTransactionsInput = {
     id?: string
     companyName: string
@@ -9117,11 +11129,17 @@ export namespace Prisma {
     subscription_status?: $Enums.SubscriptionStatus
     storageUsed?: number | null
     storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
     role?: $Enums.UserRole
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -9137,11 +11155,17 @@ export namespace Prisma {
     subscription_status?: $Enums.SubscriptionStatus
     storageUsed?: number | null
     storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
     role?: $Enums.UserRole
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -9173,11 +11197,17 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -9193,11 +11223,17 @@ export namespace Prisma {
     subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
     storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
     storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionCreateManyUserInput = {
@@ -9208,6 +11244,18 @@ export namespace Prisma {
     customStorageMB?: number | null
     status?: $Enums.TransactionStatus
     paystackAccessCode?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomPlanQuoteCreateManyUserInput = {
+    id?: string
+    plan?: $Enums.PlanType
+    authorizedAmountKobo: number
+    authorizedStorageMB: number
+    authorizedTrafficLimit?: number | null
+    notes?: string | null
+    status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -9244,6 +11292,42 @@ export namespace Prisma {
     customStorageMB?: NullableIntFieldUpdateOperationsInput | number | null
     status?: EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
     paystackAccessCode?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomPlanQuoteUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    authorizedAmountKobo?: IntFieldUpdateOperationsInput | number
+    authorizedStorageMB?: IntFieldUpdateOperationsInput | number
+    authorizedTrafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

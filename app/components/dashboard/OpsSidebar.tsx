@@ -4,7 +4,7 @@ import { Activity, ClipboardList, Coins, Bell, LineChart, LayoutDashboard, Setti
 import { moduleHref, modulesForRole } from "../../lib/modules";
 import type { ModuleItem } from "../../lib/modules";
 import { useRouter, usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const groupIcon: Record<ModuleItem["group"], React.ReactNode> = {
   Shop: <ClipboardList className="w-4 h-4 text-[#C9A96E]" strokeWidth={1.5} />,
@@ -26,6 +26,8 @@ export function OpsSidebar({
 }) {
   const navigate = useRouter();
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const companyName = (session?.user as any)?.companyName?.trim() || "cimessinvest";
 
   const role = "manager";
   const userRole = role.toLowerCase();
@@ -62,10 +64,10 @@ export function OpsSidebar({
             {!collapsed && (
               <div className="min-w-0">
                 <p className="font-brand text-xs tracking-[0.25em] text-[#C9A96E] font-bold uppercase truncate">
-                  TI STICHES
+                  CIMESSINVEST
                 </p>
-                <p className="text-[11px] text-[#E0D5C9]/60 truncate font-light">
-                  Manager Portal
+                <p className="text-[11px] text-[#E0D5C9]/80 truncate font-medium">
+                  {companyName}
                 </p>
               </div>
             )}

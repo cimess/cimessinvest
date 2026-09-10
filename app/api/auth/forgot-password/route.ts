@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Generate 6-digit OTP code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6-digit cryptographically secure OTP code
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiryDate = new Date();
     expiryDate.setMinutes(expiryDate.getMinutes() + 15); // Valid for 15 minutes
 

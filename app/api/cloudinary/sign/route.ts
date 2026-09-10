@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const folder = "tistiches-catalog";
+    const folder = userId ? `cimessinvest-catalog/tenants/${userId}` : "cimessinvest-catalog";
 
     // 2. Generate Cloudinary Signature
     const signature = cloudinary.utils.api_sign_request(

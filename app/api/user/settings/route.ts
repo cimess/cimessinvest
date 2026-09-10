@@ -3,23 +3,30 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { auth } from "@/app/auth";
 import { checkUserStorage } from "@/app/api/workers/storageWorker";
-
 import { revalidateBrandCache } from "@/app/lib/cache/brandCache";
+import { SAFE_USER_SELECT, SAFE_SITE_SETTING_SELECT } from "@/app/lib/prisma/projections";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
-    
-    // Fetch user
-    const user = session?.user?.email
-      ? await prisma.user.findFirst({ where: { email: session.user.email } })
-      : await prisma.user.findFirst();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    // Fetch user using unique B-Tree index scan and strict projection (excludes password, tokens, keys)
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: SAFE_USER_SELECT,
+    });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const siteSetting = await prisma.siteSetting.findFirst();
+    const siteSetting = await prisma.siteSetting.findFirst({
+      select: SAFE_SITE_SETTING_SELECT,
+    });
+
     const storageStats = await checkUserStorage(user.id, true).catch(() => null);
 
     return NextResponse.json({
@@ -38,12 +45,15 @@ export async function GET(req: NextRequest) {
         },
       },
       siteSetting: siteSetting || {
+        id: "",
         showDefaultImages: true,
         appendDefaults: false,
         removeAllDefaults: false,
         primaryColor: "#1A1A1A",
         accentColor: "#C9A96E",
         backgroundColor: "#F5F0EB",
+        whatsappNumber: null,
+        companyName: null,
         heroVideoUrl: null,
         tailorBioText: null,
         tailorBioImage: null,
@@ -63,6 +73,7 @@ export async function PUT(req: NextRequest) {
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
+
     const body = await req.json();
     const {
       companyName,
@@ -81,16 +92,17 @@ export async function PUT(req: NextRequest) {
       rawMaterialImages,
     } = body;
 
-    // 1. Update User Record
+    // 1. Update User Record with strict projection (never leaks password or authKey in response)
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
       data: {
         ...(companyName && { companyName: companyName.trim() }),
         ...(phone && { phone: phone.trim() }),
       },
+      select: SAFE_USER_SELECT,
     });
 
-    // 2. Upsert SiteSetting Record
+    // 2. Upsert SiteSetting Record with safe projection
     const existingSetting = await prisma.siteSetting.findFirst();
     const siteSettingData: Record<string, string | boolean | string[] | null> = {
       ...(companyName && { companyName: companyName.trim() }),
@@ -113,10 +125,12 @@ export async function PUT(req: NextRequest) {
       updatedSetting = await prisma.siteSetting.update({
         where: { id: existingSetting.id },
         data: siteSettingData,
+        select: SAFE_SITE_SETTING_SELECT,
       });
     } else {
       updatedSetting = await prisma.siteSetting.create({
         data: siteSettingData,
+        select: SAFE_SITE_SETTING_SELECT,
       });
     }
 

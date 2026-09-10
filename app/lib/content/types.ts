@@ -14,7 +14,7 @@ export interface ColorConfig {
 }
 
 export interface SiteConfig {
-  brandName: string;         // Default: "Ti Stiches" (fallback "cimessinvest")
+  brandName: string;         // Default: "cimessinvest"
   whatsappNumber: string;    // Default: "0000000"
   whatsappMessage: string;   // Default: "Hello, I'd like to book a fitting"
   ctaLabel: string;          // Default: "Book Your Fitting"
@@ -56,6 +56,8 @@ export interface FeaturedItem {
   id: string;
   title: string;
   category: string;
+  group?: string;
+  placement?: string;
   image: string;
 }
 

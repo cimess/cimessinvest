@@ -493,7 +493,7 @@ export function getSignupOtpEmailHtml({
   otpCode,
   expiresInMinutes = 15,
 }: SignupOtpTemplateProps): { subject: string; html: string } {
-  const subject = `✨ Email Verification Code: ${otpCode} | Ti Stiches`;
+  const subject = `✨ Email Verification Code: ${otpCode} | cimessinvest`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -510,7 +510,7 @@ export function getSignupOtpEmailHtml({
           <!-- Header Banner -->
           <tr>
             <td style="background-color: #111111; padding: 25px 30px; text-align: center; border-bottom: 1px solid rgba(201, 169, 110, 0.2);">
-              <span style="color: ${BRAND_COLOR}; font-size: 11px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">WELCOME TO TI STICHES</span>
+              <span style="color: ${BRAND_COLOR}; font-size: 11px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">WELCOME TO CIMESSINVEST</span>
               <h1 style="color: ${TEXT_LIGHT}; font-size: 22px; font-weight: 700; margin: 6px 0 0 0;">Verify Your Email Address</h1>
             </td>
           </tr>
@@ -519,7 +519,7 @@ export function getSignupOtpEmailHtml({
             <td style="padding: 30px;">
               <p style="font-size: 15px; color: #E0D5C9; margin-top: 0;">Dear <strong>${userName}</strong>,</p>
               <p style="font-size: 15px; line-height: 1.6; color: #E0D5C9;">
-                Thank you for creating an account with Ti Stiches. Use the 6-digit verification OTP code below to complete your client profile setup:
+                Thank you for creating an account with cimessinvest. Use the 6-digit verification OTP code below to complete your client profile setup:
               </p>
 
               <!-- OTP Code Display Box -->
@@ -534,14 +534,14 @@ export function getSignupOtpEmailHtml({
               </p>
 
               <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; margin-top: 30px;">
-                <p style="font-size: 12px; color: #777777; margin: 0;">Ti Stiches Client Experience Team</p>
+                <p style="font-size: 12px; color: #777777; margin: 0;">cimessinvest Client Experience Team</p>
               </div>
             </td>
           </tr>
           <!-- Footer -->
           <tr>
             <td style="background-color: #161616; padding: 15px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-              <p style="font-size: 11px; color: #777777; margin: 0;">&copy; ${new Date().getFullYear()} Ti Stiches Atelier. All Rights Reserved.</p>
+              <p style="font-size: 11px; color: #777777; margin: 0;">&copy; ${new Date().getFullYear()} cimessinvest. All Rights Reserved. (cimessinvest.com)</p>
             </td>
           </tr>
         </table>
@@ -555,3 +555,256 @@ export function getSignupOtpEmailHtml({
   return { subject, html };
 }
 
+export interface TrafficWarningTemplateProps {
+  userName: string;
+  monthlyVisits: number;
+  trafficLimit: number;
+  usedPercentage: number;
+  planName?: string;
+  upgradeUrl?: string;
+}
+
+/**
+ * 7. Traffic Warning (80% Capacity Notice)
+ */
+export function getTrafficWarning80EmailHtml({
+  userName,
+  monthlyVisits,
+  trafficLimit,
+  usedPercentage,
+  planName = "Current Tier",
+  upgradeUrl = "https://cimessinvest.com/dashboard/payment",
+}: TrafficWarningTemplateProps): { subject: string; html: string } {
+  const subject = `⚠️ High Traffic Notice: Your atelier storefront reached ${usedPercentage}% monthly capacity | cimessinvest`;
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: ${BG_DARK}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: ${TEXT_LIGHT};">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${BG_DARK}; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #242424; border: 1px solid rgba(201, 169, 110, 0.4); border-radius: 8px; overflow: hidden; max-width: 600px;">
+          <tr>
+            <td style="background-color: #111111; padding: 25px 30px; text-align: center; border-bottom: 1px solid rgba(201, 169, 110, 0.2);">
+              <span style="color: ${BRAND_COLOR}; font-size: 11px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">CIMESSINVEST PLATFORM MONITOR</span>
+              <h1 style="color: ${TEXT_LIGHT}; font-size: 22px; font-weight: 700; margin: 6px 0 0 0;">Traffic Approaching Plan Limit</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px;">
+              <p style="font-size: 15px; color: #E0D5C9; margin-top: 0;">Dear <strong>${userName}</strong>,</p>
+              <p style="font-size: 15px; line-height: 1.6; color: #E0D5C9;">
+                Congratulations! Your storefront has experienced surging visitor traffic this month.
+              </p>
+              <p style="font-size: 15px; line-height: 1.6; color: #E0D5C9;">
+                Your account has utilized <strong>${usedPercentage}%</strong> of its monthly traffic quota under the <strong>${planName}</strong> plan:
+              </p>
+              <div style="background-color: #111111; border: 1px solid rgba(201, 169, 110, 0.3); border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px;">
+                  <span style="color: #A09585;">Monthly Visits:</span>
+                  <span style="color: ${BRAND_COLOR}; font-weight: bold;">${monthlyVisits.toLocaleString()} / ${trafficLimit.toLocaleString()} visits</span>
+                </div>
+                <div style="background-color: #333333; border-radius: 4px; height: 10px; overflow: hidden;">
+                  <div style="background-color: ${BRAND_COLOR}; height: 10px; width: ${Math.min(100, usedPercentage)}%;"></div>
+                </div>
+              </div>
+              <p style="font-size: 14px; line-height: 1.6; color: #C5B8A8;">
+                To guarantee high-speed load times and uninterrupted service for your customers, consider upgrading to the next tier today.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${upgradeUrl}" style="background-color: ${BRAND_COLOR}; color: #111111; font-weight: bold; font-size: 13px; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; letter-spacing: 1.5px; text-transform: uppercase;">
+                  Review & Upgrade Plan
+                </a>
+              </div>
+              <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; margin-top: 30px;">
+                <p style="font-size: 12px; color: #777777; margin: 0;">cimessinvest Infrastructure Team</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #161616; padding: 15px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+              <p style="font-size: 11px; color: #777777; margin: 0;">&copy; ${new Date().getFullYear()} cimessinvest. All Rights Reserved. (cimessinvest.com)</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+  return { subject, html };
+}
+
+/**
+ * 8. Traffic Cap Reached (100% Capacity Notice)
+ */
+export function getTrafficLimit100EmailHtml({
+  userName,
+  monthlyVisits,
+  trafficLimit,
+  usedPercentage,
+  planName = "Current Tier",
+  upgradeUrl = "https://cimessinvest.com/dashboard/payment",
+}: TrafficWarningTemplateProps): { subject: string; html: string } {
+  const subject = `🚨 Action Required: Storefront monthly traffic capacity reached (100%) | cimessinvest`;
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: ${BG_DARK}; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: ${TEXT_LIGHT};">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: ${BG_DARK}; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #242424; border: 1px solid #D9534F; border-radius: 8px; overflow: hidden; max-width: 600px;">
+          <tr>
+            <td style="background-color: #1A0D0D; padding: 25px 30px; text-align: center; border-bottom: 1px solid rgba(217, 83, 79, 0.3);">
+              <span style="color: #D9534F; font-size: 11px; font-weight: bold; letter-spacing: 3px; text-transform: uppercase;">TRAFFIC QUOTA EXCEEDED</span>
+              <h1 style="color: ${TEXT_LIGHT}; font-size: 22px; font-weight: 700; margin: 6px 0 0 0;">Monthly Traffic Limit Reached</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px;">
+              <p style="font-size: 15px; color: #E0D5C9; margin-top: 0;">Dear <strong>${userName}</strong>,</p>
+              <p style="font-size: 15px; line-height: 1.6; color: #E0D5C9;">
+                Your storefront has reached <strong>100% (${monthlyVisits.toLocaleString()} / ${trafficLimit.toLocaleString()} visits)</strong> of its monthly traffic quota under the <strong>${planName}</strong> plan.
+              </p>
+              <div style="background-color: #111111; border: 1px solid rgba(217, 83, 79, 0.4); border-radius: 6px; padding: 20px; margin: 25px 0;">
+                <p style="font-size: 14px; color: #E0D5C9; margin: 0 0 10px 0;">
+                  Status: <strong style="color: #D9534F;">Traffic Limit Capped (100%)</strong>
+                </p>
+                <div style="background-color: #333333; border-radius: 4px; height: 10px; overflow: hidden;">
+                  <div style="background-color: #D9534F; height: 10px; width: 100%;"></div>
+                </div>
+              </div>
+              <p style="font-size: 14px; line-height: 1.6; color: #C5B8A8;">
+                To maintain uninterrupted high-performance delivery for your clients, please upgrade your subscription or request a custom enterprise tier.
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${upgradeUrl}" style="background-color: ${BRAND_COLOR}; color: #111111; font-weight: bold; font-size: 13px; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; letter-spacing: 1.5px; text-transform: uppercase;">
+                  Upgrade Plan Now
+                </a>
+              </div>
+              <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px; margin-top: 30px;">
+                <p style="font-size: 12px; color: #777777; margin: 0;">cimessinvest Infrastructure Team</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #161616; padding: 15px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+              <p style="font-size: 11px; color: #777777; margin: 0;">&copy; ${new Date().getFullYear()} cimessinvest. All Rights Reserved. (cimessinvest.com)</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+  return { subject, html };
+}
+
+export interface SuperadminOtpTemplateProps {
+  otpCode: string;
+  purpose: "INITIALIZATION" | "RECOVERY";
+  expiresInMinutes?: number;
+}
+
+/**
+ * 9. Superadmin Security OTP Email (Initialization or Emergency Recovery)
+ */
+export function getSuperadminOtpEmailHtml({
+  otpCode,
+  purpose,
+  expiresInMinutes = 10,
+}: SuperadminOtpTemplateProps): { subject: string; html: string } {
+  const isInit = purpose === "INITIALIZATION";
+  const subject = isInit
+    ? `🛡️ [CRITICAL] cimessinvest Platform — Superadmin Initialization Verification Code`
+    : `🔑 [SECURITY ALERT] cimessinvest Platform — Superadmin Emergency Recovery Code`;
+
+  const actionHeadline = isInit
+    ? "System Initialization Authorization"
+    : "Emergency Credential Recovery";
+
+  const actionNotice = isInit
+    ? "A request has been initiated to claim and lock the root Superadmin administrative authority for cimessinvest Platform from environment configuration."
+    : "A master credential reset has been requested for the root Superadmin account via emergency security question verification.";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F0F0F; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F5F0EB;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0F0F0F; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #141414; border: 1px solid rgba(201, 169, 110, 0.35); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+          <!-- Header Banner -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1A1A1A 0%, #111111 100%); padding: 35px 30px; text-align: center; border-bottom: 2px solid ${BRAND_COLOR};">
+              <span style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: ${BRAND_COLOR}; font-weight: 700; display: block; margin-bottom: 8px;">
+                PLATFORM ROOT SECURITY
+              </span>
+              <h1 style="color: #FFFFFF; font-size: 24px; font-weight: 700; margin: 0; letter-spacing: 1.5px; text-transform: uppercase;">
+                CIMESSINVEST
+              </h1>
+              <p style="font-size: 12px; color: #A09585; margin: 6px 0 0 0; letter-spacing: 1px;">
+                ${actionHeadline}
+              </p>
+            </td>
+          </tr>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 40px 30px; background-color: #141414;">
+              <p style="font-size: 14px; line-height: 1.6; color: #E0D5C9; margin-top: 0;">
+                ${actionNotice}
+              </p>
+              <div style="background-color: #0D0D0D; border: 1px solid rgba(201, 169, 110, 0.25); border-radius: 6px; padding: 25px; text-align: center; margin: 30px 0;">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #A09585; display: block; margin-bottom: 12px;">
+                  Your 6-Digit Single-Use Security Key
+                </span>
+                <div style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: ${BRAND_COLOR}; font-family: 'Courier New', Courier, monospace; margin: 0;">
+                  ${otpCode}
+                </div>
+                <span style="font-size: 12px; color: #777777; display: block; margin-top: 14px;">
+                  Expires in <strong>${expiresInMinutes} minutes</strong>. Single-use only.
+                </span>
+              </div>
+              <p style="font-size: 13px; line-height: 1.6; color: #A09585; margin: 20px 0 0 0;">
+                🔒 If you did not initiate this authorization, someone may be attempting to access root control of your deployment. Please review your server logs and environment variables immediately.
+              </p>
+              <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px; margin-top: 30px;">
+                <p style="font-size: 11px; color: #666666; margin: 0;">cimessinvest Platform Guardian & Security Core</p>
+              </div>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #0A0A0A; padding: 15px 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+              <p style="font-size: 11px; color: #555555; margin: 0;">&copy; ${new Date().getFullYear()} cimessinvest Infrastructure. Authorized Personnel Only. (cimessinvest.com)</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+  return { subject, html };
+}

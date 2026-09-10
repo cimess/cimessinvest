@@ -135,14 +135,14 @@ export default function RegisterPage() {
         <div className="relative z-10">
           <Link href="/" className="inline-block">
             <span className="font-brand text-2xl tracking-[0.3em] text-[#C9A96E] uppercase font-bold">
-              TI STICHES
+              CIMESSINVEST
             </span>
           </Link>
         </div>
 
         <div className="relative z-10 max-w-md space-y-4">
           <span className="text-xs uppercase tracking-[0.3em] text-[#C9A96E] font-medium">
-            Become a Client
+            Platform Registration
           </span>
           <h2 className="text-4xl font-heading text-[#F5F0EB] leading-tight">
             Begin Your Tailored Fashion Journey
@@ -164,7 +164,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10 text-[10px] uppercase tracking-widest text-[#C9A96E]">
-          © 2026 Ti Stiches Atelier
+          © {new Date().getFullYear()} cimessinvest. All Rights Reserved.
         </div>
       </div>
 
@@ -175,7 +175,7 @@ export default function RegisterPage() {
           <div className="lg:hidden text-center">
             <Link href="/">
               <span className="font-brand text-xl tracking-[0.3em] text-[#C9A96E] uppercase font-bold">
-                TI STICHES
+                CIMESSINVEST
               </span>
             </Link>
           </div>

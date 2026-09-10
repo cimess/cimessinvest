@@ -37,7 +37,7 @@ export const getCachedBrandConfig = unstable_cache(
     try {
       const [siteSetting, userOwner] = await Promise.all([
         prisma.siteSetting.findFirst().catch(() => null),
-        prisma.user.findFirst().catch(() => null),
+        prisma.user.findFirst({ where: { role: { not: "SUPERADMIN" } } }).catch(() => null),
       ]);
 
       const brandName =

@@ -9,10 +9,14 @@ import {connection} from "next/server"
 export default async function Footer() {
   await connection();
 
-const user=await prisma.user.findFirst()
+  const [settings, user] = await Promise.all([
+    prisma.siteSetting.findFirst().catch(() => null),
+    prisma.user.findFirst({ where: { role: { not: "SUPERADMIN" } } }).catch(() => null),
+  ]);
 
-const {phone,companyName,email}=user ||{phone:"",companyName:"",email:""} 
-
+  const companyName = settings?.companyName?.trim() || user?.companyName?.trim() || "cimessinvest";
+  const phone = settings?.whatsappNumber?.trim() || user?.phone?.trim() || "0000000";
+  const email = user?.email || "concierge@cimessinvest.com";
 
   const whatsappUrl = buildWhatsAppUrl(
     phone,
