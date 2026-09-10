@@ -49,3 +49,24 @@ Thumbs.db
 # Local Databases (if any)
 *.db
 *.sqlite
+
+# Internal Security, Performance & Audit Reports
+performance_bottlenecks.md
+security_and_bugs.md
+*bottlenecks*.md
+*bugs*.md
+*audit*.md
+CLAUDE.md
+skills-lock.json
+
+# Local Scratch, Backups & Temporary Files
+scratch/
+temp/
+tmp/
+*.bak
+*.backup
+*.patch
+*.diff
+*.orig
+*.local
+

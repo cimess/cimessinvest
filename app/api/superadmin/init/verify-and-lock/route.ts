@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!initEmail || !initPassword) {
       return NextResponse.json(
-        { error: "SUPERADMIN_INIT_EMAIL or SUPERADMIN_INIT_PASSWORD is not configured in server environment." },
+        { error: "SUPERADMIN_INIT_EMAIL or SUPERADMIN_INIT_PASSWORD is not configured." },
         { status: 500 }
       );
     }
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       !crypto.timingSafeEqual(providedSecretBuffer, expectedSecretBuffer)
     ) {
       return NextResponse.json(
-        { error: "The provided secret does not match the SUPERADMIN_INIT_PASSWORD configured in the environment." },
+        { error: "The provided secret does not match." },
         { status: 403 }
       );
     }

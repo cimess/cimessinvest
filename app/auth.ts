@@ -36,15 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Invalid email or password");
         }
 
-        // 3. Check role and superadmin credentials
-        const assignedRole = user.role || "ADMIN";
-        if (assignedRole === "SUPERADMIN") {
-          const { isSuperAdminEmail } = await import("@/app/lib/auth/superadmin");
-          if (!isSuperAdminEmail(user.email)) {
-            throw new Error("Unauthorized superadmin access");
-          }
-        }
-
+        // 3. Return user object
         return {
           id: user.id,
           email: user.email,
@@ -52,7 +44,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           companyName: user.companyName,
           phone: user.phone,
           authorizationKey: user.authorizationKey,
-          role: assignedRole,
+          role: "manager",
         };
       },
     }),
@@ -74,7 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.companyName = (user).companyName;
         token.phone = (user).phone;
         token.authorizationKey = (user).authorizationKey;
-        token.role = (user).role || "ADMIN";
+        token.role = (user).role || "manager";
       }
       return token;
     },
@@ -84,11 +76,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         (session.user).companyName = token.companyName as string;
         (session.user).authorizationKey = token.authorizationKey as string;
-        (session.user).role = (token.role as string) || "ADMIN";
+        (session.user).role = (token.role as string) || "manager";
       }
       return session;
     },
   },
 
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    process.env.AUTH_SECRET
 });
