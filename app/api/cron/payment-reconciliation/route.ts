@@ -13,10 +13,17 @@ export async function GET(req: NextRequest) {
   try {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization");
+    const { searchParams } = new URL(req.url);
+    const keyParam = searchParams.get("key");
 
     // Secure Cron endpoint against unauthorized invocations
-    // Fail closed if CRON_SECRET is configured and auth header doesn't match
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Check either Authorization: Bearer <CRON_SECRET> or ?key=<CRON_SECRET>
+    const isAuthorized =
+      !cronSecret ||
+      authHeader === `Bearer ${cronSecret}` ||
+      keyParam === cronSecret;
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
     }
 
@@ -28,7 +35,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(req.url);
     const maxAgeHours = Number(searchParams.get("maxAgeHours")) || 72;
 
     const result = await reconcilePendingTransactions(maxAgeHours);
