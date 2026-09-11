@@ -50,6 +50,8 @@ export async function proxy(req: NextRequest) {
     path === "/" || 
     path.startsWith("/collections") ||
     path.startsWith("/image") ||
+    path.startsWith("/invite") ||
+    path.startsWith("/api/team/join") ||
     path === "/superadmin/login" ||
     path.startsWith("/api/superadmin/init") ||
     path.startsWith("/api/superadmin/recovery") ||
@@ -59,11 +61,12 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/api/auth") ||
     path.startsWith("/api/registration") ||
     path.startsWith("/api/register") ||
-    path.startsWith("/api/payment") ||
+    path.startsWith("/api/payment/webhook") ||
     path.startsWith("/api/verifyToken") ||
     path.startsWith("/api/image") ||
     path.startsWith("/api/collections") ||
     path.startsWith("/api/health") ||
+    path.startsWith("/api/cron") ||
     path === "/favicon.ico" ||
     path === "/unauthorized"
   ) {
@@ -116,12 +119,28 @@ export async function proxy(req: NextRequest) {
     return addSecurityHeaders(sessionExpiredResponse);
   }
 
-  // 6. SUPERADMIN EXCLUSIVE ROUTE GUARD
+  const userRole = (token.role as string || "").toUpperCase();
+
+  // 6. MANAGER PRIVACY GUARD: Strictly forbid managers from billing/payment routes & APIs
+  if (userRole === "MANAGER") {
+    if (path.includes("/payment") || path.startsWith("/api/payment")) {
+      if (path.startsWith("/api/")) {
+        return addSecurityHeaders(
+          NextResponse.json(
+            { error: "Forbidden: Store managers are not authorized to access payment billing." },
+            { status: 403 }
+          )
+        );
+      }
+      return addSecurityHeaders(NextResponse.redirect(new URL("/dashboard/1", req.url)));
+    }
+  }
+
+  // 7. SUPERADMIN EXCLUSIVE ROUTE GUARD
   if (
     (path.startsWith("/superadmin") && path !== "/superadmin/login") ||
     (path.startsWith("/api/superadmin") && !path.startsWith("/api/superadmin/init") && !path.startsWith("/api/superadmin/recovery"))
   ) {
-    const userRole = (token.role as string || "").toUpperCase();
     if (userRole !== "SUPERADMIN") {
       if (path.startsWith("/api/")) {
         return addSecurityHeaders(
@@ -135,11 +154,10 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // 7. ROLE-BASED SEGREGATION GUARD FOR DASHBOARD & APIS
+  // 8. ROLE-BASED SEGREGATION GUARD FOR DASHBOARD & APIS
   if (path.startsWith("/dashboard") || path.startsWith("/api/dashboard")) {
-    const userRole = (token.role as string) || "";
     const allowedPaths =
-      ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS[userRole.toUpperCase()] || [];
+      ROLE_PERMISSIONS[userRole] || [];
     const hasPermission = allowedPaths.some((allowedPath) => path.startsWith(allowedPath));
 
     if (!hasPermission) {
@@ -158,19 +176,22 @@ export async function proxy(req: NextRequest) {
   return addSecurityHeaders(NextResponse.next());
 }
 
-// 8. DASHBOARD ROUTER HELPER
+// 9. DASHBOARD ROUTER HELPER
 function redirectToDashboard(role: string, req: NextRequest) {
   const r = (role || "").toUpperCase();
   if (r === "SUPERADMIN") {
     return NextResponse.redirect(new URL("/superadmin", req.url));
   }
-  if (r === "MANAGER" || r === "ADMIN" || r === "USER") {
+  if (r === "MANAGER") {
+    return NextResponse.redirect(new URL("/dashboard/1", req.url));
+  }
+  if (r === "ADMIN" || r === "USER") {
     return NextResponse.redirect(new URL("/dashboard/1/payment", req.url));
   }
   return NextResponse.redirect(new URL("/", req.url));
 }
 
-// 9. ADVANCED SECURITY HEADERS
+// 10. ADVANCED SECURITY HEADERS
 function addSecurityHeaders(response: NextResponse) {
   const headers = response.headers;
   headers.set("X-Frame-Options", "DENY");
@@ -181,12 +202,13 @@ function addSecurityHeaders(response: NextResponse) {
   return response;
 }
 
-// 10. HIGH-PERFORMANCE MATCHER CONFIGURATION
+// 11. HIGH-PERFORMANCE MATCHER CONFIGURATION
 export const config = {
   matcher: [
     "/",
     "/login",
     "/signup",
+    "/invite/:path*",
     "/dashboard/:path*",
     "/superadmin/:path*",
     "/api/:path*",
