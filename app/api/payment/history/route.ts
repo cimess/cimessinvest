@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { getSubscriptionHistoryAndStatus } from "@/app/api/workers/subscriptionWorker";
+import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
 
 export async function GET() {
   try {
@@ -20,8 +21,8 @@ export async function GET() {
     const history = await getSubscriptionHistoryAndStatus(userId);
     return NextResponse.json({ success: true, ...history });
   } catch (error) {
-    const errorMessage ="Failed to fetch payment history";
     console.error("Payment History API Error:", error);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const safeError = getSafeErrorMessage(error, "Failed to fetch payment history");
+    return NextResponse.json({ success: false, error: safeError.message }, { status: safeError.statusCode });
   }
 }

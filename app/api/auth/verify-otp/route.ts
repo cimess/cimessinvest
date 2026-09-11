@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
+import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
 
 /**
  * POST /api/auth/verify-otp
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("[VerifyOTP] Error:", error);
-    const msg = error instanceof Error ? error.message : "Server error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    const safeError = getSafeErrorMessage(error, "Server error");
+    return NextResponse.json({ error: safeError.message }, { status: safeError.statusCode });
   }
 }

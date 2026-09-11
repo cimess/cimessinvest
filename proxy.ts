@@ -45,9 +45,11 @@ export async function proxy(req: NextRequest) {
 
   const path = req.nextUrl.pathname;
 
-  // 3. PUBLIC & STATIC ALLOWLIST (Bypass checks for static assets, NextAuth, etc.)
+  // 3. PUBLIC & STATIC ALLOWLIST (Bypass checks for static assets, public storefront, collections, image preview)
   if (
     path === "/" || 
+    path.startsWith("/collections") ||
+    path.startsWith("/image") ||
     path === "/superadmin/login" ||
     path.startsWith("/api/superadmin/init") ||
     path.startsWith("/api/superadmin/recovery") ||
@@ -72,8 +74,15 @@ export async function proxy(req: NextRequest) {
     return addSecurityHeaders(response);
   }
 
-  // 4. LOGIN / SIGNUP ACCESSIBILITY (If authenticated, redirect to dashboard)
-  if (path === "/login" || path === "/signup" || path === "/superadmin/login") {
+  // 4. LOGIN / SIGNUP / RECOVERY ACCESSIBILITY (If authenticated, redirect to dashboard)
+  if (
+    path === "/login" || 
+    path === "/signup" || 
+    path === "/register" ||
+    path === "/forgot-password" ||
+    path === "/reset-password" ||
+    path === "/superadmin/login"
+  ) {
     if (token) return redirectToDashboard(token.role as string, req);
     const response = NextResponse.next();
     if (!token && activeCookieName) {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/app/components/providers/smootgScrollProvider";
+import AuthProvider from "@/app/components/providers/authProvider";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -24,7 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${playfair.variable} antialiased`}>
       <body className="min-h-screen flex flex-col bg-[#F5F0EB]">
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <AuthProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@ import { finalizeTransactionVerification } from "@/app/api/service/payment.servi
 import { checkUserStorage } from "@/app/api/workers/storageWorker";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { auth } from "@/app/auth";
+import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
 
 export async function GET(req: Request) {
   try {
@@ -84,9 +85,10 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error("Check Status API Error:", error);
+    const safeError = getSafeErrorMessage(error, "Internal server error checking payment status");
     return NextResponse.json(
-      { error: "Internal server error checking payment status" },
-      { status: 500 }
+      { success: false, error: safeError.message },
+      { status: safeError.statusCode }
     );
   }
 }

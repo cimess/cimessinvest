@@ -102,14 +102,16 @@ export default function PaymentSubscriptionPage() {
         callbackUrl: `${window.location.origin}/dashboard/${params?.id || ""}/payment/callback`,
       });
 
-      if (res.data?.authorization_url) {
+      if (res.data?.success) {
         window.location.href = res.data.authorization_url;
       } else {
         throw new Error("Invalid payment authorization URL returned.");
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Payment initialization failed.";
-      setError(msg);
+    const msg =
+  (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+  (err instanceof Error ? err.message : "Payment initialization failed.");
+setError(msg);
     } finally {
       setInitiating(false);
     }

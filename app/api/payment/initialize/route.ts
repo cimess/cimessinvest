@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { initializePaystackTransaction, PlanType } from "@/app/api/service/payment.service";
 
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       customStorageMB: authorizedCustomStorageMB,
       callbackUrl,
     });
-
+if(paymentInitResult && paymentInitResult.success){
     return NextResponse.json({
       success: true,
       message: "Payment initialization successful.",
@@ -50,6 +51,9 @@ export async function POST(req: Request) {
       reference: paymentInitResult.reference,
       access_code: paymentInitResult.access_code,
     });
+  }
+  return NextResponse.json({ message: "Unable to initialize transaction" }, { status: 400 });
+
   } catch (error) {
     // 1. Log full critical/Prisma stack trace in server console
     console.error("Payment Initialization Error:", error);

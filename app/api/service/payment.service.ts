@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma/prisma";
 import crypto from "crypto";
 import { validatePlanDowngradeEligibility } from "@/app/api/workers/storageWorker";
 import { triggerPaymentReceiptEmail } from "@/app/api/workers/emailWorker";
+import { PaymentGatewayError, AppValidationError } from "@/app/lib/utils/errorHandler";
 
 export type PlanType = "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
 
@@ -49,7 +50,9 @@ export async function initializePaystackTransaction({
   // Prevent Downgrade Abuse: Check if current storage usage exceeds the target plan's limit
   const downgradeCheck = await validatePlanDowngradeEligibility(userId, targetStorageLimitMB);
   if (!downgradeCheck.eligible) {
-    throw new Error(downgradeCheck.message);
+    throw new AppValidationError(
+      downgradeCheck.message || "Storage limit exceeded for the selected plan."
+    );
   }
 
   // Determine final payment amount in Kobo (dynamic for Enterprise if customAmountKobo passed)
@@ -73,66 +76,87 @@ export async function initializePaystackTransaction({
   });
 
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
+  if (!secretKey) {
+    throw new PaymentGatewayError("Paystack secret key is not configured.");
+  }
 
-  // Real Paystack API call if secret key exists
-  if (secretKey) {
-    // Map Paystack Plan Codes from environment variables
-    const planCodes: Record<PlanType, string | undefined> = {
-      STARTER: process.env.PAYSTACK_PLAN_STARTER,
-      PROFESSIONAL: process.env.PAYSTACK_PLAN_PROFESSIONAL,
-      ENTERPRISE: process.env.PAYSTACK_PLAN_ENTERPRISE,
-    };
+    // 1. Map Paystack Plan Codes from environment variables
+  const planCodes: Record<"STARTER" | "PROFESSIONAL", string | undefined> = {
+    STARTER: process.env.PAYSTACK_PLAN_STARTER,
+    PROFESSIONAL: process.env.PAYSTACK_PLAN_PROFESSIONAL,
+  };
 
+  // 2. If it's a fixed plan (STARTER or PROFESSIONAL), verify the plan exists
+  if (planSelected !== "ENTERPRISE") {
     const planCode = planCodes[planSelected];
+    const isConfigured = Boolean(planCode && planCode.startsWith("PLN_") );
 
-    const paystackBody: Record<string,unknown> = {
-      email,
-      amount,
-      reference,
-      callback_url: callbackUrl || `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/dashboard/payment/callback`,
-      metadata: {
-        platform: "cimessinvest",
-        userId,
-        planSelected,
-        customStorageMB,
-      },
-    };
-
-    // Attach Paystack Subscription Plan Code if available
-    if (planCode) {
-      paystackBody.plan = planCode;
-    }
-
-    const paystackRes = await fetch("https://api.paystack.co/transaction/initialize", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(paystackBody),
-    });
-
-    const data = await paystackRes.json();
-    if (data.status) {
-      await prisma.transaction.update({
-        where: { reference },
-        data: { paystackAccessCode: data.data.access_code },
-      });
-      return {
-        authorization_url: data.data.authorization_url,
-        reference,
-        access_code: data.data.access_code,
-      };
+    if (!isConfigured) {
+      const planName = planSelected === "STARTER" ? "Starter" : "Professional";
+      throw new PaymentGatewayError(
+        `The ${planName} subscription plan is not active yet. Please contact support or try again later.`
+      );
     }
   }
 
-  // Sandbox / Mock Fallback URL if no Paystack key is set yet
-  const mockCallbackUrl = `${callbackUrl || "http://localhost:3000/dashboard/payment/callback"}?reference=${reference}`;
-  return {
-    authorization_url: mockCallbackUrl,
+  // 3. Prepare Paystack Payload
+  const paystackBody: Record<string, unknown> = {
+    email,
+    amount,
     reference,
-    access_code: `MOCK-CODE-${reference}`,
+    callback_url:
+      callbackUrl ||
+      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/dashboard/payment/callback`,
+    metadata: {
+      platform: "cimessinvest",
+      userId,
+      planSelected,
+      customStorageMB,
+    },
   };
+
+  // 4. Custom Enterprise (Amount Only) vs. Fixed Subscription Plan
+  if (planSelected === "ENTERPRISE") {
+    if (!amount || amount <= 0) {
+      throw new PaymentGatewayError("Invalid payment amount for Custom Enterprise plan.");
+    }
+    // Dynamic pricing: ensure NO plan is attached so Paystack charges ONLY the custom amount
+    delete paystackBody.plan;
+  } else {
+    paystackBody.plan = planCodes[planSelected];
+  }
+
+
+  const paystackRes = await fetch("https://api.paystack.co/transaction/initialize", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(paystackBody),
+  });
+
+  const data = await paystackRes.json();
+  if (data.status) {
+    await prisma.transaction.update({
+      where: { reference },
+      data: { paystackAccessCode: data.data.access_code },
+    });
+    return {
+      success: true,
+      authorization_url: data.data.authorization_url,
+      reference,
+      access_code: data.data.access_code,
+    };
+  }
+
+  console.error("Paystack initialization failed:", data);
+  const paystackErrorMessage =
+    process.env.NODE_ENV === "development"
+      ? (data.message || "Failed to initialize Paystack transaction.")
+      : (data.message || "Payment initialization failed. Please try again.");
+
+  throw new PaymentGatewayError(paystackErrorMessage);
 }
 
 
