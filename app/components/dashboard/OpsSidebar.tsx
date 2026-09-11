@@ -29,7 +29,7 @@ export function OpsSidebar({
   const { data: session } = useSession();
   const companyName = (session?.user as any)?.companyName?.trim() || "cimessinvest";
 
-  const role = "manager";
+  const role = (session?.user as any)?.role || "ADMIN";
   const userRole = role.toLowerCase();
   const items = modulesForRole(userRole);
 

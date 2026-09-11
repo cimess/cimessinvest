@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { 
   ShieldCheck, 
   RefreshCw, 
@@ -31,7 +31,7 @@ export interface UserSubscriptionDetails {
   id?: string;
   companyName?: string;
   email?: string;
-  role?: "ADMIN" | "USER";
+  role?: "ADMIN" | "USER" | "MANAGER";
   paymentVerified?: boolean;
   planSelected?: "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
   subscription_status?: string;
@@ -42,7 +42,14 @@ export interface UserSubscriptionDetails {
 export default function PaymentSubscriptionPage() {
   const { data: session } = useSession();
   const params = useParams();
+  const router = useRouter();
   const [userInfo, setUserInfo] = useState<UserSubscriptionDetails | null>(null);
+
+  useEffect(() => {
+    if ((session?.user as any)?.role === "MANAGER") {
+      router.replace("/dashboard/1");
+    }
+  }, [session, router]);
   const [transactions, setTransactions] = useState<MergedTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [initiating, setInitiating] = useState(false);

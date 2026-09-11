@@ -18,6 +18,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized access: Active session required" }, { status: 401 });
     }
 
+    const userRole = (session?.user?.role || "").toUpperCase();
+    if (userRole === "MANAGER") {
+      return NextResponse.json(
+        { error: "Forbidden: Store managers are not authorized to view payment history." },
+        { status: 403 }
+      );
+    }
+
     const history = await getSubscriptionHistoryAndStatus(userId);
     return NextResponse.json({ success: true, ...history });
   } catch (error) {

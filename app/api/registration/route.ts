@@ -3,7 +3,8 @@ import { prisma } from "@/app/lib/prisma/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { triggerWelcomeEmail, triggerSignupOTP } from "@/app/api/workers/emailWorker";
-import { checkEmailUniqueness, checkTeamMemberLimitAndRole } from "@/app/api/workers/teamWorker";
+import { checkEmailUniqueness, checkAdminRegistrationEligibility } from "@/app/api/workers/teamWorker";
+import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
 
 export async function POST(req: Request) {
   try {
@@ -40,11 +41,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Worker Check: Role Assignment (ADMIN vs USER) & Plan Seat Limits
-    const teamCheck = await checkTeamMemberLimitAndRole();
-    if (!teamCheck.allowed) {
+    // 3. Platform Single-Atelier Policy: Only one Admin can register on this deployment
+    const adminEligibility = await checkAdminRegistrationEligibility();
+    if (!adminEligibility.allowed) {
       return NextResponse.json(
-        { error: teamCheck.message || "Team user limit reached for current workspace plan." },
+        { error: adminEligibility.message || "Platform registration is closed. An administrator is already registered for this atelier." },
         { status: 403 }
       );
     }
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
     const expiryDate = new Date();
     expiryDate.setMinutes(expiryDate.getMinutes() + 15);
 
-    // 6. Create New User with Assigned Role
+    // 6. Create New Administrator Account
     const user = await prisma.user.create({
       data: {
         companyName: name.trim(),
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
         phone: phone.trim(),
         password: hashedPassword,
         authorizationKey,
-        role: teamCheck.assignedRole,
+        role: "ADMIN",
         paymentVerified: false,
         planSelected: "STARTER",
         subscription_status: "INACTIVE",
@@ -113,9 +114,10 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Registration Error:", error);
+    const safeError = getSafeErrorMessage(error, "An unexpected error occurred during registration.");
     return NextResponse.json(
-      { error: "An unexpected server error occurred during registration." },
-      { status: 500 }
+      { error: safeError.message },
+      { status: safeError.statusCode }
     );
   }
 }

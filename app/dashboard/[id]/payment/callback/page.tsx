@@ -88,6 +88,9 @@ function CallbackContent() {
           setStatus("SUCCESS");
           setMessage("Payment verified successfully! Your subscription and storage capacity are active.");
           setDetails(res.data as TransactionCheckResponse);
+        } else if (res.data && res.data.status === "FAILED") {
+          setStatus("FAILED");
+          setMessage(res.data.message || "Payment transaction was declined, cancelled, or failed.");
         } else {
           if (currentAttempt < MAX_ATTEMPTS) {
             startCountdownAndRetry();

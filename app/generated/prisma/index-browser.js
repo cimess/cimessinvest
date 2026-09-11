@@ -139,10 +139,20 @@ exports.Prisma.UserScalarFieldEnum = {
   trafficNotified100: 'trafficNotified100',
   lastTrafficReset: 'lastTrafficReset',
   role: 'role',
+  adminId: 'adminId',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InviteScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  adminId: 'adminId',
+  expiresAt: 'expiresAt',
+  used: 'used',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.CustomPlanQuoteScalarFieldEnum = {
@@ -180,6 +190,7 @@ exports.Prisma.ImageScalarFieldEnum = {
   category: 'category',
   group: 'group',
   placement: 'placement',
+  adminId: 'adminId',
   createdAt: 'createdAt'
 };
 
@@ -236,6 +247,7 @@ exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
 exports.UserRole = exports.$Enums.UserRole = {
   SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
   USER: 'USER'
 };
 
@@ -247,6 +259,7 @@ exports.TransactionStatus = exports.$Enums.TransactionStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  Invite: 'Invite',
   CustomPlanQuote: 'CustomPlanQuote',
   Transaction: 'Transaction',
   Image: 'Image',

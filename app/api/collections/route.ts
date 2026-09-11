@@ -45,15 +45,17 @@ export async function GET(req: Request) {
 
 // 2. POST: Save new Cloudinary item into Database
 export async function POST(req: Request) {
-
   const session = await auth();
-  if (!session || session.user?.role !== "ADMIN") {
+  const userRole = (session?.user?.role || "").toUpperCase();
+
+  if (!session || (userRole !== "ADMIN" && userRole !== "MANAGER" && userRole !== "SUPERADMIN")) {
     return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
   }
 
-
   try {
     const { url, title, category, size, type, group, placement } = await req.json();
+
+    const effectiveAdminId = (session.user as any)?.adminId || session.user.id;
 
     const newItem = await prisma.image.create({
       data: {
@@ -64,8 +66,15 @@ export async function POST(req: Request) {
         placement: placement || "both",
         size: size ? Number(size) : null,
         type: type || "image",
+        adminId: effectiveAdminId,
       },
     });
+
+    // Asynchronously synchronize storage usage for workspace
+    const { checkUserStorage } = await import("@/app/api/workers/storageWorker");
+    checkUserStorage(effectiveAdminId, true).catch((err) =>
+      console.error("[Collections POST] Storage recalculation error:", err)
+    );
 
     return NextResponse.json(newItem, { status: 201 });
   } catch (error) {

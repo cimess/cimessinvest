@@ -44,7 +44,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           companyName: user.companyName,
           phone: user.phone,
           authorizationKey: user.authorizationKey,
-          role: "manager",
+          role: user.role,
+          adminId: user.adminId,
         };
       },
     }),
@@ -63,10 +64,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.companyName = (user).companyName;
-        token.phone = (user).phone;
-        token.authorizationKey = (user).authorizationKey;
-        token.role = (user).role || "manager";
+        token.companyName = (user as any).companyName;
+        token.phone = (user as any).phone;
+        token.authorizationKey = (user as any).authorizationKey;
+        token.role = (user as any).role || "USER";
+        token.adminId = (user as any).adminId || null;
       }
       return token;
     },
@@ -74,9 +76,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user).companyName = token.companyName as string;
-        (session.user).authorizationKey = token.authorizationKey as string;
-        (session.user).role = (token.role as string) || "manager";
+        (session.user as any).companyName = token.companyName as string;
+        (session.user as any).authorizationKey = token.authorizationKey as string;
+        (session.user as any).role = (token.role as string) || "USER";
+        (session.user as any).adminId = (token.adminId as string) || null;
       }
       return session;
     },

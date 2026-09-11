@@ -26,6 +26,7 @@ enum SubscriptionStatus {
 enum UserRole {
   SUPERADMIN
   ADMIN
+  MANAGER
   USER
 }
 
@@ -61,12 +62,30 @@ model User {
   customQuotes CustomPlanQuote[]
   role         UserRole          @default(ADMIN)
 
+  // --- Team Parent-Child Relation ---
+  adminId  String?
+  admin    User?    @relation("AdminManagers", fields: [adminId], references: [id], onDelete: Cascade)
+  managers User[]   @relation("AdminManagers")
+  invites  Invite[]
+
   // OTP Password Reset fields
   resetToken       String?
   resetTokenExpiry DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  adminId   String
+  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
 }
 
 model CustomPlanQuote {
@@ -111,10 +130,12 @@ model Image {
   category  String // Collection category (e.g. "Agbada", "Senator", "Joggers")
   group     String?  @default("Native") // "Native" | "Modern"
   placement String?  @default("both") // "collection" | "story" | "both"
+  adminId   String? // Scoped to specific atelier administrator
   createdAt DateTime @default(now())
 
   @@index([category, createdAt(sort: Desc)])
   @@index([group, createdAt(sort: Desc)])
+  @@index([adminId])
 }
 
 // 3. Site Theme & Settings Table

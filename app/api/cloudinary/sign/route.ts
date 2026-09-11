@@ -24,24 +24,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No session found" }, { status: 401 });
   }
 
-    let userId = session.user?.id;
-    if (!userId && session.user?.email) {
-      const dbUser = await prisma.user.findFirst({ where: { email: session.user.email } });
-      userId = dbUser?.id || "";
+    let userId = session.user?.id || "";
+    let adminId = (session.user as any)?.adminId;
+
+    if ((!userId || adminId === undefined) && session.user?.email) {
+      const dbUser = await prisma.user.findFirst({
+        where: { email: session.user.email },
+        select: { id: true, adminId: true, role: true }
+      });
+      if (dbUser) {
+        userId = dbUser.id;
+        adminId = dbUser.adminId;
+      }
     }
 
-    
+    const effectiveAdminId = adminId || userId;
     const { resourceType, fileSize } = await req.json();
 
-      // Optional: Use worker to check if user can upload the file BEFORE generating signature
-  const uploadCheck = await canUserUpload(userId, fileSize);
-  if (!uploadCheck.allowed) {
-    return NextResponse.json(
-      { error: uploadCheck.message || "Storage quota exceeded or file too large" },
-      { status: 400 }
-    );
-  }
-
+    // Check if user (or their workspace admin) can upload the file
+    const uploadCheck = await canUserUpload(effectiveAdminId, fileSize);
+    if (!uploadCheck.allowed) {
+      return NextResponse.json(
+        { error: uploadCheck.message || "Storage quota exceeded or file too large" },
+        { status: 400 }
+      );
+    }
 
     // 1. Validate File Size & Resource Type on the Backend
     if (resourceType === "image" && fileSize > MAX_IMAGE_SIZE) {
@@ -52,7 +59,7 @@ export async function POST(req: Request) {
     }
 
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const folder = userId ? `cimessinvest-catalog/tenants/${userId}` : "cimessinvest-catalog";
+    const folder = effectiveAdminId ? `cimessinvest-catalog/tenants/${effectiveAdminId}` : "cimessinvest-catalog";
 
     // 2. Generate Cloudinary Signature
     const signature = cloudinary.utils.api_sign_request(

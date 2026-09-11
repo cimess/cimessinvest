@@ -12,6 +12,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized: Active session required" }, { status: 401 });
     }
 
+    const userRole = (session?.user?.role || "").toUpperCase();
+    if (userRole === "MANAGER") {
+      return NextResponse.json(
+        { error: "Forbidden: Store managers are not authorized to check payment transactions." },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const reference = searchParams.get("reference");
 
@@ -48,11 +56,23 @@ export async function GET(req: Request) {
     const isPaid = transaction.status === "COMPLETED" || verification?.success === true;
 
     if (!isPaid) {
+      const isFailed = transaction.status === "FAILED" || verification?.status === "FAILED";
+      if (isFailed) {
+        return NextResponse.json(
+          {
+            success: false,
+            status: "FAILED",
+            message: verification?.message || "Payment transaction failed, was cancelled, or timed out. Please try again.",
+          },
+          { status: 200 }
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
           status: "PENDING",
-          message: "Payment verification in progress. Please wait...",
+          message: verification?.message || "Payment verification in progress. Please wait...",
         },
         { status: 200 }
       );

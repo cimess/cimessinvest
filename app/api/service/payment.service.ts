@@ -201,22 +201,80 @@ export async function finalizeTransactionVerification(reference: string) {
 
   // On-the-Fly Server Verification Call to Paystack (Edge Case A Fallback)
   if (secretKey) {
-    const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
-      },
-    });
+    try {
+      const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
+        signal: AbortSignal.timeout(3000),
+      });
 
-    const data = await paystackRes.json();
-    isVerifiedOnPaystack = data.status && data.data?.status === "success";
+      const data = await paystackRes.json();
+
+      // 1. Transaction succeeded on Paystack
+      if (data.status && data.data?.status === "success") {
+        isVerifiedOnPaystack = true;
+      } else if (
+        data.status &&
+        (data.data?.status === "failed" || data.data?.status === "abandoned" || data.data?.status === "reversed")
+      ) {
+        // 2. Explicit failure, abandonment, or reversal from Paystack -> Update DB to FAILED
+        await prisma.transaction.update({
+          where: { reference },
+          data: { status: "FAILED" },
+        });
+
+        return {
+          success: false,
+          status: "FAILED",
+          message: data.data?.gateway_response || data.message || `Payment ${data.data?.status || "failed"}.`,
+        };
+      } else if (!data.status) {
+        // 3. Paystack returned false (reference not found on gateway or expired session)
+        const ageMs = Date.now() - new Date(transaction.createdAt).getTime();
+        if (ageMs > 15 * 60 * 1000) {
+          await prisma.transaction.update({
+            where: { reference },
+            data: { status: "FAILED" },
+          });
+
+          return {
+            success: false,
+            status: "FAILED",
+            message: data.message || "Payment session expired or not found on Paystack.",
+          };
+        }
+
+        return { success: false, status: "PENDING", message: data.message || "Transaction not yet verified." };
+      } else {
+        // Still pending / ongoing on Paystack
+        return { success: false, status: "PENDING", message: "Transaction pending authorization on Paystack." };
+      }
+    } catch (fetchErr) {
+      console.error(`[PaymentService] Verification fetch error for ${reference}:`, fetchErr);
+      const ageMs = Date.now() - new Date(transaction.createdAt).getTime();
+      // If checkout session is older than 30 minutes, mark as FAILED
+      if (ageMs > 30 * 60 * 1000) {
+        await prisma.transaction.update({
+          where: { reference },
+          data: { status: "FAILED" },
+        });
+        return {
+          success: false,
+          status: "FAILED",
+          message: "Payment session expired after 30+ minutes.",
+        };
+      }
+      return { success: false, status: "PENDING", message: "Temporary gateway verification error." };
+    }
   }
 
   if (!isVerifiedOnPaystack) {
     return { success: false, status: "PENDING", message: "Transaction pending or not verified." };
   }
 
-  // Update DB Transaction Status
+  // Update DB Transaction Status to COMPLETED
   await prisma.transaction.update({
     where: { reference },
     data: { status: "COMPLETED" },
@@ -290,4 +348,139 @@ export async function finalizeTransactionVerification(reference: string) {
     planSelected: transaction.planSelected,
     storageLimitMB: newStorageLimitMB,
   };
+}
+
+export interface ReconciliationResult {
+  totalPendingChecked: number;
+  completed: Array<{ reference: string; userEmail: string; plan: string }>;
+  failed: Array<{ reference: string; reason: string }>;
+  stillPending: Array<{ reference: string; ageMinutes: number }>;
+}
+
+/**
+ * Reconciles all lingering PENDING transactions against Paystack.
+ * Automatically completes valid transactions and marks failed/abandoned/expired ones as FAILED.
+ */
+export async function reconcilePendingTransactions(maxAgeHours: number = 72): Promise<ReconciliationResult> {
+  const cutoffDate = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
+
+  const pendingTransactions = await prisma.transaction.findMany({
+    where: {
+      status: "PENDING",
+      createdAt: { gte: cutoffDate },
+    },
+    include: { user: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const result: ReconciliationResult = {
+    totalPendingChecked: pendingTransactions.length,
+    completed: [],
+    failed: [],
+    stillPending: [],
+  };
+
+  const secretKey = process.env.PAYSTACK_SECRET_KEY;
+
+  for (const tx of pendingTransactions) {
+    const ageMs = Date.now() - new Date(tx.createdAt).getTime();
+    const ageMinutes = Math.round(ageMs / (60 * 1000));
+
+    // Allow user 10 minutes from initialization to finish paying
+    if (ageMinutes < 10) {
+      result.stillPending.push({ reference: tx.reference, ageMinutes });
+      continue;
+    }
+
+    if (!secretKey) {
+      // Sandbox fallback: mark older than 30 mins as FAILED
+      if (ageMinutes >= 30) {
+        await prisma.transaction.update({
+          where: { id: tx.id },
+          data: { status: "FAILED" },
+        });
+        result.failed.push({ reference: tx.reference, reason: "Sandbox expired checkout" });
+      } else {
+        result.stillPending.push({ reference: tx.reference, ageMinutes });
+      }
+      continue;
+    }
+
+    try {
+      const paystackRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(tx.reference)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
+        signal: AbortSignal.timeout(3000),
+      });
+
+      const data = await paystackRes.json();
+
+      if (data.status && data.data?.status === "success") {
+        // Succeeded on Paystack! Finalize in DB and activate user
+        await finalizeTransactionVerification(tx.reference);
+        result.completed.push({
+          reference: tx.reference,
+          userEmail: tx.user.email,
+          plan: tx.planSelected,
+        });
+      } else if (
+        data.status &&
+        (data.data?.status === "failed" || data.data?.status === "abandoned" || data.data?.status === "reversed")
+      ) {
+        // Explicit failure, abandoned modal, or reversal
+        await prisma.transaction.update({
+          where: { id: tx.id },
+          data: { status: "FAILED" },
+        });
+        result.failed.push({
+          reference: tx.reference,
+          reason: data.data?.gateway_response || `Paystack reported ${data.data?.status}`,
+        });
+      } else if (!data.status) {
+        // Paystack reference not found (never initiated or expired)
+        if (ageMinutes >= 20) {
+          await prisma.transaction.update({
+            where: { id: tx.id },
+            data: { status: "FAILED" },
+          });
+          result.failed.push({
+            reference: tx.reference,
+            reason: data.message || "Reference not found on Paystack (expired session)",
+          });
+        } else {
+          result.stillPending.push({ reference: tx.reference, ageMinutes });
+        }
+      } else {
+        // Still marked as ongoing / pending on Paystack
+        // If older than 30 minutes, Paystack checkout session has expired
+        if (ageMinutes >= 30) {
+          await prisma.transaction.update({
+            where: { id: tx.id },
+            data: { status: "FAILED" },
+          });
+          result.failed.push({
+            reference: tx.reference,
+            reason: "Checkout session expired after 30+ minutes without completion",
+          });
+        } else {
+          result.stillPending.push({ reference: tx.reference, ageMinutes });
+        }
+      }
+    } catch (err: any) {
+      console.error(`[Reconciliation] Error verifying ${tx.reference}:`, err);
+      if (ageMinutes >= 30) {
+        await prisma.transaction.update({
+          where: { id: tx.id },
+          data: { status: "FAILED" },
+        });
+        result.failed.push({ reference: tx.reference, reason: "Gateway unreachable; timed out after 30m" });
+      } else {
+        result.stillPending.push({ reference: tx.reference, ageMinutes });
+      }
+    }
+  }
+
+  return result;
 }

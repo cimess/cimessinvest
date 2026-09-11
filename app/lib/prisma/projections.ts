@@ -10,6 +10,7 @@ export const SAFE_USER_SELECT = {
   email: true,
   phone: true,
   role: true,
+  adminId: true,
   paymentVerified: true,
   planSelected: true,
   subscription_status: true,

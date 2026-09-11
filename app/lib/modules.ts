@@ -26,7 +26,14 @@ export const MODULES: ModuleItem[] = [
 ];
 
 export function modulesForRole(role: string) {
-  return MODULES.filter((m) => m.roles.includes(role));
+  const normRole = (role || "").toLowerCase();
+  return MODULES.filter((m) => {
+    // Store managers are strictly prohibited from viewing or accessing billing/payments
+    if (normRole === "manager" && m.key === "payment") {
+      return false;
+    }
+    return true;
+  });
 }
 
 export function moduleHref(role: string, modulePath: string) {

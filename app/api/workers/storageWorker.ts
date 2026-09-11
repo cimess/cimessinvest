@@ -44,8 +44,8 @@ export async function checkUserStorage(
   userId: string,
   syncWithMediaTable: boolean = false
 ): Promise<StorageStatus> {
-  // 1. Fetch user storage info from DB
-  const user = await prisma.user.findUnique({
+  // 1. Fetch user storage info from DB (resolving manager to admin if applicable)
+  let user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -54,11 +54,33 @@ export async function checkUserStorage(
       planSelected: true,
       storageUsed: true,
       storageLimit: true,
+      role: true,
+      adminId: true,
     },
   });
 
   if (!user) {
     throw new Error(`User with ID "${userId}" not found.`);
+  }
+
+  // If user is a MANAGER with an adminId, resolve to their workspace administrator
+  if (user.role === "MANAGER" && user.adminId) {
+    const adminUser = await prisma.user.findUnique({
+      where: { id: user.adminId },
+      select: {
+        id: true,
+        email: true,
+        companyName: true,
+        planSelected: true,
+        storageUsed: true,
+        storageLimit: true,
+        role: true,
+        adminId: true,
+      },
+    });
+    if (adminUser) {
+      user = adminUser;
+    }
   }
 
   let storageUsedMB = user.storageUsed ?? 0;
@@ -67,6 +89,12 @@ export async function checkUserStorage(
   // 2. Optionally synchronize by summing actual asset sizes in the Image table
   if (syncWithMediaTable) {
     const aggregateResult = await prisma.image.aggregate({
+      where: {
+        OR: [
+          { adminId: user.id },
+          { adminId: null }, // for existing legacy images
+        ],
+      },
       _sum: {
         size: true, // size stored in bytes
       },
@@ -76,9 +104,9 @@ export async function checkUserStorage(
     // Convert Bytes to MB (1 MB = 1024 * 1024 Bytes)
     storageUsedMB = Math.ceil(totalBytes / (1024 * 1024));
 
-    // Persist recalculated storage back to User model
+    // Persist recalculated storage back to Admin User model
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { storageUsed: storageUsedMB },
     });
   }

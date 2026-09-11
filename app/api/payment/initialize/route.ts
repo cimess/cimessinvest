@@ -10,6 +10,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Unauthorized user session" }, { status: 401 });
     }
 
+    const userRole = (session.user.role || "").toUpperCase();
+    if (userRole === "MANAGER") {
+      return NextResponse.json(
+        { message: "Forbidden: Store managers are not permitted to manage billing or initiate payments." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { planSelected, callbackUrl } = body;
 

@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model Invite
+ * 
+ */
+export type Invite = $Result.DefaultSelection<Prisma.$InvitePayload>
+/**
  * Model CustomPlanQuote
  * 
  */
@@ -68,6 +73,7 @@ export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof Subscr
 export const UserRole: {
   SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
   USER: 'USER'
 };
 
@@ -230,6 +236,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.invite`: Exposes CRUD operations for the **Invite** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Invites
+    * const invites = await prisma.invite.findMany()
+    * ```
+    */
+  get invite(): Prisma.InviteDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.customPlanQuote`: Exposes CRUD operations for the **CustomPlanQuote** model.
@@ -728,6 +744,7 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    Invite: 'Invite',
     CustomPlanQuote: 'CustomPlanQuote',
     Transaction: 'Transaction',
     Image: 'Image',
@@ -748,7 +765,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "customPlanQuote" | "transaction" | "image" | "siteSetting" | "analyticsMetrics"
+      modelProps: "user" | "invite" | "customPlanQuote" | "transaction" | "image" | "siteSetting" | "analyticsMetrics"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -823,6 +840,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      Invite: {
+        payload: Prisma.$InvitePayload<ExtArgs>
+        fields: Prisma.InviteFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InviteFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InviteFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          findFirst: {
+            args: Prisma.InviteFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InviteFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          findMany: {
+            args: Prisma.InviteFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>[]
+          }
+          create: {
+            args: Prisma.InviteCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          createMany: {
+            args: Prisma.InviteCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InviteCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>[]
+          }
+          delete: {
+            args: Prisma.InviteDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          update: {
+            args: Prisma.InviteUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          deleteMany: {
+            args: Prisma.InviteDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InviteUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InviteUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>[]
+          }
+          upsert: {
+            args: Prisma.InviteUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvitePayload>
+          }
+          aggregate: {
+            args: Prisma.InviteAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInvite>
+          }
+          groupBy: {
+            args: Prisma.InviteGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InviteGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InviteCountArgs<ExtArgs>
+            result: $Utils.Optional<InviteCountAggregateOutputType> | number
           }
         }
       }
@@ -1320,6 +1411,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    invite?: InviteOmit
     customPlanQuote?: CustomPlanQuoteOmit
     transaction?: TransactionOmit
     image?: ImageOmit
@@ -1407,11 +1499,15 @@ export namespace Prisma {
   export type UserCountOutputType = {
     transactions: number
     customQuotes: number
+    managers: number
+    invites: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
     customQuotes?: boolean | UserCountOutputTypeCountCustomQuotesArgs
+    managers?: boolean | UserCountOutputTypeCountManagersArgs
+    invites?: boolean | UserCountOutputTypeCountInvitesArgs
   }
 
   // Custom InputTypes
@@ -1437,6 +1533,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountCustomQuotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CustomPlanQuoteWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountManagersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountInvitesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InviteWhereInput
   }
 
 
@@ -1489,6 +1599,7 @@ export namespace Prisma {
     trafficNotified100: boolean | null
     lastTrafficReset: Date | null
     role: $Enums.UserRole | null
+    adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1514,6 +1625,7 @@ export namespace Prisma {
     trafficNotified100: boolean | null
     lastTrafficReset: Date | null
     role: $Enums.UserRole | null
+    adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1539,6 +1651,7 @@ export namespace Prisma {
     trafficNotified100: number
     lastTrafficReset: number
     role: number
+    adminId: number
     resetToken: number
     resetTokenExpiry: number
     createdAt: number
@@ -1580,6 +1693,7 @@ export namespace Prisma {
     trafficNotified100?: true
     lastTrafficReset?: true
     role?: true
+    adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1605,6 +1719,7 @@ export namespace Prisma {
     trafficNotified100?: true
     lastTrafficReset?: true
     role?: true
+    adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1630,6 +1745,7 @@ export namespace Prisma {
     trafficNotified100?: true
     lastTrafficReset?: true
     role?: true
+    adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1742,6 +1858,7 @@ export namespace Prisma {
     trafficNotified100: boolean
     lastTrafficReset: Date
     role: $Enums.UserRole
+    adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date
@@ -1786,12 +1903,16 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
     role?: boolean
+    adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     customQuotes?: boolean | User$customQuotesArgs<ExtArgs>
+    admin?: boolean | User$adminArgs<ExtArgs>
+    managers?: boolean | User$managersArgs<ExtArgs>
+    invites?: boolean | User$invitesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1814,10 +1935,12 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
     role?: boolean
+    adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    admin?: boolean | User$adminArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -1839,10 +1962,12 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
     role?: boolean
+    adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    admin?: boolean | User$adminArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -1864,26 +1989,37 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
     role?: boolean
+    adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "authorizationKey" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "monthlyVisits" | "trafficLimit" | "trafficNotified80" | "trafficNotified100" | "lastTrafficReset" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "authorizationKey" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "monthlyVisits" | "trafficLimit" | "trafficNotified80" | "trafficNotified100" | "lastTrafficReset" | "role" | "adminId" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     customQuotes?: boolean | User$customQuotesArgs<ExtArgs>
+    admin?: boolean | User$adminArgs<ExtArgs>
+    managers?: boolean | User$managersArgs<ExtArgs>
+    invites?: boolean | User$invitesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type UserIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    admin?: boolean | User$adminArgs<ExtArgs>
+  }
+  export type UserIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    admin?: boolean | User$adminArgs<ExtArgs>
+  }
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
     objects: {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       customQuotes: Prisma.$CustomPlanQuotePayload<ExtArgs>[]
+      admin: Prisma.$UserPayload<ExtArgs> | null
+      managers: Prisma.$UserPayload<ExtArgs>[]
+      invites: Prisma.$InvitePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1904,6 +2040,7 @@ export namespace Prisma {
       trafficNotified100: boolean
       lastTrafficReset: Date
       role: $Enums.UserRole
+      adminId: string | null
       resetToken: string | null
       resetTokenExpiry: Date | null
       createdAt: Date
@@ -2304,6 +2441,9 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     customQuotes<T extends User$customQuotesArgs<ExtArgs> = {}>(args?: Subset<T, User$customQuotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanQuotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    admin<T extends User$adminArgs<ExtArgs> = {}>(args?: Subset<T, User$adminArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    managers<T extends User$managersArgs<ExtArgs> = {}>(args?: Subset<T, User$managersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    invites<T extends User$invitesArgs<ExtArgs> = {}>(args?: Subset<T, User$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2351,6 +2491,7 @@ export namespace Prisma {
     readonly trafficNotified100: FieldRef<"User", 'Boolean'>
     readonly lastTrafficReset: FieldRef<"User", 'DateTime'>
     readonly role: FieldRef<"User", 'UserRole'>
+    readonly adminId: FieldRef<"User", 'String'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
@@ -2609,6 +2750,10 @@ export namespace Prisma {
      */
     data: UserCreateManyInput | UserCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -2679,6 +2824,10 @@ export namespace Prisma {
      * Limit how many Users to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -2796,6 +2945,73 @@ export namespace Prisma {
   }
 
   /**
+   * User.admin
+   */
+  export type User$adminArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+  }
+
+  /**
+   * User.managers
+   */
+  export type User$managersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    cursor?: UserWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+  }
+
+  /**
+   * User.invites
+   */
+  export type User$invitesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    where?: InviteWhereInput
+    orderBy?: InviteOrderByWithRelationInput | InviteOrderByWithRelationInput[]
+    cursor?: InviteWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: InviteScalarFieldEnum | InviteScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2811,6 +3027,1082 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Invite
+   */
+
+  export type AggregateInvite = {
+    _count: InviteCountAggregateOutputType | null
+    _min: InviteMinAggregateOutputType | null
+    _max: InviteMaxAggregateOutputType | null
+  }
+
+  export type InviteMinAggregateOutputType = {
+    id: string | null
+    token: string | null
+    adminId: string | null
+    expiresAt: Date | null
+    used: boolean | null
+    createdAt: Date | null
+  }
+
+  export type InviteMaxAggregateOutputType = {
+    id: string | null
+    token: string | null
+    adminId: string | null
+    expiresAt: Date | null
+    used: boolean | null
+    createdAt: Date | null
+  }
+
+  export type InviteCountAggregateOutputType = {
+    id: number
+    token: number
+    adminId: number
+    expiresAt: number
+    used: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type InviteMinAggregateInputType = {
+    id?: true
+    token?: true
+    adminId?: true
+    expiresAt?: true
+    used?: true
+    createdAt?: true
+  }
+
+  export type InviteMaxAggregateInputType = {
+    id?: true
+    token?: true
+    adminId?: true
+    expiresAt?: true
+    used?: true
+    createdAt?: true
+  }
+
+  export type InviteCountAggregateInputType = {
+    id?: true
+    token?: true
+    adminId?: true
+    expiresAt?: true
+    used?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type InviteAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Invite to aggregate.
+     */
+    where?: InviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invites to fetch.
+     */
+    orderBy?: InviteOrderByWithRelationInput | InviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Invites
+    **/
+    _count?: true | InviteCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InviteMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InviteMaxAggregateInputType
+  }
+
+  export type GetInviteAggregateType<T extends InviteAggregateArgs> = {
+        [P in keyof T & keyof AggregateInvite]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInvite[P]>
+      : GetScalarType<T[P], AggregateInvite[P]>
+  }
+
+
+
+
+  export type InviteGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InviteWhereInput
+    orderBy?: InviteOrderByWithAggregationInput | InviteOrderByWithAggregationInput[]
+    by: InviteScalarFieldEnum[] | InviteScalarFieldEnum
+    having?: InviteScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InviteCountAggregateInputType | true
+    _min?: InviteMinAggregateInputType
+    _max?: InviteMaxAggregateInputType
+  }
+
+  export type InviteGroupByOutputType = {
+    id: string
+    token: string
+    adminId: string
+    expiresAt: Date
+    used: boolean
+    createdAt: Date
+    _count: InviteCountAggregateOutputType | null
+    _min: InviteMinAggregateOutputType | null
+    _max: InviteMaxAggregateOutputType | null
+  }
+
+  type GetInviteGroupByPayload<T extends InviteGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InviteGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InviteGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InviteGroupByOutputType[P]>
+            : GetScalarType<T[P], InviteGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InviteSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    token?: boolean
+    adminId?: boolean
+    expiresAt?: boolean
+    used?: boolean
+    createdAt?: boolean
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["invite"]>
+
+  export type InviteSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    token?: boolean
+    adminId?: boolean
+    expiresAt?: boolean
+    used?: boolean
+    createdAt?: boolean
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["invite"]>
+
+  export type InviteSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    token?: boolean
+    adminId?: boolean
+    expiresAt?: boolean
+    used?: boolean
+    createdAt?: boolean
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["invite"]>
+
+  export type InviteSelectScalar = {
+    id?: boolean
+    token?: boolean
+    adminId?: boolean
+    expiresAt?: boolean
+    used?: boolean
+    createdAt?: boolean
+  }
+
+  export type InviteOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "token" | "adminId" | "expiresAt" | "used" | "createdAt", ExtArgs["result"]["invite"]>
+  export type InviteInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type InviteIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type InviteIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    admin?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $InvitePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Invite"
+    objects: {
+      admin: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      token: string
+      adminId: string
+      expiresAt: Date
+      used: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["invite"]>
+    composites: {}
+  }
+
+  type InviteGetPayload<S extends boolean | null | undefined | InviteDefaultArgs> = $Result.GetResult<Prisma.$InvitePayload, S>
+
+  type InviteCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InviteFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InviteCountAggregateInputType | true
+    }
+
+  export interface InviteDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Invite'], meta: { name: 'Invite' } }
+    /**
+     * Find zero or one Invite that matches the filter.
+     * @param {InviteFindUniqueArgs} args - Arguments to find a Invite
+     * @example
+     * // Get one Invite
+     * const invite = await prisma.invite.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InviteFindUniqueArgs>(args: SelectSubset<T, InviteFindUniqueArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Invite that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InviteFindUniqueOrThrowArgs} args - Arguments to find a Invite
+     * @example
+     * // Get one Invite
+     * const invite = await prisma.invite.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InviteFindUniqueOrThrowArgs>(args: SelectSubset<T, InviteFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Invite that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteFindFirstArgs} args - Arguments to find a Invite
+     * @example
+     * // Get one Invite
+     * const invite = await prisma.invite.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InviteFindFirstArgs>(args?: SelectSubset<T, InviteFindFirstArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Invite that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteFindFirstOrThrowArgs} args - Arguments to find a Invite
+     * @example
+     * // Get one Invite
+     * const invite = await prisma.invite.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InviteFindFirstOrThrowArgs>(args?: SelectSubset<T, InviteFindFirstOrThrowArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Invites that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Invites
+     * const invites = await prisma.invite.findMany()
+     * 
+     * // Get first 10 Invites
+     * const invites = await prisma.invite.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inviteWithIdOnly = await prisma.invite.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InviteFindManyArgs>(args?: SelectSubset<T, InviteFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Invite.
+     * @param {InviteCreateArgs} args - Arguments to create a Invite.
+     * @example
+     * // Create one Invite
+     * const Invite = await prisma.invite.create({
+     *   data: {
+     *     // ... data to create a Invite
+     *   }
+     * })
+     * 
+     */
+    create<T extends InviteCreateArgs>(args: SelectSubset<T, InviteCreateArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Invites.
+     * @param {InviteCreateManyArgs} args - Arguments to create many Invites.
+     * @example
+     * // Create many Invites
+     * const invite = await prisma.invite.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InviteCreateManyArgs>(args?: SelectSubset<T, InviteCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Invites and returns the data saved in the database.
+     * @param {InviteCreateManyAndReturnArgs} args - Arguments to create many Invites.
+     * @example
+     * // Create many Invites
+     * const invite = await prisma.invite.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Invites and only return the `id`
+     * const inviteWithIdOnly = await prisma.invite.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InviteCreateManyAndReturnArgs>(args?: SelectSubset<T, InviteCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Invite.
+     * @param {InviteDeleteArgs} args - Arguments to delete one Invite.
+     * @example
+     * // Delete one Invite
+     * const Invite = await prisma.invite.delete({
+     *   where: {
+     *     // ... filter to delete one Invite
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InviteDeleteArgs>(args: SelectSubset<T, InviteDeleteArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Invite.
+     * @param {InviteUpdateArgs} args - Arguments to update one Invite.
+     * @example
+     * // Update one Invite
+     * const invite = await prisma.invite.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InviteUpdateArgs>(args: SelectSubset<T, InviteUpdateArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Invites.
+     * @param {InviteDeleteManyArgs} args - Arguments to filter Invites to delete.
+     * @example
+     * // Delete a few Invites
+     * const { count } = await prisma.invite.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InviteDeleteManyArgs>(args?: SelectSubset<T, InviteDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Invites.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Invites
+     * const invite = await prisma.invite.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InviteUpdateManyArgs>(args: SelectSubset<T, InviteUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Invites and returns the data updated in the database.
+     * @param {InviteUpdateManyAndReturnArgs} args - Arguments to update many Invites.
+     * @example
+     * // Update many Invites
+     * const invite = await prisma.invite.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Invites and only return the `id`
+     * const inviteWithIdOnly = await prisma.invite.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InviteUpdateManyAndReturnArgs>(args: SelectSubset<T, InviteUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Invite.
+     * @param {InviteUpsertArgs} args - Arguments to update or create a Invite.
+     * @example
+     * // Update or create a Invite
+     * const invite = await prisma.invite.upsert({
+     *   create: {
+     *     // ... data to create a Invite
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Invite we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InviteUpsertArgs>(args: SelectSubset<T, InviteUpsertArgs<ExtArgs>>): Prisma__InviteClient<$Result.GetResult<Prisma.$InvitePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Invites.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteCountArgs} args - Arguments to filter Invites to count.
+     * @example
+     * // Count the number of Invites
+     * const count = await prisma.invite.count({
+     *   where: {
+     *     // ... the filter for the Invites we want to count
+     *   }
+     * })
+    **/
+    count<T extends InviteCountArgs>(
+      args?: Subset<T, InviteCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InviteCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Invite.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InviteAggregateArgs>(args: Subset<T, InviteAggregateArgs>): Prisma.PrismaPromise<GetInviteAggregateType<T>>
+
+    /**
+     * Group by Invite.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InviteGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InviteGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InviteGroupByArgs['orderBy'] }
+        : { orderBy?: InviteGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InviteGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInviteGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Invite model
+   */
+  readonly fields: InviteFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Invite.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InviteClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    admin<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Invite model
+   */
+  interface InviteFieldRefs {
+    readonly id: FieldRef<"Invite", 'String'>
+    readonly token: FieldRef<"Invite", 'String'>
+    readonly adminId: FieldRef<"Invite", 'String'>
+    readonly expiresAt: FieldRef<"Invite", 'DateTime'>
+    readonly used: FieldRef<"Invite", 'Boolean'>
+    readonly createdAt: FieldRef<"Invite", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Invite findUnique
+   */
+  export type InviteFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter, which Invite to fetch.
+     */
+    where: InviteWhereUniqueInput
+  }
+
+  /**
+   * Invite findUniqueOrThrow
+   */
+  export type InviteFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter, which Invite to fetch.
+     */
+    where: InviteWhereUniqueInput
+  }
+
+  /**
+   * Invite findFirst
+   */
+  export type InviteFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter, which Invite to fetch.
+     */
+    where?: InviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invites to fetch.
+     */
+    orderBy?: InviteOrderByWithRelationInput | InviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Invites.
+     */
+    cursor?: InviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invites.
+     */
+    distinct?: InviteScalarFieldEnum | InviteScalarFieldEnum[]
+  }
+
+  /**
+   * Invite findFirstOrThrow
+   */
+  export type InviteFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter, which Invite to fetch.
+     */
+    where?: InviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invites to fetch.
+     */
+    orderBy?: InviteOrderByWithRelationInput | InviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Invites.
+     */
+    cursor?: InviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invites.
+     */
+    distinct?: InviteScalarFieldEnum | InviteScalarFieldEnum[]
+  }
+
+  /**
+   * Invite findMany
+   */
+  export type InviteFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter, which Invites to fetch.
+     */
+    where?: InviteWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Invites to fetch.
+     */
+    orderBy?: InviteOrderByWithRelationInput | InviteOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Invites.
+     */
+    cursor?: InviteWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Invites from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Invites.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Invites.
+     */
+    distinct?: InviteScalarFieldEnum | InviteScalarFieldEnum[]
+  }
+
+  /**
+   * Invite create
+   */
+  export type InviteCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Invite.
+     */
+    data: XOR<InviteCreateInput, InviteUncheckedCreateInput>
+  }
+
+  /**
+   * Invite createMany
+   */
+  export type InviteCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Invites.
+     */
+    data: InviteCreateManyInput | InviteCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Invite createManyAndReturn
+   */
+  export type InviteCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * The data used to create many Invites.
+     */
+    data: InviteCreateManyInput | InviteCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Invite update
+   */
+  export type InviteUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Invite.
+     */
+    data: XOR<InviteUpdateInput, InviteUncheckedUpdateInput>
+    /**
+     * Choose, which Invite to update.
+     */
+    where: InviteWhereUniqueInput
+  }
+
+  /**
+   * Invite updateMany
+   */
+  export type InviteUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Invites.
+     */
+    data: XOR<InviteUpdateManyMutationInput, InviteUncheckedUpdateManyInput>
+    /**
+     * Filter which Invites to update
+     */
+    where?: InviteWhereInput
+    /**
+     * Limit how many Invites to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Invite updateManyAndReturn
+   */
+  export type InviteUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * The data used to update Invites.
+     */
+    data: XOR<InviteUpdateManyMutationInput, InviteUncheckedUpdateManyInput>
+    /**
+     * Filter which Invites to update
+     */
+    where?: InviteWhereInput
+    /**
+     * Limit how many Invites to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Invite upsert
+   */
+  export type InviteUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Invite to update in case it exists.
+     */
+    where: InviteWhereUniqueInput
+    /**
+     * In case the Invite found by the `where` argument doesn't exist, create a new Invite with this data.
+     */
+    create: XOR<InviteCreateInput, InviteUncheckedCreateInput>
+    /**
+     * In case the Invite was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InviteUpdateInput, InviteUncheckedUpdateInput>
+  }
+
+  /**
+   * Invite delete
+   */
+  export type InviteDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
+    /**
+     * Filter which Invite to delete.
+     */
+    where: InviteWhereUniqueInput
+  }
+
+  /**
+   * Invite deleteMany
+   */
+  export type InviteDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Invites to delete
+     */
+    where?: InviteWhereInput
+    /**
+     * Limit how many Invites to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Invite without action
+   */
+  export type InviteDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Invite
+     */
+    select?: InviteSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Invite
+     */
+    omit?: InviteOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InviteInclude<ExtArgs> | null
   }
 
 
@@ -5179,6 +6471,7 @@ export namespace Prisma {
     category: string | null
     group: string | null
     placement: string | null
+    adminId: string | null
     createdAt: Date | null
   }
 
@@ -5191,6 +6484,7 @@ export namespace Prisma {
     category: string | null
     group: string | null
     placement: string | null
+    adminId: string | null
     createdAt: Date | null
   }
 
@@ -5203,6 +6497,7 @@ export namespace Prisma {
     category: number
     group: number
     placement: number
+    adminId: number
     createdAt: number
     _all: number
   }
@@ -5225,6 +6520,7 @@ export namespace Prisma {
     category?: true
     group?: true
     placement?: true
+    adminId?: true
     createdAt?: true
   }
 
@@ -5237,6 +6533,7 @@ export namespace Prisma {
     category?: true
     group?: true
     placement?: true
+    adminId?: true
     createdAt?: true
   }
 
@@ -5249,6 +6546,7 @@ export namespace Prisma {
     category?: true
     group?: true
     placement?: true
+    adminId?: true
     createdAt?: true
     _all?: true
   }
@@ -5348,6 +6646,7 @@ export namespace Prisma {
     category: string
     group: string | null
     placement: string | null
+    adminId: string | null
     createdAt: Date
     _count: ImageCountAggregateOutputType | null
     _avg: ImageAvgAggregateOutputType | null
@@ -5379,6 +6678,7 @@ export namespace Prisma {
     category?: boolean
     group?: boolean
     placement?: boolean
+    adminId?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -5391,6 +6691,7 @@ export namespace Prisma {
     category?: boolean
     group?: boolean
     placement?: boolean
+    adminId?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -5403,6 +6704,7 @@ export namespace Prisma {
     category?: boolean
     group?: boolean
     placement?: boolean
+    adminId?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["image"]>
 
@@ -5415,10 +6717,11 @@ export namespace Prisma {
     category?: boolean
     group?: boolean
     placement?: boolean
+    adminId?: boolean
     createdAt?: boolean
   }
 
-  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "url" | "title" | "size" | "type" | "category" | "group" | "placement" | "createdAt", ExtArgs["result"]["image"]>
+  export type ImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "url" | "title" | "size" | "type" | "category" | "group" | "placement" | "adminId" | "createdAt", ExtArgs["result"]["image"]>
 
   export type $ImagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Image"
@@ -5432,6 +6735,7 @@ export namespace Prisma {
       category: string
       group: string | null
       placement: string | null
+      adminId: string | null
       createdAt: Date
     }, ExtArgs["result"]["image"]>
     composites: {}
@@ -5864,6 +7168,7 @@ export namespace Prisma {
     readonly category: FieldRef<"Image", 'String'>
     readonly group: FieldRef<"Image", 'String'>
     readonly placement: FieldRef<"Image", 'String'>
+    readonly adminId: FieldRef<"Image", 'String'>
     readonly createdAt: FieldRef<"Image", 'DateTime'>
   }
     
@@ -8416,6 +9721,7 @@ export namespace Prisma {
     trafficNotified100: 'trafficNotified100',
     lastTrafficReset: 'lastTrafficReset',
     role: 'role',
+    adminId: 'adminId',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
     createdAt: 'createdAt',
@@ -8423,6 +9729,18 @@ export namespace Prisma {
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const InviteScalarFieldEnum: {
+    id: 'id',
+    token: 'token',
+    adminId: 'adminId',
+    expiresAt: 'expiresAt',
+    used: 'used',
+    createdAt: 'createdAt'
+  };
+
+  export type InviteScalarFieldEnum = (typeof InviteScalarFieldEnum)[keyof typeof InviteScalarFieldEnum]
 
 
   export const CustomPlanQuoteScalarFieldEnum: {
@@ -8466,6 +9784,7 @@ export namespace Prisma {
     category: 'category',
     group: 'group',
     placement: 'placement',
+    adminId: 'adminId',
     createdAt: 'createdAt'
   };
 
@@ -8676,12 +9995,16 @@ export namespace Prisma {
     trafficNotified100?: BoolFilter<"User"> | boolean
     lastTrafficReset?: DateTimeFilter<"User"> | Date | string
     role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
+    adminId?: StringNullableFilter<"User"> | string | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     transactions?: TransactionListRelationFilter
     customQuotes?: CustomPlanQuoteListRelationFilter
+    admin?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    managers?: UserListRelationFilter
+    invites?: InviteListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -8703,12 +10026,16 @@ export namespace Prisma {
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
     role?: SortOrder
+    adminId?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     transactions?: TransactionOrderByRelationAggregateInput
     customQuotes?: CustomPlanQuoteOrderByRelationAggregateInput
+    admin?: UserOrderByWithRelationInput
+    managers?: UserOrderByRelationAggregateInput
+    invites?: InviteOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -8733,12 +10060,16 @@ export namespace Prisma {
     trafficNotified100?: BoolFilter<"User"> | boolean
     lastTrafficReset?: DateTimeFilter<"User"> | Date | string
     role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
+    adminId?: StringNullableFilter<"User"> | string | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     transactions?: TransactionListRelationFilter
     customQuotes?: CustomPlanQuoteListRelationFilter
+    admin?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
+    managers?: UserListRelationFilter
+    invites?: InviteListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -8760,6 +10091,7 @@ export namespace Prisma {
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
     role?: SortOrder
+    adminId?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -8793,10 +10125,71 @@ export namespace Prisma {
     trafficNotified100?: BoolWithAggregatesFilter<"User"> | boolean
     lastTrafficReset?: DateTimeWithAggregatesFilter<"User"> | Date | string
     role?: EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
+    adminId?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type InviteWhereInput = {
+    AND?: InviteWhereInput | InviteWhereInput[]
+    OR?: InviteWhereInput[]
+    NOT?: InviteWhereInput | InviteWhereInput[]
+    id?: StringFilter<"Invite"> | string
+    token?: StringFilter<"Invite"> | string
+    adminId?: StringFilter<"Invite"> | string
+    expiresAt?: DateTimeFilter<"Invite"> | Date | string
+    used?: BoolFilter<"Invite"> | boolean
+    createdAt?: DateTimeFilter<"Invite"> | Date | string
+    admin?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type InviteOrderByWithRelationInput = {
+    id?: SortOrder
+    token?: SortOrder
+    adminId?: SortOrder
+    expiresAt?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+    admin?: UserOrderByWithRelationInput
+  }
+
+  export type InviteWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    token?: string
+    AND?: InviteWhereInput | InviteWhereInput[]
+    OR?: InviteWhereInput[]
+    NOT?: InviteWhereInput | InviteWhereInput[]
+    adminId?: StringFilter<"Invite"> | string
+    expiresAt?: DateTimeFilter<"Invite"> | Date | string
+    used?: BoolFilter<"Invite"> | boolean
+    createdAt?: DateTimeFilter<"Invite"> | Date | string
+    admin?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "token">
+
+  export type InviteOrderByWithAggregationInput = {
+    id?: SortOrder
+    token?: SortOrder
+    adminId?: SortOrder
+    expiresAt?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+    _count?: InviteCountOrderByAggregateInput
+    _max?: InviteMaxOrderByAggregateInput
+    _min?: InviteMinOrderByAggregateInput
+  }
+
+  export type InviteScalarWhereWithAggregatesInput = {
+    AND?: InviteScalarWhereWithAggregatesInput | InviteScalarWhereWithAggregatesInput[]
+    OR?: InviteScalarWhereWithAggregatesInput[]
+    NOT?: InviteScalarWhereWithAggregatesInput | InviteScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Invite"> | string
+    token?: StringWithAggregatesFilter<"Invite"> | string
+    adminId?: StringWithAggregatesFilter<"Invite"> | string
+    expiresAt?: DateTimeWithAggregatesFilter<"Invite"> | Date | string
+    used?: BoolWithAggregatesFilter<"Invite"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Invite"> | Date | string
   }
 
   export type CustomPlanQuoteWhereInput = {
@@ -8975,6 +10368,7 @@ export namespace Prisma {
     category?: StringFilter<"Image"> | string
     group?: StringNullableFilter<"Image"> | string | null
     placement?: StringNullableFilter<"Image"> | string | null
+    adminId?: StringNullableFilter<"Image"> | string | null
     createdAt?: DateTimeFilter<"Image"> | Date | string
   }
 
@@ -8987,6 +10381,7 @@ export namespace Prisma {
     category?: SortOrder
     group?: SortOrderInput | SortOrder
     placement?: SortOrderInput | SortOrder
+    adminId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
   }
 
@@ -9002,6 +10397,7 @@ export namespace Prisma {
     category?: StringFilter<"Image"> | string
     group?: StringNullableFilter<"Image"> | string | null
     placement?: StringNullableFilter<"Image"> | string | null
+    adminId?: StringNullableFilter<"Image"> | string | null
     createdAt?: DateTimeFilter<"Image"> | Date | string
   }, "id">
 
@@ -9014,6 +10410,7 @@ export namespace Prisma {
     category?: SortOrder
     group?: SortOrderInput | SortOrder
     placement?: SortOrderInput | SortOrder
+    adminId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: ImageCountOrderByAggregateInput
     _avg?: ImageAvgOrderByAggregateInput
@@ -9034,6 +10431,7 @@ export namespace Prisma {
     category?: StringWithAggregatesFilter<"Image"> | string
     group?: StringNullableWithAggregatesFilter<"Image"> | string | null
     placement?: StringNullableWithAggregatesFilter<"Image"> | string | null
+    adminId?: StringNullableWithAggregatesFilter<"Image"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Image"> | Date | string
   }
 
@@ -9213,6 +10611,9 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutUserInput
     customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
+    admin?: UserCreateNestedOneWithoutManagersInput
+    managers?: UserCreateNestedManyWithoutAdminInput
+    invites?: InviteCreateNestedManyWithoutAdminInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -9234,12 +10635,15 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
     role?: $Enums.UserRole
+    adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
+    managers?: UserUncheckedCreateNestedManyWithoutAdminInput
+    invites?: InviteUncheckedCreateNestedManyWithoutAdminInput
   }
 
   export type UserUpdateInput = {
@@ -9267,6 +10671,9 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
+    admin?: UserUpdateOneWithoutManagersNestedInput
+    managers?: UserUpdateManyWithoutAdminNestedInput
+    invites?: InviteUpdateManyWithoutAdminNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -9288,12 +10695,15 @@ export namespace Prisma {
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
+    managers?: UserUncheckedUpdateManyWithoutAdminNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutAdminNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -9315,6 +10725,7 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
     role?: $Enums.UserRole
+    adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -9365,10 +10776,73 @@ export namespace Prisma {
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteCreateInput = {
+    id?: string
+    token: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
+    admin: UserCreateNestedOneWithoutInvitesInput
+  }
+
+  export type InviteUncheckedCreateInput = {
+    id?: string
+    token: string
+    adminId: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type InviteUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    admin?: UserUpdateOneRequiredWithoutInvitesNestedInput
+  }
+
+  export type InviteUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteCreateManyInput = {
+    id?: string
+    token: string
+    adminId: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type InviteUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomPlanQuoteCreateInput = {
@@ -9560,6 +11034,7 @@ export namespace Prisma {
     category: string
     group?: string | null
     placement?: string | null
+    adminId?: string | null
     createdAt?: Date | string
   }
 
@@ -9572,6 +11047,7 @@ export namespace Prisma {
     category: string
     group?: string | null
     placement?: string | null
+    adminId?: string | null
     createdAt?: Date | string
   }
 
@@ -9584,6 +11060,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
     placement?: NullableStringFieldUpdateOperationsInput | string | null
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9596,6 +11073,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
     placement?: NullableStringFieldUpdateOperationsInput | string | null
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9608,6 +11086,7 @@ export namespace Prisma {
     category: string
     group?: string | null
     placement?: string | null
+    adminId?: string | null
     createdAt?: Date | string
   }
 
@@ -9620,6 +11099,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
     placement?: NullableStringFieldUpdateOperationsInput | string | null
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9632,6 +11112,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     group?: NullableStringFieldUpdateOperationsInput | string | null
     placement?: NullableStringFieldUpdateOperationsInput | string | null
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9922,6 +11403,23 @@ export namespace Prisma {
     none?: CustomPlanQuoteWhereInput
   }
 
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
+  export type UserListRelationFilter = {
+    every?: UserWhereInput
+    some?: UserWhereInput
+    none?: UserWhereInput
+  }
+
+  export type InviteListRelationFilter = {
+    every?: InviteWhereInput
+    some?: InviteWhereInput
+    none?: InviteWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -9932,6 +11430,14 @@ export namespace Prisma {
   }
 
   export type CustomPlanQuoteOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type InviteOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -9954,6 +11460,7 @@ export namespace Prisma {
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
     role?: SortOrder
+    adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -9986,6 +11493,7 @@ export namespace Prisma {
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
     role?: SortOrder
+    adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -10011,6 +11519,7 @@ export namespace Prisma {
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
     role?: SortOrder
+    adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -10163,6 +11672,33 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type InviteCountOrderByAggregateInput = {
+    id?: SortOrder
+    token?: SortOrder
+    adminId?: SortOrder
+    expiresAt?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type InviteMaxOrderByAggregateInput = {
+    id?: SortOrder
+    token?: SortOrder
+    adminId?: SortOrder
+    expiresAt?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type InviteMinOrderByAggregateInput = {
+    id?: SortOrder
+    token?: SortOrder
+    adminId?: SortOrder
+    expiresAt?: SortOrder
+    used?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type CustomPlanQuoteCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -10289,6 +11825,7 @@ export namespace Prisma {
     category?: SortOrder
     group?: SortOrder
     placement?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -10305,6 +11842,7 @@ export namespace Prisma {
     category?: SortOrder
     group?: SortOrder
     placement?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -10317,6 +11855,7 @@ export namespace Prisma {
     category?: SortOrder
     group?: SortOrder
     placement?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -10427,6 +11966,26 @@ export namespace Prisma {
     connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
   }
 
+  export type UserCreateNestedOneWithoutManagersInput = {
+    create?: XOR<UserCreateWithoutManagersInput, UserUncheckedCreateWithoutManagersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutManagersInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedManyWithoutAdminInput = {
+    create?: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput> | UserCreateWithoutAdminInput[] | UserUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutAdminInput | UserCreateOrConnectWithoutAdminInput[]
+    createMany?: UserCreateManyAdminInputEnvelope
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+  }
+
+  export type InviteCreateNestedManyWithoutAdminInput = {
+    create?: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput> | InviteCreateWithoutAdminInput[] | InviteUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: InviteCreateOrConnectWithoutAdminInput | InviteCreateOrConnectWithoutAdminInput[]
+    createMany?: InviteCreateManyAdminInputEnvelope
+    connect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+  }
+
   export type TransactionUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<TransactionCreateWithoutUserInput, TransactionUncheckedCreateWithoutUserInput> | TransactionCreateWithoutUserInput[] | TransactionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutUserInput | TransactionCreateOrConnectWithoutUserInput[]
@@ -10439,6 +11998,20 @@ export namespace Prisma {
     connectOrCreate?: CustomPlanQuoteCreateOrConnectWithoutUserInput | CustomPlanQuoteCreateOrConnectWithoutUserInput[]
     createMany?: CustomPlanQuoteCreateManyUserInputEnvelope
     connect?: CustomPlanQuoteWhereUniqueInput | CustomPlanQuoteWhereUniqueInput[]
+  }
+
+  export type UserUncheckedCreateNestedManyWithoutAdminInput = {
+    create?: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput> | UserCreateWithoutAdminInput[] | UserUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutAdminInput | UserCreateOrConnectWithoutAdminInput[]
+    createMany?: UserCreateManyAdminInputEnvelope
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+  }
+
+  export type InviteUncheckedCreateNestedManyWithoutAdminInput = {
+    create?: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput> | InviteCreateWithoutAdminInput[] | InviteUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: InviteCreateOrConnectWithoutAdminInput | InviteCreateOrConnectWithoutAdminInput[]
+    createMany?: InviteCreateManyAdminInputEnvelope
+    connect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -10517,6 +12090,44 @@ export namespace Prisma {
     deleteMany?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
   }
 
+  export type UserUpdateOneWithoutManagersNestedInput = {
+    create?: XOR<UserCreateWithoutManagersInput, UserUncheckedCreateWithoutManagersInput>
+    connectOrCreate?: UserCreateOrConnectWithoutManagersInput
+    upsert?: UserUpsertWithoutManagersInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutManagersInput, UserUpdateWithoutManagersInput>, UserUncheckedUpdateWithoutManagersInput>
+  }
+
+  export type UserUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput> | UserCreateWithoutAdminInput[] | UserUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutAdminInput | UserCreateOrConnectWithoutAdminInput[]
+    upsert?: UserUpsertWithWhereUniqueWithoutAdminInput | UserUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: UserCreateManyAdminInputEnvelope
+    set?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    disconnect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    delete?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    update?: UserUpdateWithWhereUniqueWithoutAdminInput | UserUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: UserUpdateManyWithWhereWithoutAdminInput | UserUpdateManyWithWhereWithoutAdminInput[]
+    deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
+  }
+
+  export type InviteUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput> | InviteCreateWithoutAdminInput[] | InviteUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: InviteCreateOrConnectWithoutAdminInput | InviteCreateOrConnectWithoutAdminInput[]
+    upsert?: InviteUpsertWithWhereUniqueWithoutAdminInput | InviteUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: InviteCreateManyAdminInputEnvelope
+    set?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    disconnect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    delete?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    connect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    update?: InviteUpdateWithWhereUniqueWithoutAdminInput | InviteUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: InviteUpdateManyWithWhereWithoutAdminInput | InviteUpdateManyWithWhereWithoutAdminInput[]
+    deleteMany?: InviteScalarWhereInput | InviteScalarWhereInput[]
+  }
+
   export type TransactionUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<TransactionCreateWithoutUserInput, TransactionUncheckedCreateWithoutUserInput> | TransactionCreateWithoutUserInput[] | TransactionUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutUserInput | TransactionCreateOrConnectWithoutUserInput[]
@@ -10543,6 +12154,48 @@ export namespace Prisma {
     update?: CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput | CustomPlanQuoteUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: CustomPlanQuoteUpdateManyWithWhereWithoutUserInput | CustomPlanQuoteUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: CustomPlanQuoteScalarWhereInput | CustomPlanQuoteScalarWhereInput[]
+  }
+
+  export type UserUncheckedUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput> | UserCreateWithoutAdminInput[] | UserUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: UserCreateOrConnectWithoutAdminInput | UserCreateOrConnectWithoutAdminInput[]
+    upsert?: UserUpsertWithWhereUniqueWithoutAdminInput | UserUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: UserCreateManyAdminInputEnvelope
+    set?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    disconnect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    delete?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    connect?: UserWhereUniqueInput | UserWhereUniqueInput[]
+    update?: UserUpdateWithWhereUniqueWithoutAdminInput | UserUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: UserUpdateManyWithWhereWithoutAdminInput | UserUpdateManyWithWhereWithoutAdminInput[]
+    deleteMany?: UserScalarWhereInput | UserScalarWhereInput[]
+  }
+
+  export type InviteUncheckedUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput> | InviteCreateWithoutAdminInput[] | InviteUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: InviteCreateOrConnectWithoutAdminInput | InviteCreateOrConnectWithoutAdminInput[]
+    upsert?: InviteUpsertWithWhereUniqueWithoutAdminInput | InviteUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: InviteCreateManyAdminInputEnvelope
+    set?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    disconnect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    delete?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    connect?: InviteWhereUniqueInput | InviteWhereUniqueInput[]
+    update?: InviteUpdateWithWhereUniqueWithoutAdminInput | InviteUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: InviteUpdateManyWithWhereWithoutAdminInput | InviteUpdateManyWithWhereWithoutAdminInput[]
+    deleteMany?: InviteScalarWhereInput | InviteScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutInvitesInput = {
+    create?: XOR<UserCreateWithoutInvitesInput, UserUncheckedCreateWithoutInvitesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutInvitesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutInvitesNestedInput = {
+    create?: XOR<UserCreateWithoutInvitesInput, UserUncheckedCreateWithoutInvitesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutInvitesInput
+    upsert?: UserUpsertWithoutInvitesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutInvitesInput, UserUpdateWithoutInvitesInput>, UserUncheckedUpdateWithoutInvitesInput>
   }
 
   export type UserCreateNestedOneWithoutCustomQuotesInput = {
@@ -10932,6 +12585,163 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserCreateWithoutManagersInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
+    admin?: UserCreateNestedOneWithoutManagersInput
+    invites?: InviteCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserUncheckedCreateWithoutManagersInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    adminId?: string | null
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
+    invites?: InviteUncheckedCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserCreateOrConnectWithoutManagersInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutManagersInput, UserUncheckedCreateWithoutManagersInput>
+  }
+
+  export type UserCreateWithoutAdminInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
+    managers?: UserCreateNestedManyWithoutAdminInput
+    invites?: InviteCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserUncheckedCreateWithoutAdminInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
+    managers?: UserUncheckedCreateNestedManyWithoutAdminInput
+    invites?: InviteUncheckedCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserCreateOrConnectWithoutAdminInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput>
+  }
+
+  export type UserCreateManyAdminInputEnvelope = {
+    data: UserCreateManyAdminInput | UserCreateManyAdminInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type InviteCreateWithoutAdminInput = {
+    id?: string
+    token: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type InviteUncheckedCreateWithoutAdminInput = {
+    id?: string
+    token: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
+  }
+
+  export type InviteCreateOrConnectWithoutAdminInput = {
+    where: InviteWhereUniqueInput
+    create: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput>
+  }
+
+  export type InviteCreateManyAdminInputEnvelope = {
+    data: InviteCreateManyAdminInput | InviteCreateManyAdminInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TransactionUpsertWithWhereUniqueWithoutUserInput = {
     where: TransactionWhereUniqueInput
     update: XOR<TransactionUpdateWithoutUserInput, TransactionUncheckedUpdateWithoutUserInput>
@@ -10996,6 +12806,280 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"CustomPlanQuote"> | Date | string
   }
 
+  export type UserUpsertWithoutManagersInput = {
+    update: XOR<UserUpdateWithoutManagersInput, UserUncheckedUpdateWithoutManagersInput>
+    create: XOR<UserCreateWithoutManagersInput, UserUncheckedCreateWithoutManagersInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutManagersInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutManagersInput, UserUncheckedUpdateWithoutManagersInput>
+  }
+
+  export type UserUpdateWithoutManagersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
+    admin?: UserUpdateOneWithoutManagersNestedInput
+    invites?: InviteUpdateManyWithoutAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutManagersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutAdminNestedInput
+  }
+
+  export type UserUpsertWithWhereUniqueWithoutAdminInput = {
+    where: UserWhereUniqueInput
+    update: XOR<UserUpdateWithoutAdminInput, UserUncheckedUpdateWithoutAdminInput>
+    create: XOR<UserCreateWithoutAdminInput, UserUncheckedCreateWithoutAdminInput>
+  }
+
+  export type UserUpdateWithWhereUniqueWithoutAdminInput = {
+    where: UserWhereUniqueInput
+    data: XOR<UserUpdateWithoutAdminInput, UserUncheckedUpdateWithoutAdminInput>
+  }
+
+  export type UserUpdateManyWithWhereWithoutAdminInput = {
+    where: UserScalarWhereInput
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyWithoutAdminInput>
+  }
+
+  export type UserScalarWhereInput = {
+    AND?: UserScalarWhereInput | UserScalarWhereInput[]
+    OR?: UserScalarWhereInput[]
+    NOT?: UserScalarWhereInput | UserScalarWhereInput[]
+    id?: StringFilter<"User"> | string
+    companyName?: StringFilter<"User"> | string
+    email?: StringFilter<"User"> | string
+    phone?: StringFilter<"User"> | string
+    password?: StringFilter<"User"> | string
+    authorizationKey?: StringFilter<"User"> | string
+    paymentVerified?: BoolFilter<"User"> | boolean
+    planSelected?: EnumPlanTypeFilter<"User"> | $Enums.PlanType
+    subscription_id?: StringNullableFilter<"User"> | string | null
+    subscription_status?: EnumSubscriptionStatusFilter<"User"> | $Enums.SubscriptionStatus
+    storageUsed?: IntNullableFilter<"User"> | number | null
+    storageLimit?: IntNullableFilter<"User"> | number | null
+    monthlyVisits?: IntFilter<"User"> | number
+    trafficLimit?: IntNullableFilter<"User"> | number | null
+    trafficNotified80?: BoolFilter<"User"> | boolean
+    trafficNotified100?: BoolFilter<"User"> | boolean
+    lastTrafficReset?: DateTimeFilter<"User"> | Date | string
+    role?: EnumUserRoleFilter<"User"> | $Enums.UserRole
+    adminId?: StringNullableFilter<"User"> | string | null
+    resetToken?: StringNullableFilter<"User"> | string | null
+    resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
+    createdAt?: DateTimeFilter<"User"> | Date | string
+    updatedAt?: DateTimeFilter<"User"> | Date | string
+  }
+
+  export type InviteUpsertWithWhereUniqueWithoutAdminInput = {
+    where: InviteWhereUniqueInput
+    update: XOR<InviteUpdateWithoutAdminInput, InviteUncheckedUpdateWithoutAdminInput>
+    create: XOR<InviteCreateWithoutAdminInput, InviteUncheckedCreateWithoutAdminInput>
+  }
+
+  export type InviteUpdateWithWhereUniqueWithoutAdminInput = {
+    where: InviteWhereUniqueInput
+    data: XOR<InviteUpdateWithoutAdminInput, InviteUncheckedUpdateWithoutAdminInput>
+  }
+
+  export type InviteUpdateManyWithWhereWithoutAdminInput = {
+    where: InviteScalarWhereInput
+    data: XOR<InviteUpdateManyMutationInput, InviteUncheckedUpdateManyWithoutAdminInput>
+  }
+
+  export type InviteScalarWhereInput = {
+    AND?: InviteScalarWhereInput | InviteScalarWhereInput[]
+    OR?: InviteScalarWhereInput[]
+    NOT?: InviteScalarWhereInput | InviteScalarWhereInput[]
+    id?: StringFilter<"Invite"> | string
+    token?: StringFilter<"Invite"> | string
+    adminId?: StringFilter<"Invite"> | string
+    expiresAt?: DateTimeFilter<"Invite"> | Date | string
+    used?: BoolFilter<"Invite"> | boolean
+    createdAt?: DateTimeFilter<"Invite"> | Date | string
+  }
+
+  export type UserCreateWithoutInvitesInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
+    admin?: UserCreateNestedOneWithoutManagersInput
+    managers?: UserCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserUncheckedCreateWithoutInvitesInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    adminId?: string | null
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
+    managers?: UserUncheckedCreateNestedManyWithoutAdminInput
+  }
+
+  export type UserCreateOrConnectWithoutInvitesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutInvitesInput, UserUncheckedCreateWithoutInvitesInput>
+  }
+
+  export type UserUpsertWithoutInvitesInput = {
+    update: XOR<UserUpdateWithoutInvitesInput, UserUncheckedUpdateWithoutInvitesInput>
+    create: XOR<UserCreateWithoutInvitesInput, UserUncheckedCreateWithoutInvitesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutInvitesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutInvitesInput, UserUncheckedUpdateWithoutInvitesInput>
+  }
+
+  export type UserUpdateWithoutInvitesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
+    admin?: UserUpdateOneWithoutManagersNestedInput
+    managers?: UserUpdateManyWithoutAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutInvitesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
+    managers?: UserUncheckedUpdateManyWithoutAdminNestedInput
+  }
+
   export type UserCreateWithoutCustomQuotesInput = {
     id?: string
     companyName: string
@@ -11020,6 +13104,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutUserInput
+    admin?: UserCreateNestedOneWithoutManagersInput
+    managers?: UserCreateNestedManyWithoutAdminInput
+    invites?: InviteCreateNestedManyWithoutAdminInput
   }
 
   export type UserUncheckedCreateWithoutCustomQuotesInput = {
@@ -11041,11 +13128,14 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
     role?: $Enums.UserRole
+    adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    managers?: UserUncheckedCreateNestedManyWithoutAdminInput
+    invites?: InviteUncheckedCreateNestedManyWithoutAdminInput
   }
 
   export type UserCreateOrConnectWithoutCustomQuotesInput = {
@@ -11088,6 +13178,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutUserNestedInput
+    admin?: UserUpdateOneWithoutManagersNestedInput
+    managers?: UserUpdateManyWithoutAdminNestedInput
+    invites?: InviteUpdateManyWithoutAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCustomQuotesInput = {
@@ -11109,11 +13202,14 @@ export namespace Prisma {
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    managers?: UserUncheckedUpdateManyWithoutAdminNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutAdminNestedInput
   }
 
   export type UserCreateWithoutTransactionsInput = {
@@ -11140,6 +13236,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     customQuotes?: CustomPlanQuoteCreateNestedManyWithoutUserInput
+    admin?: UserCreateNestedOneWithoutManagersInput
+    managers?: UserCreateNestedManyWithoutAdminInput
+    invites?: InviteCreateNestedManyWithoutAdminInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -11161,11 +13260,14 @@ export namespace Prisma {
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
     role?: $Enums.UserRole
+    adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     customQuotes?: CustomPlanQuoteUncheckedCreateNestedManyWithoutUserInput
+    managers?: UserUncheckedCreateNestedManyWithoutAdminInput
+    invites?: InviteUncheckedCreateNestedManyWithoutAdminInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -11208,6 +13310,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
+    admin?: UserUpdateOneWithoutManagersNestedInput
+    managers?: UserUpdateManyWithoutAdminNestedInput
+    invites?: InviteUpdateManyWithoutAdminNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -11229,11 +13334,14 @@ export namespace Prisma {
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
+    managers?: UserUncheckedUpdateManyWithoutAdminNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutAdminNestedInput
   }
 
   export type TransactionCreateManyUserInput = {
@@ -11258,6 +13366,39 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type UserCreateManyAdminInput = {
+    id?: string
+    companyName: string
+    email: string
+    phone: string
+    password: string
+    authorizationKey: string
+    paymentVerified?: boolean
+    planSelected?: $Enums.PlanType
+    subscription_id?: string | null
+    subscription_status?: $Enums.SubscriptionStatus
+    storageUsed?: number | null
+    storageLimit?: number | null
+    monthlyVisits?: number
+    trafficLimit?: number | null
+    trafficNotified80?: boolean
+    trafficNotified100?: boolean
+    lastTrafficReset?: Date | string
+    role?: $Enums.UserRole
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InviteCreateManyAdminInput = {
+    id?: string
+    token: string
+    expiresAt: Date | string
+    used?: boolean
+    createdAt?: Date | string
   }
 
   export type TransactionUpdateWithoutUserInput = {
@@ -11330,6 +13471,113 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserUpdateWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUpdateManyWithoutUserNestedInput
+    managers?: UserUpdateManyWithoutAdminNestedInput
+    invites?: InviteUpdateManyWithoutAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    customQuotes?: CustomPlanQuoteUncheckedUpdateManyWithoutUserNestedInput
+    managers?: UserUncheckedUpdateManyWithoutAdminNestedInput
+    invites?: InviteUncheckedUpdateManyWithoutAdminNestedInput
+  }
+
+  export type UserUncheckedUpdateManyWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyName?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    authorizationKey?: StringFieldUpdateOperationsInput | string
+    paymentVerified?: BoolFieldUpdateOperationsInput | boolean
+    planSelected?: EnumPlanTypeFieldUpdateOperationsInput | $Enums.PlanType
+    subscription_id?: NullableStringFieldUpdateOperationsInput | string | null
+    subscription_status?: EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+    storageUsed?: NullableIntFieldUpdateOperationsInput | number | null
+    storageLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyVisits?: IntFieldUpdateOperationsInput | number
+    trafficLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
+    trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
+    lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteUpdateWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteUncheckedUpdateWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InviteUncheckedUpdateManyWithoutAdminInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    used?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
