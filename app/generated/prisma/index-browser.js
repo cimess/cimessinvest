@@ -120,13 +120,98 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.TemplateScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  industry: 'industry',
+  brandVibe: 'brandVibe',
+  version: 'version',
+  description: 'description',
+  thumbnailUrl: 'thumbnailUrl',
+  allowedBlocks: 'allowedBlocks',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TemplatePageScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  slug: 'slug',
+  title: 'title',
+  isSystem: 'isSystem',
+  sections: 'sections',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  industry: 'industry',
+  status: 'status',
+  planSelected: 'planSelected',
+  subscription_status: 'subscription_status',
+  subscription_id: 'subscription_id',
+  trialEndsAt: 'trialEndsAt',
+  activeTemplateId: 'activeTemplateId',
+  brandBio: 'brandBio',
+  brandTone: 'brandTone',
+  aiCreditsRemaining: 'aiCreditsRemaining',
+  trafficLimit: 'trafficLimit',
+  monthlyVisits: 'monthlyVisits',
+  trafficNotified80: 'trafficNotified80',
+  trafficNotified100: 'trafficNotified100',
+  lastTrafficReset: 'lastTrafficReset',
+  storageLimit: 'storageLimit',
+  storageUsed: 'storageUsed',
+  paystackSubaccountCode: 'paystackSubaccountCode',
+  bankInfo: 'bankInfo',
+  pendingBalanceKobo: 'pendingBalanceKobo',
+  settledBalanceKobo: 'settledBalanceKobo',
+  disputedBalanceKobo: 'disputedBalanceKobo',
+  todaySalesKobo: 'todaySalesKobo',
+  lastSalesDate: 'lastSalesDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyMemberScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  userId: 'userId',
+  role: 'role',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StorePageScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  slug: 'slug',
+  title: 'title',
+  isSystem: 'isSystem',
+  sections: 'sections',
+  version: 'version',
+  isPublished: 'isPublished',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   companyName: 'companyName',
   email: 'email',
   phone: 'phone',
   password: 'password',
+  fullName: 'fullName',
   authorizationKey: 'authorizationKey',
+  role: 'role',
+  platformRole: 'platformRole',
   paymentVerified: 'paymentVerified',
   planSelected: 'planSelected',
   subscription_id: 'subscription_id',
@@ -138,7 +223,6 @@ exports.Prisma.UserScalarFieldEnum = {
   trafficNotified80: 'trafficNotified80',
   trafficNotified100: 'trafficNotified100',
   lastTrafficReset: 'lastTrafficReset',
-  role: 'role',
   adminId: 'adminId',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
@@ -149,21 +233,49 @@ exports.Prisma.UserScalarFieldEnum = {
 exports.Prisma.InviteScalarFieldEnum = {
   id: 'id',
   token: 'token',
+  companyId: 'companyId',
+  inviterId: 'inviterId',
+  role: 'role',
   adminId: 'adminId',
   expiresAt: 'expiresAt',
   used: 'used',
   createdAt: 'createdAt'
 };
 
-exports.Prisma.CustomPlanQuoteScalarFieldEnum = {
+exports.Prisma.SubscriptionTransactionScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
-  plan: 'plan',
-  authorizedAmountKobo: 'authorizedAmountKobo',
-  authorizedStorageMB: 'authorizedStorageMB',
-  authorizedTrafficLimit: 'authorizedTrafficLimit',
-  notes: 'notes',
+  companyId: 'companyId',
+  reference: 'reference',
+  amount: 'amount',
+  planSelected: 'planSelected',
+  customStorageMB: 'customStorageMB',
   status: 'status',
+  paystackAccessCode: 'paystackAccessCode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  reference: 'reference',
+  invoiceNumber: 'invoiceNumber',
+  orderType: 'orderType',
+  amountKobo: 'amountKobo',
+  originalAmountKobo: 'originalAmountKobo',
+  discountKobo: 'discountKobo',
+  shippingKobo: 'shippingKobo',
+  platformFeeKobo: 'platformFeeKobo',
+  merchantNetKobo: 'merchantNetKobo',
+  status: 'status',
+  settlementStatus: 'settlementStatus',
+  settledAt: 'settledAt',
+  customerEmail: 'customerEmail',
+  customerName: 'customerName',
+  customerPhone: 'customerPhone',
+  items: 'items',
+  notes: 'notes',
+  paystackAccessCode: 'paystackAccessCode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -181,24 +293,51 @@ exports.Prisma.TransactionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProductScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  title: 'title',
+  description: 'description',
+  priceKobo: 'priceKobo',
+  stock: 'stock',
+  images: 'images',
+  category: 'category',
+  attributes: 'attributes',
+  isAvailable: 'isAvailable',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ImageScalarFieldEnum = {
   id: 'id',
+  companyId: 'companyId',
+  adminId: 'adminId',
   url: 'url',
+  additionalUrls: 'additionalUrls',
   title: 'title',
+  description: 'description',
+  priceKobo: 'priceKobo',
+  itemGroupId: 'itemGroupId',
   size: 'size',
   type: 'type',
   category: 'category',
   group: 'group',
   placement: 'placement',
-  adminId: 'adminId',
+  isPlatformAsset: 'isPlatformAsset',
   createdAt: 'createdAt'
 };
 
 exports.Prisma.SiteSettingScalarFieldEnum = {
   id: 'id',
+  companyId: 'companyId',
   primaryColor: 'primaryColor',
   accentColor: 'accentColor',
+  themeColor: 'themeColor',
+  layoutMode: 'layoutMode',
   backgroundColor: 'backgroundColor',
+  brandFont: 'brandFont',
+  headingFont: 'headingFont',
+  bodyFont: 'bodyFont',
   showDefaultImages: 'showDefaultImages',
   appendDefaults: 'appendDefaults',
   removeAllDefaults: 'removeAllDefaults',
@@ -209,19 +348,89 @@ exports.Prisma.SiteSettingScalarFieldEnum = {
   tailorBioImage: 'tailorBioImage',
   heroGridImages: 'heroGridImages',
   rawMaterialImages: 'rawMaterialImages',
+  physicalAddress: 'physicalAddress',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  openingHours: 'openingHours',
   updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AnalyticsMetricsScalarFieldEnum = {
   id: 'id',
+  companyId: 'companyId',
   date: 'date',
   pageViews: 'pageViews',
   whatsappClicks: 'whatsappClicks'
 };
 
+exports.Prisma.AppealRequestScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  reason: 'reason',
+  contactInfo: 'contactInfo',
+  status: 'status',
+  reviewedBy: 'reviewedBy',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomPlanQuoteScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  userId: 'userId',
+  plan: 'plan',
+  authorizedAmountKobo: 'authorizedAmountKobo',
+  authorizedStorageMB: 'authorizedStorageMB',
+  authorizedTrafficLimit: 'authorizedTrafficLimit',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PlatformConfigScalarFieldEnum = {
+  id: 'id',
+  platformFeePercent: 'platformFeePercent',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PlatformTicketScalarFieldEnum = {
+  id: 'id',
+  ticketNumber: 'ticketNumber',
+  type: 'type',
+  category: 'category',
+  status: 'status',
+  companyId: 'companyId',
+  orderId: 'orderId',
+  orderReference: 'orderReference',
+  submitterEmail: 'submitterEmail',
+  submitterName: 'submitterName',
+  submitterPhone: 'submitterPhone',
+  role: 'role',
+  subject: 'subject',
+  description: 'description',
+  adminNotes: 'adminNotes',
+  resolvedBy: 'resolvedBy',
+  refundStatus: 'refundStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -233,7 +442,30 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.IndustryCategory = exports.$Enums.IndustryCategory = {
+  FASHION_ATELIER: 'FASHION_ATELIER',
+  FASHION_BOUTIQUE: 'FASHION_BOUTIQUE',
+  FITNESS_GYM: 'FITNESS_GYM',
+  EDITORIAL_BLOG: 'EDITORIAL_BLOG',
+  FOOD_BEVERAGE: 'FOOD_BEVERAGE',
+  GENERAL_RETAIL: 'GENERAL_RETAIL'
+};
+
+exports.CompanyStatus = exports.$Enums.CompanyStatus = {
+  ACTIVE: 'ACTIVE',
+  TRIAL_EXPIRED: 'TRIAL_EXPIRED',
+  SUSPENDED: 'SUSPENDED',
+  ARCHIVED: 'ARCHIVED'
+};
+
 exports.PlanType = exports.$Enums.PlanType = {
+  FREE_TRIAL: 'FREE_TRIAL',
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
   ENTERPRISE: 'ENTERPRISE'
@@ -241,7 +473,20 @@ exports.PlanType = exports.$Enums.PlanType = {
 
 exports.SubscriptionStatus = exports.$Enums.SubscriptionStatus = {
   ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE'
+  INACTIVE: 'INACTIVE',
+  PAST_DUE: 'PAST_DUE',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.MemberRole = exports.$Enums.MemberRole = {
+  OWNER: 'OWNER',
+  MANAGER: 'MANAGER',
+  STAFF: 'STAFF'
+};
+
+exports.MemberStatus = exports.$Enums.MemberStatus = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
 };
 
 exports.UserRole = exports.$Enums.UserRole = {
@@ -251,20 +496,72 @@ exports.UserRole = exports.$Enums.UserRole = {
   USER: 'USER'
 };
 
+exports.PlatformRole = exports.$Enums.PlatformRole = {
+  SUPERADMIN: 'SUPERADMIN',
+  PLATFORM_ADMIN: 'PLATFORM_ADMIN'
+};
+
 exports.TransactionStatus = exports.$Enums.TransactionStatus = {
   PENDING: 'PENDING',
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED'
 };
 
+exports.OrderSettlementStatus = exports.$Enums.OrderSettlementStatus = {
+  PENDING_24H: 'PENDING_24H',
+  SETTLED: 'SETTLED',
+  HELD_DISPUTED: 'HELD_DISPUTED',
+  REFUNDED: 'REFUNDED'
+};
+
+exports.AppealStatus = exports.$Enums.AppealStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+exports.TicketType = exports.$Enums.TicketType = {
+  CUSTOMER_DISPUTE: 'CUSTOMER_DISPUTE',
+  MERCHANT_SUPPORT: 'MERCHANT_SUPPORT'
+};
+
+exports.TicketCategory = exports.$Enums.TicketCategory = {
+  UNFULFILLED_ORDER: 'UNFULFILLED_ORDER',
+  DEFECTIVE_PRODUCT: 'DEFECTIVE_PRODUCT',
+  FRAUD_SUSPICION: 'FRAUD_SUSPICION',
+  PAYMENT_ISSUE: 'PAYMENT_ISSUE',
+  UI_BUG: 'UI_BUG',
+  FEATURE_REQUEST: 'FEATURE_REQUEST',
+  GENERAL_FEEDBACK: 'GENERAL_FEEDBACK',
+  OTHER: 'OTHER'
+};
+
+exports.TicketStatus = exports.$Enums.TicketStatus = {
+  PENDING: 'PENDING',
+  INVESTIGATING: 'INVESTIGATING',
+  RESOLVED: 'RESOLVED',
+  REJECTED: 'REJECTED'
+};
+
 exports.Prisma.ModelName = {
+  Template: 'Template',
+  TemplatePage: 'TemplatePage',
+  Company: 'Company',
+  CompanyMember: 'CompanyMember',
+  StorePage: 'StorePage',
   User: 'User',
   Invite: 'Invite',
-  CustomPlanQuote: 'CustomPlanQuote',
+  SubscriptionTransaction: 'SubscriptionTransaction',
+  Order: 'Order',
   Transaction: 'Transaction',
+  Product: 'Product',
   Image: 'Image',
   SiteSetting: 'SiteSetting',
-  AnalyticsMetrics: 'AnalyticsMetrics'
+  AnalyticsMetrics: 'AnalyticsMetrics',
+  AppealRequest: 'AppealRequest',
+  CustomPlanQuote: 'CustomPlanQuote',
+  PlatformConfig: 'PlatformConfig',
+  PlatformTicket: 'PlatformTicket'
 };
 
 /**

@@ -1,5 +1,6 @@
 export type ModuleKey =
   | 'shop'
+  | 'storefront'
   | 'categories'
   | 'payment'
   | 'analytics'
@@ -16,9 +17,10 @@ export interface ModuleItem {
 }
 
 export const MODULES: ModuleItem[] = [
-  { key: 'shop', label: 'Shop', path: '/', group: 'Shop', roles: 'manager' },
+  { key: 'shop', label: 'Products & Catalog', path: '/', group: 'Shop', roles: 'manager' },
+  { key: 'storefront', label: 'Storefront & Brand', path: '/storefront', group: 'Shop', roles: 'manager' },
   { key: 'categories', label: 'Collections', path: '/collections', group: 'Collections', roles: 'manager' },
-  { key: 'payment', label: 'Payments', path: '/payment', group: 'Payments', roles: 'manager' },
+  { key: 'payment', label: 'Payments & Invoices', path: '/payment', group: 'Payments', roles: 'manager' },
   { key: 'analytics', label: 'Analytics', path: '/analytics', group: 'Analytics', roles: 'manager' },
   { key: 'notifications', label: 'Notifications', path: '/notifications', group: 'Notifications', roles: 'manager' },
   { key: 'settings', label: 'Account & Theme Settings', path: '/settings', group: 'Settings', roles: 'manager' },

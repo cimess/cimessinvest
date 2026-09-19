@@ -1,8 +1,21 @@
 "use client";
 import  AuthProvider from "@/app/components/providers/authProvider";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { OpsSidebar } from "@/app/components/dashboard/OpsSidebar";
 import { Menu, X } from "lucide-react";
+
+function SessionGuard({ children }: { children: React.ReactNode }) {
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      window.location.href = "/login";
+    }
+  }, [status]);
+
+  return <>{children}</>;
+}
 
 export default function DashboardLayout({
   children,
@@ -14,6 +27,7 @@ export default function DashboardLayout({
 
   return (
     <AuthProvider>
+      <SessionGuard>
       <div className="flex min-h-screen w-full bg-[#1A1A1A] text-[#F5F0EB]">
         {/* 1. Desktop & Mobile Sidebar Container */}
         <div
@@ -58,6 +72,7 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
+      </SessionGuard>
     </AuthProvider>
   );
 }

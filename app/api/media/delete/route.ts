@@ -52,6 +52,13 @@ export async function POST(req: NextRequest) {
     let targetUrl = url || "";
     let imageRecord = null;
 
+    const userRole = (session?.user?.role || "").toUpperCase();
+    const effectiveAdminId = (session.user as any)?.adminId || session.user.id;
+    const targetCompanyId =
+      (session.user as any)?.activeCompanyId ||
+      (session.user as any)?.companyId ||
+      null;
+
     // 2. Query DB to check if the record exists in the Image catalog table
     if (id) {
       imageRecord = await prisma.image.findUnique({ where: { id } });
@@ -62,8 +69,25 @@ export async function POST(req: NextRequest) {
       imageRecord = await prisma.image.findFirst({ where: { url } });
     }
 
-    // Check if the URL is referenced in SiteSettings
-    const siteSettingRecord = await prisma.siteSetting.findFirst();
+    // Enforce Tenant Ownership
+    if (imageRecord && userRole !== "SUPERADMIN") {
+      const isOwner =
+        (targetCompanyId && imageRecord.companyId === targetCompanyId) ||
+        (effectiveAdminId && imageRecord.adminId === effectiveAdminId);
+
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: "Forbidden: You do not have permission to delete this media asset." },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Check if the URL is referenced in SiteSettings of this merchant
+    const siteSettingRecord = targetCompanyId
+      ? await prisma.siteSetting.findUnique({ where: { companyId: targetCompanyId } })
+      : await prisma.siteSetting.findFirst();
+
     const isUrlInSiteSetting =
       siteSettingRecord &&
       (siteSettingRecord.heroVideoUrl === targetUrl ||

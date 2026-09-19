@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { isSuperAdmin } from "@/app/lib/auth/superadmin";
 import { prisma } from "@/app/lib/prisma/prisma";
+import { getPlatformFeePercent } from "@/app/lib/platformConfig";
 
 /**
  * GET /api/superadmin/telemetry
- * Returns zero-knowledge platform health, atelier quotas, and recent Paystack transactions.
+ * Returns zero-knowledge platform health, multi-tenant directory, GMV, SaaS revenue, and appeals.
  */
 export async function GET() {
   try {
@@ -17,38 +18,67 @@ export async function GET() {
       );
     }
 
-    // 1. Platform-wide metric aggregates
+    // 1. Multi-Tenant Aggregates & Ledgers
     const [
-      totalAteliers,
-      activeSubscriptions,
-      storageAggregate,
-      trafficAggregate,
-      ateliers,
+      totalCompanies,
+      activeCompanies,
+      suspendedCompanies,
+      orderGMVAggregate,
+      subTxAggregate,
+      legacyTxAggregate,
+      companies,
+      pendingAppeals,
+      recentOrders,
       recentTransactions,
     ] = await Promise.all([
-      prisma.user.count({ where: { role: { not: "SUPERADMIN" } } }),
-      prisma.user.count({ where: { subscription_status: "ACTIVE" } }),
-      prisma.user.aggregate({
-        _sum: { storageUsed: true, storageLimit: true },
+      prisma.company.count(),
+      prisma.company.count({ where: { status: "ACTIVE" } }),
+      prisma.company.count({ where: { status: "SUSPENDED" } }),
+      prisma.order.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { amountKobo: true, platformFeeKobo: true, merchantNetKobo: true },
       }),
-      prisma.user.aggregate({
-        _sum: { monthlyVisits: true, trafficLimit: true },
+      prisma.subscriptionTransaction.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { amount: true },
       }),
-      prisma.user.findMany({
-        where: { role: { not: "SUPERADMIN" } },
+      prisma.transaction.aggregate({
+        where: { status: "COMPLETED" },
+        _sum: { amount: true },
+      }),
+      prisma.company.findMany({
         orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          companyName: true,
-          email: true,
-          planSelected: true,
-          subscription_status: true,
-          paymentVerified: true,
-          storageUsed: true,
-          storageLimit: true,
-          monthlyVisits: true,
-          trafficLimit: true,
-          createdAt: true,
+        include: {
+          members: {
+            where: { role: "OWNER" },
+            include: {
+              user: { select: { email: true, phone: true } },
+            },
+            take: 1,
+          },
+          _count: {
+            select: {
+              products: true,
+              orders: true,
+            },
+          },
+        },
+      }),
+      prisma.appealRequest.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          company: {
+            select: { id: true, name: true, slug: true, status: true },
+          },
+        },
+      }),
+      prisma.order.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: {
+          company: {
+            select: { name: true, slug: true },
+          },
         },
       }),
       prisma.transaction.findMany({
@@ -62,51 +92,100 @@ export async function GET() {
       }),
     ]);
 
-    const formattedAteliers = ateliers.map((a) => {
-      const storageUsed = a.storageUsed || 0;
-      const storageLimit = a.storageLimit || 500;
+    const platformGMVKobo = orderGMVAggregate._sum.amountKobo || 0;
+    const platformFeeKobo = orderGMVAggregate._sum.platformFeeKobo || 0;
+    const saasRevenueKobo = (subTxAggregate._sum.amount || 0) + (legacyTxAggregate._sum.amount || 0);
+
+    const formattedCompanies = companies.map((comp) => {
+      const storageUsed = comp.storageUsed || 0;
+      const storageLimit = comp.storageLimit || 1024;
       const storagePercent = Math.min(100, Math.round((storageUsed / storageLimit) * 100));
 
-      const visits = a.monthlyVisits || 0;
-      const trafficLimit = a.trafficLimit || 2000;
+      const visits = comp.monthlyVisits || 0;
+      const trafficLimit = comp.trafficLimit || 2000;
       const trafficPercent = Math.min(100, Math.round((visits / trafficLimit) * 100));
 
+      const owner = comp.members[0]?.user;
+
       return {
-        id: a.id,
-        companyName: a.companyName,
-        email: a.email,
-        planSelected: a.planSelected,
-        subscription_status: a.subscription_status,
-        paymentVerified: a.paymentVerified,
+        id: comp.id,
+        name: comp.name,
+        slug: comp.slug,
+        industry: comp.industry,
+        status: comp.status,
+        planSelected: comp.planSelected,
+        ownerEmail: owner?.email || "N/A",
+        ownerPhone: owner?.phone || "N/A",
         storageUsedMB: storageUsed,
         storageLimitMB: storageLimit,
         storagePercent,
         monthlyVisits: visits,
         trafficLimit,
         trafficPercent,
-        createdAt: a.createdAt.toISOString(),
+        productCount: comp._count.products,
+        orderCount: comp._count.orders,
+        paystackSubaccountCode: comp.paystackSubaccountCode,
+        createdAt: comp.createdAt.toISOString(),
       };
     });
+
+    const formattedAppeals = pendingAppeals.map((app) => ({
+      id: app.id,
+      companyId: app.companyId,
+      companyName: app.company.name,
+      companySlug: app.company.slug,
+      companyStatus: app.company.status,
+      reason: app.reason,
+      contactInfo: app.contactInfo,
+      status: app.status,
+      reviewedBy: app.reviewedBy,
+      reviewNote: app.reviewNote,
+      createdAt: app.createdAt.toISOString(),
+    }));
+
+    const formattedRecentOrders = recentOrders.map((ord) => ({
+      id: ord.id,
+      reference: ord.reference,
+      invoiceNumber: ord.invoiceNumber,
+      companyName: ord.company.name,
+      companySlug: ord.company.slug,
+      amountNGN: ord.amountKobo / 100,
+      status: ord.status,
+      orderType: ord.orderType,
+      customerName: ord.customerName,
+      customerPhone: ord.customerPhone,
+      createdAt: ord.createdAt.toISOString(),
+    }));
 
     const formattedTransactions = recentTransactions.map((tx) => ({
       id: tx.id,
       reference: tx.reference,
-      companyName: tx.user?.companyName || "Atelier",
+      companyName: tx.user?.companyName || "Merchant",
       amountNGN: tx.amount / 100,
       planSelected: tx.planSelected,
       status: tx.status,
       createdAt: tx.createdAt.toISOString(),
     }));
 
+    const platformFeePercent = await getPlatformFeePercent();
+
     return NextResponse.json({
       success: true,
       telemetry: {
-        totalAteliers,
-        activeSubscriptions,
-        totalStorageUsedMB: storageAggregate._sum.storageUsed || 0,
-        totalStorageLimitMB: storageAggregate._sum.storageLimit || 0,
-        totalMonthlyVisits: trafficAggregate._sum.monthlyVisits || 0,
-        ateliers: formattedAteliers,
+        // High-level KPIs
+        totalCompanies,
+        activeCompanies,
+        suspendedCompanies,
+        platformGMVNGN: Math.round(platformGMVKobo / 100),
+        platformFeeNGN: Math.round(platformFeeKobo / 100),
+        platformFeePercent,
+        saasRevenueNGN: Math.round(saasRevenueKobo / 100),
+        pendingAppealsCount: pendingAppeals.filter((a) => a.status === "PENDING").length,
+
+        // Detailed Lists
+        companies: formattedCompanies,
+        appeals: formattedAppeals,
+        recentOrders: formattedRecentOrders,
         recentTransactions: formattedTransactions,
       },
     });

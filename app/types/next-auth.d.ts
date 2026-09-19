@@ -7,6 +7,13 @@ declare module "next-auth" {
     phone?: string;
     authorizationKey?: string;
     role?: string;
+    adminId?: string | null;
+    activeCompanyId?: string;
+    companyId?: string;
+    companySlug?: string;
+    industry?: string;
+    memberRole?: string;
+    platformRole?: string | null;
   }
 
   interface Session {
@@ -15,6 +22,13 @@ declare module "next-auth" {
       companyName?: string;
       authorizationKey?: string;
       role?: string;
+      adminId?: string | null;
+      activeCompanyId?: string;
+      companyId?: string;
+      companySlug?: string;
+      industry?: string;
+      memberRole?: string;
+      platformRole?: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -25,5 +39,12 @@ declare module "next-auth/jwt" {
     companyName?: string;
     authorizationKey?: string;
     role?: string;
+    adminId?: string | null;
+    activeCompanyId?: string;
+    companyId?: string;
+    companySlug?: string;
+    industry?: string;
+    memberRole?: string;
+    platformRole?: string | null;
   }
 }

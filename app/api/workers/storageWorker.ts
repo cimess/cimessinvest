@@ -20,6 +20,24 @@ export interface StorageStatus {
   };
 }
 
+export interface CompanyStorageStatus {
+  companyId: string;
+  companyName: string;
+  planSelected: string;
+  storageUsedMB: number;
+  storageLimitMB: number;
+  remainingStorageMB: number;
+  usedPercentage: number;
+  isExceeded: boolean;
+  isNearLimit: boolean;
+  formatted: {
+    used: string;
+    limit: string;
+    remaining: string;
+    percentage: string;
+  };
+}
+
 export interface UploadCheckResult {
   allowed: boolean;
   fileSizeMB: number;
@@ -35,15 +53,139 @@ export interface DowngradeCheckResult {
 }
 
 /**
- * Checks a user's storage usage, limit, and remaining capacity.
+ * Checks a Company tenant's storage usage, limit, and remaining capacity.
+ *
+ * @param companyId - ID of the Company
+ * @param syncWithMediaTable - If true, recalculates total bytes from Image table (excluding platform assets)
+ */
+export async function checkCompanyStorage(
+  companyId: string,
+  syncWithMediaTable: boolean = false
+): Promise<CompanyStorageStatus> {
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: {
+      id: true,
+      name: true,
+      planSelected: true,
+      storageUsed: true,
+      storageLimit: true,
+      members: {
+        where: { role: "OWNER" },
+        include: {
+          user: {
+            select: { id: true, email: true, companyName: true },
+          },
+        },
+        take: 1,
+      },
+    },
+  });
+
+  if (!company) {
+    throw new Error(`Company workspace with ID "${companyId}" not found.`);
+  }
+
+  let storageUsedMB = company.storageUsed ?? 0;
+  const storageLimitMB = company.storageLimit ?? 1024;
+
+  if (syncWithMediaTable) {
+    const aggregateResult = await prisma.image.aggregate({
+      where: {
+        companyId: company.id,
+        isPlatformAsset: false,
+      },
+      _sum: {
+        size: true, // in bytes
+      },
+    });
+
+    const totalBytes = aggregateResult._sum.size ?? 0;
+    storageUsedMB = Math.ceil(totalBytes / (1024 * 1024));
+
+    await prisma.company.update({
+      where: { id: company.id },
+      data: { storageUsed: storageUsedMB },
+    });
+  }
+
+  const remainingStorageMB = Math.max(0, storageLimitMB - storageUsedMB);
+  const rawPercentage = storageLimitMB > 0 ? (storageUsedMB / storageLimitMB) * 100 : 0;
+  const usedPercentage = Math.min(100, Number(rawPercentage.toFixed(2)));
+
+  const isExceeded = storageUsedMB >= storageLimitMB;
+  const isNearLimit = usedPercentage >= 90;
+
+  // Trigger 80% warning email to Company Owner if threshold reached
+  const ownerUser = company.members[0]?.user;
+  if (usedPercentage >= 80 && ownerUser) {
+    triggerStorageWarning80({
+      userId: ownerUser.id,
+      toEmail: ownerUser.email,
+      userName: company.name || ownerUser.companyName || ownerUser.email,
+      storageUsedMB,
+      storageLimitMB,
+      usedPercentage,
+    }).catch((err) => console.error("[StorageWorker] Warning email trigger failed:", err));
+  }
+
+  return {
+    companyId: company.id,
+    companyName: company.name || "Unknown Brand",
+    planSelected: company.planSelected,
+    storageUsedMB,
+    storageLimitMB,
+    remainingStorageMB,
+    usedPercentage,
+    isExceeded,
+    isNearLimit,
+    formatted: {
+      used: `${storageUsedMB} MB`,
+      limit: `${storageLimitMB} MB`,
+      remaining: `${remainingStorageMB} MB`,
+      percentage: `${usedPercentage}%`,
+    },
+  };
+}
+
+/**
+ * Checks a user's storage usage, resolving to their Company workspace if available.
  * 
  * @param userId - ID of the user to check
- * @param syncWithMediaTable - If true, recalculates total bytes from the Image table and updates User.storageUsed in DB
+ * @param syncWithMediaTable - If true, recalculates total bytes from the Image table
  */
 export async function checkUserStorage(
   userId: string,
   syncWithMediaTable: boolean = false
 ): Promise<StorageStatus> {
+  // Check if user belongs to a company
+  const membership = await prisma.companyMember.findFirst({
+    where: { userId },
+    select: { companyId: true },
+  });
+
+  if (membership?.companyId) {
+    const companyStatus = await checkCompanyStorage(membership.companyId, syncWithMediaTable);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    return {
+      userId,
+      email: user?.email || "",
+      companyName: companyStatus.companyName,
+      planSelected: companyStatus.planSelected,
+      storageUsedMB: companyStatus.storageUsedMB,
+      storageLimitMB: companyStatus.storageLimitMB,
+      remainingStorageMB: companyStatus.remainingStorageMB,
+      usedPercentage: companyStatus.usedPercentage,
+      isExceeded: companyStatus.isExceeded,
+      isNearLimit: companyStatus.isNearLimit,
+      formatted: companyStatus.formatted,
+    };
+  }
+
   // 1. Fetch user storage info from DB (resolving manager to admin if applicable)
   let user = await prisma.user.findUnique({
     where: { id: userId },
@@ -63,7 +205,6 @@ export async function checkUserStorage(
     throw new Error(`User with ID "${userId}" not found.`);
   }
 
-  // If user is a MANAGER with an adminId, resolve to their workspace administrator
   if (user.role === "MANAGER" && user.adminId) {
     const adminUser = await prisma.user.findUnique({
       where: { id: user.adminId },
@@ -84,34 +225,30 @@ export async function checkUserStorage(
   }
 
   let storageUsedMB = user.storageUsed ?? 0;
-  const storageLimitMB = user.storageLimit ?? 500; // Default limit fallback (500 MB)
+  const storageLimitMB = user.storageLimit ?? 500;
 
-  // 2. Optionally synchronize by summing actual asset sizes in the Image table
   if (syncWithMediaTable) {
     const aggregateResult = await prisma.image.aggregate({
       where: {
         OR: [
           { adminId: user.id },
-          { adminId: null }, // for existing legacy images
+          { adminId: null },
         ],
       },
       _sum: {
-        size: true, // size stored in bytes
+        size: true,
       },
     });
 
     const totalBytes = aggregateResult._sum.size ?? 0;
-    // Convert Bytes to MB (1 MB = 1024 * 1024 Bytes)
     storageUsedMB = Math.ceil(totalBytes / (1024 * 1024));
 
-    // Persist recalculated storage back to Admin User model
     await prisma.user.update({
       where: { id: user.id },
       data: { storageUsed: storageUsedMB },
     });
   }
 
-  // 3. Compute remaining space & metrics
   const remainingStorageMB = Math.max(0, storageLimitMB - storageUsedMB);
   const rawPercentage = storageLimitMB > 0 ? (storageUsedMB / storageLimitMB) * 100 : 0;
   const usedPercentage = Math.min(100, Number(rawPercentage.toFixed(2)));
@@ -119,7 +256,6 @@ export async function checkUserStorage(
   const isExceeded = storageUsedMB >= storageLimitMB;
   const isNearLimit = usedPercentage >= 90;
 
-  // 4. Trigger Email Alert Worker if storage is 80%+ full
   if (usedPercentage >= 80) {
     triggerStorageWarning80({
       userId: user.id,
@@ -134,7 +270,7 @@ export async function checkUserStorage(
   return {
     userId: user.id,
     email: user.email,
-    companyName: user.companyName,
+    companyName: user.companyName || "Unknown Brand",
     planSelected: user.planSelected,
     storageUsedMB,
     storageLimitMB,
@@ -152,68 +288,71 @@ export async function checkUserStorage(
 }
 
 /**
- * Worker helper to verify if an incoming upload fits within remaining storage quota.
- * 
- * @param userId - ID of the uploading user
- * @param newFileSizeBytes - Size of the file being uploaded in Bytes
+ * Validates whether a file upload fits within the remaining storage quota.
  */
-export async function canUserUpload(
-  userId: string,
-  newFileSizeBytes: number
+export async function canUploadFile(
+  entityId: string,
+  fileSizeBytes: number,
+  isCompany: boolean = false
 ): Promise<UploadCheckResult> {
-  const stats = await checkUserStorage(userId);
-  const fileSizeMB = Number((newFileSizeBytes / (1024 * 1024)).toFixed(2));
+  const fileSizeMB = Math.ceil(fileSizeBytes / (1024 * 1024));
+  const storage = isCompany
+    ? await checkCompanyStorage(entityId)
+    : await checkUserStorage(entityId);
 
-  if (stats.isExceeded) {
+  if (storage.isExceeded) {
     return {
       allowed: false,
       fileSizeMB,
-      remainingMB: stats.remainingStorageMB,
-      message: `Storage quota exceeded (${stats.formatted.used} / ${stats.formatted.limit}). Upgrade your plan to upload more assets.`,
+      remainingMB: storage.remainingStorageMB,
+      message: `Upload blocked: Storage limit reached (${storage.formatted.used} / ${storage.formatted.limit}). Upgrade your plan for more space.`,
     };
   }
 
-  if (fileSizeMB > stats.remainingStorageMB) {
+  if (fileSizeMB > storage.remainingStorageMB) {
     return {
       allowed: false,
       fileSizeMB,
-      remainingMB: stats.remainingStorageMB,
-      message: `File size (${fileSizeMB} MB) exceeds remaining storage quota (${stats.formatted.remaining}).`,
+      remainingMB: storage.remainingStorageMB,
+      message: `Upload blocked: File size (${fileSizeMB} MB) exceeds remaining space (${storage.remainingStorageMB} MB).`,
     };
   }
 
   return {
     allowed: true,
     fileSizeMB,
-    remainingMB: stats.remainingStorageMB,
+    remainingMB: storage.remainingStorageMB,
   };
 }
 
 /**
- * Worker check to prevent users from tricking the system by switching to a plan
- * whose storage capacity is lower than their current used storage.
- * 
- * @param userId - ID of the user trying to change plan
- * @param targetPlanLimitMB - The storage limit of the plan they want to switch to
+ * Validates whether a plan downgrade is permissible given current storage usage.
  */
-export async function validatePlanDowngradeEligibility(
-  userId: string,
-  targetPlanLimitMB: number
+export async function canDowngradeStorage(
+  entityId: string,
+  targetLimitMB: number,
+  isCompany: boolean = false
 ): Promise<DowngradeCheckResult> {
-  const stats = await checkUserStorage(userId, true);
+  const storage = isCompany
+    ? await checkCompanyStorage(entityId, true)
+    : await checkUserStorage(entityId, true);
 
-  if (stats.storageUsedMB > targetPlanLimitMB) {
+  if (storage.storageUsedMB > targetLimitMB) {
     return {
       eligible: false,
-      storageUsedMB: stats.storageUsedMB,
-      targetLimitMB: targetPlanLimitMB,
-      message: `Cannot switch to this plan: Your current storage usage (${stats.formatted.used}) exceeds the target plan limit (${targetPlanLimitMB} MB). Please delete uploaded assets to free up space before changing plans.`,
+      storageUsedMB: storage.storageUsedMB,
+      targetLimitMB,
+      message: `Cannot downgrade: Current usage (${storage.storageUsedMB} MB) exceeds target limit (${targetLimitMB} MB). Please delete files first.`,
     };
   }
 
   return {
     eligible: true,
-    storageUsedMB: stats.storageUsedMB,
-    targetLimitMB: targetPlanLimitMB,
+    storageUsedMB: storage.storageUsedMB,
+    targetLimitMB,
   };
 }
+
+// Backwards-compatibility aliases
+export const canUserUpload = canUploadFile;
+export const validatePlanDowngradeEligibility = canDowngradeStorage;

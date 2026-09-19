@@ -43,10 +43,10 @@ export default function FeaturedGrid({
               Every garment represents hundreds of hours of precision tailoring, hand embroidery, and luxury fabric selection.
             </p>
             <Link
-              href="/collections"
+              href="/store"
               className="hidden sm:inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--color-accent,#C9A96E)] hover:text-[var(--color-primary,#1A1A1A)] transition-colors shrink-0"
             >
-              <span>View All</span>
+              <span>View Store</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -128,10 +128,10 @@ export default function FeaturedGrid({
         {/* View All Collections Button */}
         <div className="mt-14 text-center">
           <Link
-            href="/collections"
+            href="/store"
             className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--color-primary,#1A1A1A)] border border-[var(--color-accent,#C9A96E)] text-[var(--color-accent,#C9A96E)] hover:bg-[var(--color-accent,#C9A96E)] hover:text-[var(--color-primary,#1A1A1A)] transition-all font-bold text-xs uppercase tracking-[0.25em] shadow-lg hover:shadow-xl"
           >
-            <span>Explore Full Bespoke Portfolio</span>
+            <span>Explore Full Store & Catalog</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

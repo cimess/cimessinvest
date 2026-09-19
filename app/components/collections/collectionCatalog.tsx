@@ -104,6 +104,12 @@ export default function CollectionCatalog({
   };
 
   const handleInquire = (item: FeaturedItem) => {
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "whatsapp_click" }),
+    }).catch(() => null);
+
     const text = `Hello ${brandName}, I am interested in ordering/inquiring about the bespoke "${item.title}" (${item.category}).`;
     const url = buildWhatsAppUrl(whatsappNumber, text);
     window.open(url, "_blank");

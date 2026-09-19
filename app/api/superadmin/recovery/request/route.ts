@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { triggerSuperadminSecurityOTP } from "@/app/api/workers/emailWorker";
 import crypto from "crypto";
+import { checkRateLimit } from "@/app/lib/security/rateLimiter";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,17 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
+    // 0. Strict rate limiting against security answer guessing (max 5 attempts per 15 mins)
+    const rateLimit = await checkRateLimit(req, {
+      keyPrefix: "superadmin-recovery-req",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+      customMessage: "Too many recovery attempts. Please wait 15 minutes before trying again.",
+    });
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const { email, securityAnswer } = await req.json();
 
     if (!email || typeof email !== "string" || !securityAnswer || typeof securityAnswer !== "string") {

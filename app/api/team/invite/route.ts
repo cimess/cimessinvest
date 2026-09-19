@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/app/auth";
 import { prisma } from "@/app/lib/prisma/prisma";
-import { createManagerInvite, getAdminTeamStats } from "@/app/api/workers/teamWorker";
+import {
+  createCompanyMemberInvite,
+  getCompanyTeamStats,
+} from "@/app/api/workers/teamWorker";
+import { requireActiveCompanyMember, handleRbacError } from "@/app/lib/auth/rbac";
+import { MemberRole } from "@/app/generated/prisma";
 import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    const userRole = (session?.user?.role || "").toUpperCase();
+    const ctx = await requireActiveCompanyMember(null, [MemberRole.OWNER]);
 
-    if (!session || userRole !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Forbidden: Only atelier administrators can invite team managers." },
-        { status: 403 }
-      );
-    }
-
-    const adminId = session.user.id;
-    const invite = await createManagerInvite(adminId);
+    const invite = await createCompanyMemberInvite(
+      ctx.companyId,
+      ctx.userId,
+      MemberRole.MANAGER
+    );
 
     const baseUrl = process.env.NEXTAUTH_URL || "https://cimessinvest.com";
     const inviteUrl = `${baseUrl.replace(/\/$/, "")}/invite/${invite.token}`;
@@ -29,11 +28,14 @@ export async function POST(req: Request) {
         token: invite.token,
         inviteUrl,
         expiresAt: invite.expiresAt,
-        companyName: invite.admin.companyName,
+        companyName: ctx.companyName,
       },
     });
   } catch (error) {
     console.error("Team Invite API Error:", error);
+    const rbacResponse = handleRbacError(error);
+    if (rbacResponse.status !== 500) return rbacResponse;
+
     const safeError = getSafeErrorMessage(error, "Failed to generate manager invite link.");
     return NextResponse.json(
       { error: safeError.message },
@@ -44,22 +46,13 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    const session = await auth();
-    const userRole = (session?.user?.role || "").toUpperCase();
+    const ctx = await requireActiveCompanyMember(null, [MemberRole.OWNER]);
 
-    if (!session || userRole !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Forbidden: Only atelier administrators can view invites." },
-        { status: 403 }
-      );
-    }
-
-    const adminId = session.user.id;
-    const stats = await getAdminTeamStats(adminId);
+    const stats = await getCompanyTeamStats(ctx.companyId);
 
     const activeInvites = await prisma.invite.findMany({
       where: {
-        adminId,
+        companyId: ctx.companyId,
         used: false,
         expiresAt: { gt: new Date() },
       },
@@ -82,6 +75,9 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Team Invites GET Error:", error);
+    const rbacResponse = handleRbacError(error);
+    if (rbacResponse.status !== 500) return rbacResponse;
+
     const safeError = getSafeErrorMessage(error, "Failed to retrieve pending invites.");
     return NextResponse.json(
       { error: safeError.message },

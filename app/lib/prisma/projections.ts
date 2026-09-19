@@ -16,6 +16,8 @@ export const SAFE_USER_SELECT = {
   subscription_status: true,
   storageUsed: true,
   storageLimit: true,
+  monthlyVisits: true,
+  trafficLimit: true,
   createdAt: true,
 } as const satisfies Prisma.UserSelect;
 
@@ -28,6 +30,8 @@ export const SAFE_SITE_SETTING_SELECT = {
   id: true,
   primaryColor: true,
   accentColor: true,
+  themeColor: true,
+  layoutMode: true,
   backgroundColor: true,
   showDefaultImages: true,
   appendDefaults: true,
@@ -39,6 +43,11 @@ export const SAFE_SITE_SETTING_SELECT = {
   tailorBioImage: true,
   heroGridImages: true,
   rawMaterialImages: true,
+  physicalAddress: true,
+  city: true,
+  state: true,
+  country: true,
+  openingHours: true,
 } as const satisfies Prisma.SiteSettingSelect;
 
 export type SafeSiteSetting = Prisma.SiteSettingGetPayload<{ select: typeof SAFE_SITE_SETTING_SELECT }>;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import bcrypt from "bcrypt";
 import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
+import { checkRateLimit } from "@/app/lib/security/rateLimiter";
 
 /**
  * POST /api/auth/reset-password
@@ -9,6 +10,17 @@ import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
  */
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate limiting (max 5 password resets per 15 mins per IP)
+    const rateLimit = await checkRateLimit(req, {
+      keyPrefix: "auth-reset-password",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+      customMessage: "Too many password reset attempts. Please wait 15 minutes before trying again.",
+    });
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const { email, otpCode, newPassword } = await req.json();
 
     if (!email || !otpCode || !newPassword) {

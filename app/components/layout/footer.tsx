@@ -47,30 +47,30 @@ export default async function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Collections */}
+          {/* Column 2: Store & Catalog */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-xs uppercase tracking-[0.3em] text-[#C9A96E] font-semibold">
-              Collections
+              Store & Catalog
             </h4>
             <ul className="space-y-3 text-xs tracking-wider uppercase text-[#E0D5C9]">
               <li>
-                <Link href="/collections" className="hover:text-[#C9A96E] transition-colors">
+                <Link href="/store" className="hover:text-[#C9A96E] transition-colors">
                   Agbada Heritage
                 </Link>
               </li>
               <li>
-                <Link href="/collections" className="hover:text-[#C9A96E] transition-colors">
+                <Link href="/store" className="hover:text-[#C9A96E] transition-colors">
                   Modern Kaftan
                 </Link>
               </li>
               <li>
-                <Link href="/collections" className="hover:text-[#C9A96E] transition-colors">
+                <Link href="/store" className="hover:text-[#C9A96E] transition-colors">
                   Executive Senator
                 </Link>
               </li>
               <li>
-                <Link href="/collections" className="hover:text-[#C9A96E] transition-colors">
-                  Private Couture
+                <Link href="/store" className="hover:text-[#C9A96E] transition-colors">
+                  Fabrics & Materials
                 </Link>
               </li>
             </ul>

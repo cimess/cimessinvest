@@ -281,7 +281,7 @@ export async function finalizeTransactionVerification(reference: string) {
   });
 
   // Expand User Fixed Storage Limit (uses custom storage if Enterprise negotiated, else plan limit)
-  let newStorageLimitMB = PLAN_STORAGE_LIMITS[transaction.planSelected] || 500;
+  let newStorageLimitMB = (PLAN_STORAGE_LIMITS as Record<string, number>)[transaction.planSelected] || 500;
   if (transaction.planSelected === "ENTERPRISE" && transaction.customStorageMB) {
     newStorageLimitMB = transaction.customStorageMB;
   }
@@ -322,6 +322,24 @@ export async function finalizeTransactionVerification(reference: string) {
       trafficNotified100: false,
     },
   });
+
+  // Also update merchant active Company so profile updates immediately across the platform
+  const activeMembership = await prisma.companyMember.findFirst({
+    where: { userId: transaction.userId, status: "ACTIVE" },
+    select: { companyId: true },
+  });
+
+  if (activeMembership?.companyId) {
+    await prisma.company.update({
+      where: { id: activeMembership.companyId },
+      data: {
+        planSelected: transaction.planSelected as any,
+        subscription_status: "ACTIVE",
+        storageLimit: newStorageLimitMB,
+        trafficLimit: newTrafficLimit,
+      },
+    });
+  }
 
   // Dispatch Platform Payment Invoice Email
   const amountFormatted = `₦${(transaction.amount / 100).toLocaleString()}`;

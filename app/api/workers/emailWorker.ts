@@ -9,6 +9,10 @@ import {
   getTrafficWarning80EmailHtml,
   getTrafficLimit100EmailHtml,
   getSuperadminOtpEmailHtml,
+  getOrderPaidReceiptEmailHtml,
+  getDisputeCustomerEmailTemplate,
+  getDisputeMerchantAlertEmailTemplate,
+  getMerchantSupportAcknowledgmentTemplate,
 } from "@/app/lib/email/templates";
 import { prisma } from "@/app/lib/prisma/prisma";
 
@@ -21,7 +25,11 @@ export type EmailEventType =
   | "PAYMENT_RECEIPT"
   | "TRAFFIC_WARNING_80"
   | "TRAFFIC_LIMIT_100"
-  | "SUPERADMIN_SECURITY_OTP";
+  | "SUPERADMIN_SECURITY_OTP"
+  | "ORDER_PAID_RECEIPT"
+  | "DISPUTE_CUSTOMER_ALERT"
+  | "DISPUTE_MERCHANT_ALERT"
+  | "MERCHANT_SUPPORT_REPORT";
 
 export interface BaseEmailEvent {
   type: EmailEventType;
@@ -106,6 +114,60 @@ export interface SuperadminSecurityOtpEvent extends BaseEmailEvent {
   expiresInMinutes?: number;
 }
 
+export interface OrderPaidReceiptEvent extends BaseEmailEvent {
+  type: "ORDER_PAID_RECEIPT";
+  toEmail: string;
+  customerName?: string;
+  customerPhone?: string;
+  orderReference: string;
+  invoiceNumber?: string | null;
+  storeName: string;
+  orderType: string;
+  amountNaira: number;
+  originalAmountNaira?: number | null;
+  discountNaira?: number | null;
+  shippingNaira?: number | null;
+  items: Array<{ name: string; quantity: number; priceNaira: number }>;
+  notes?: string | null;
+  paymentDate: string;
+  checkoutUrl: string;
+  whatsappNumber?: string | null;
+}
+
+export interface DisputeCustomerAlertEvent extends BaseEmailEvent {
+  type: "DISPUTE_CUSTOMER_ALERT";
+  toEmail: string;
+  customerName?: string;
+  ticketNumber: string;
+  orderReference: string;
+  storeName: string;
+  amountNaira: number;
+  disputeReason: string;
+}
+
+export interface DisputeMerchantAlertEvent extends BaseEmailEvent {
+  type: "DISPUTE_MERCHANT_ALERT";
+  toEmail: string;
+  merchantName: string;
+  storeName: string;
+  ticketNumber: string;
+  orderReference: string;
+  amountNaira: number;
+  customerName?: string;
+  disputeReason: string;
+}
+
+export interface MerchantSupportReportEvent extends BaseEmailEvent {
+  type: "MERCHANT_SUPPORT_REPORT";
+  toEmail: string;
+  merchantName: string;
+  storeName: string;
+  ticketNumber: string;
+  category: string;
+  subjectLine: string;
+  description: string;
+}
+
 export type EmailEvent =
   | WelcomeEvent
   | StorageWarning80Event
@@ -115,7 +177,11 @@ export type EmailEvent =
   | PaymentReceiptEvent
   | TrafficWarning80Event
   | TrafficLimit100Event
-  | SuperadminSecurityOtpEvent;
+  | SuperadminSecurityOtpEvent
+  | OrderPaidReceiptEvent
+  | DisputeCustomerAlertEvent
+  | DisputeMerchantAlertEvent
+  | MerchantSupportReportEvent;
 
 /**
  * Worker handler to process incoming email dispatch events.
@@ -232,6 +298,61 @@ export async function processEmailEvent(event: EmailEvent) {
         });
         break;
 
+      case "ORDER_PAID_RECEIPT":
+        templateData = getOrderPaidReceiptEmailHtml({
+          customerName: event.customerName,
+          customerEmail: event.toEmail,
+          customerPhone: event.customerPhone,
+          orderReference: event.orderReference,
+          invoiceNumber: event.invoiceNumber,
+          storeName: event.storeName,
+          orderType: event.orderType,
+          amountNaira: event.amountNaira,
+          originalAmountNaira: event.originalAmountNaira,
+          discountNaira: event.discountNaira,
+          shippingNaira: event.shippingNaira,
+          items: event.items,
+          notes: event.notes,
+          paymentDate: event.paymentDate,
+          checkoutUrl: event.checkoutUrl,
+          whatsappNumber: event.whatsappNumber,
+        });
+        break;
+
+      case "DISPUTE_CUSTOMER_ALERT":
+        templateData = getDisputeCustomerEmailTemplate({
+          customerName: event.customerName,
+          ticketNumber: event.ticketNumber,
+          orderReference: event.orderReference,
+          storeName: event.storeName,
+          amountNaira: event.amountNaira,
+          disputeReason: event.disputeReason,
+        });
+        break;
+
+      case "DISPUTE_MERCHANT_ALERT":
+        templateData = getDisputeMerchantAlertEmailTemplate({
+          merchantName: event.merchantName,
+          storeName: event.storeName,
+          ticketNumber: event.ticketNumber,
+          orderReference: event.orderReference,
+          amountNaira: event.amountNaira,
+          customerName: event.customerName,
+          disputeReason: event.disputeReason,
+        });
+        break;
+
+      case "MERCHANT_SUPPORT_REPORT":
+        templateData = getMerchantSupportAcknowledgmentTemplate({
+          merchantName: event.merchantName,
+          storeName: event.storeName,
+          ticketNumber: event.ticketNumber,
+          category: event.category,
+          subjectLine: event.subjectLine,
+          description: event.description,
+        });
+        break;
+
       default:
         console.error("[EmailWorker] Unknown event type:", (event as { type: string }).type);
         return { success: false, error: "Unknown event type" };
@@ -291,3 +412,20 @@ export async function triggerTrafficLimit100(params: Omit<TrafficLimit100Event, 
 export async function triggerSuperadminSecurityOTP(params: Omit<SuperadminSecurityOtpEvent, "type">) {
   return processEmailEvent({ type: "SUPERADMIN_SECURITY_OTP", ...params });
 }
+
+export async function triggerOrderPaidReceiptEmail(params: Omit<OrderPaidReceiptEvent, "type">) {
+  return processEmailEvent({ type: "ORDER_PAID_RECEIPT", ...params });
+}
+
+export async function triggerDisputeCustomerAlert(params: Omit<DisputeCustomerAlertEvent, "type">) {
+  return processEmailEvent({ type: "DISPUTE_CUSTOMER_ALERT", ...params });
+}
+
+export async function triggerDisputeMerchantAlert(params: Omit<DisputeMerchantAlertEvent, "type">) {
+  return processEmailEvent({ type: "DISPUTE_MERCHANT_ALERT", ...params });
+}
+
+export async function triggerMerchantSupportReport(params: Omit<MerchantSupportReportEvent, "type">) {
+  return processEmailEvent({ type: "MERCHANT_SUPPORT_REPORT", ...params });
+}
+

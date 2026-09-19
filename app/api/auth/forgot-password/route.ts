@@ -3,6 +3,7 @@ import { prisma } from "@/app/lib/prisma/prisma";
 import crypto from "crypto";
 import { triggerForgotPasswordOTP } from "@/app/api/workers/emailWorker";
 import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
+import { checkRateLimit } from "@/app/lib/security/rateLimiter";
 
 /**
  * POST /api/auth/forgot-password
@@ -10,6 +11,17 @@ import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
  */
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate limiting (max 5 password reset requests per 15 mins per IP)
+    const rateLimit = await checkRateLimit(req, {
+      keyPrefix: "auth-forgot-password",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+      customMessage: "Too many password reset requests. Please wait 15 minutes before requesting again.",
+    });
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const { email } = await req.json();
 
     if (!email || typeof email !== "string") {

@@ -1,17 +1,41 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { triggerWelcomeEmail, triggerSignupOTP } from "@/app/api/workers/emailWorker";
-import { checkEmailUniqueness, checkAdminRegistrationEligibility } from "@/app/api/workers/teamWorker";
+import { checkEmailUniqueness } from "@/app/api/workers/teamWorker";
 import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
+import { IndustryCategory } from "@/app/generated/prisma";
+import { getTemplatesByIndustry, ALL_TEMPLATES } from "@/templates/registry";
+import { checkRateLimit } from "@/app/lib/security/rateLimiter";
+import { isReservedSubdomain } from "@/app/lib/constants/subdomains";
 
-export async function POST(req: Request) {
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 35) || "atelier";
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { name, email, phone, password } = body;
+    // 0. Rate limiting (max 10 registration attempts per hour per IP)
+    const rateLimit = await checkRateLimit(req, {
+      keyPrefix: "registration",
+      limit: 10,
+      windowMs: 60 * 60 * 1000,
+      customMessage: "Too many registration attempts. Please try again later.",
+    });
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
 
-    // 1. Input Validation
+    const body = await req.json();
+    const { name, email, phone, password, brandName, industry, templateSlug } = body;
+
+    // 1. Vital Fields Input Validation
     if (!name || !email || !phone || !password) {
       return NextResponse.json(
         { error: "Missing required fields: name, email, phone, and password are required." },
@@ -20,8 +44,35 @@ export async function POST(req: Request) {
     }
 
     const trimmedEmail = email.trim().toLowerCase();
+    const resolvedBrandName = (brandName || name).trim();
 
-    // 2. Worker Check: Unique Email & Unexpired OTP Status
+    // 2. Resolve Industry Category
+    const validIndustries = Object.values(IndustryCategory) as string[];
+    const resolvedIndustry: IndustryCategory =
+      industry && validIndustries.includes(industry.toUpperCase())
+        ? (industry.toUpperCase() as IndustryCategory)
+        : IndustryCategory.FASHION_ATELIER;
+
+    // 2b. Verify Store & Template Enablement from Superadmin Database
+    const targetTemplateSlug = templateSlug || (resolvedIndustry === "FITNESS_GYM" ? "gym-store-fitness-v1" : "fashion-store-tailor-v1");
+    const dbTemplate = await prisma.template
+      .findUnique({
+        where: { slug: targetTemplateSlug },
+        select: { isActive: true, name: true },
+      })
+      .catch(() => null);
+
+    if (dbTemplate && dbTemplate.isActive === false) {
+      return NextResponse.json(
+        {
+          error: `The ${dbTemplate.name || "selected"} store is currently coming soon. Please choose another store to proceed.`,
+          code: "STORE_COMING_SOON",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 3. Worker Check: Unique Email & Unexpired OTP Status
     const emailCheck = await checkEmailUniqueness(trimmedEmail);
 
     if (!emailCheck.isUnique) {
@@ -41,15 +92,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Platform Single-Atelier Policy: Only one Admin can register on this deployment
-    const adminEligibility = await checkAdminRegistrationEligibility();
-    if (!adminEligibility.allowed) {
-      return NextResponse.json(
-        { error: adminEligibility.message || "Platform registration is closed. An administrator is already registered for this atelier." },
-        { status: 403 }
-      );
-    }
-
     // 4. Hash Password & Create Authorization Key
     const hashedPassword = await bcrypt.hash(password, 10);
     const authorizationKey = `CMS-${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
@@ -59,46 +101,166 @@ export async function POST(req: Request) {
     const expiryDate = new Date();
     expiryDate.setMinutes(expiryDate.getMinutes() + 15);
 
-    // 6. Create New Administrator Account
-    const user = await prisma.user.create({
-      data: {
-        companyName: name.trim(),
-        email: trimmedEmail,
-        phone: phone.trim(),
-        password: hashedPassword,
-        authorizationKey,
-        role: "ADMIN",
-        paymentVerified: false,
-        planSelected: "STARTER",
-        subscription_status: "INACTIVE",
-        storageUsed: 0,
-        storageLimit: 500,
-        resetToken: `${otpCode}:0`,
-        resetTokenExpiry: expiryDate,
+    // 6. Generate Unique Company Slug & Validate Against Reserved Subdomains
+    const baseSlug = slugify(resolvedBrandName);
+
+    if (isReservedSubdomain(resolvedBrandName) || isReservedSubdomain(baseSlug)) {
+      return NextResponse.json(
+        {
+          error: `The brand name or subdomain "${resolvedBrandName}" is already in use. Please choose a different brand name.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    let uniqueSlug = baseSlug;
+    let slugCollision = await prisma.company.findUnique({ where: { slug: uniqueSlug } });
+    let counter = 1;
+    while (slugCollision) {
+      uniqueSlug = `${baseSlug}-${counter}`;
+      slugCollision = await prisma.company.findUnique({ where: { slug: uniqueSlug } });
+      counter++;
+    }
+
+    // 7. Find active template for this industry
+    let activeTemplate = await prisma.template.findFirst({
+      where: {
+        OR: [
+          ...(templateSlug ? [{ slug: templateSlug }] : []),
+          { industry: resolvedIndustry, isActive: true },
+        ],
       },
-      select: {
-        id: true,
-        companyName: true,
-        email: true,
-        phone: true,
-        role: true,
-        createdAt: true,
+      include: {
+        pages: true,
       },
     });
 
-    // 7. Dispatch Dedicated Signup OTP Email
+    // 8. Atomic Multi-Tenant Transaction: User -> Company -> CompanyMember (OWNER) -> StorePages -> SiteSetting
+    const result = await prisma.$transaction(async (tx) => {
+      // 8a. Create User
+      const user = await tx.user.create({
+        data: {
+          companyName: resolvedBrandName,
+          email: trimmedEmail,
+          phone: phone.trim(),
+          password: hashedPassword,
+          authorizationKey,
+          role: "ADMIN",
+          paymentVerified: false,
+          planSelected: "FREE_TRIAL",
+          subscription_status: "ACTIVE",
+          storageUsed: 0,
+          storageLimit: 1024,
+          resetToken: `${otpCode}:0`,
+          resetTokenExpiry: expiryDate,
+        },
+        select: {
+          id: true,
+          companyName: true,
+          email: true,
+          phone: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      // 8b. 14-day Free Trial end date
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
+      // 8c. Create Company Tenant
+      const company = await tx.company.create({
+        data: {
+          name: resolvedBrandName,
+          slug: uniqueSlug,
+          industry: resolvedIndustry,
+          status: "ACTIVE",
+          planSelected: "FREE_TRIAL",
+          subscription_status: "ACTIVE",
+          trialEndsAt,
+          activeTemplateId: activeTemplate?.id || null,
+          aiCreditsRemaining: 10,
+          trafficLimit: 2000,
+          monthlyVisits: 0,
+          storageLimit: 1024,
+          storageUsed: 0,
+        },
+      });
+
+      // 8d. Assign registrant as CompanyMember with role: OWNER
+      await tx.companyMember.create({
+        data: {
+          companyId: company.id,
+          userId: user.id,
+          role: "OWNER",
+          status: "ACTIVE",
+        },
+      });
+
+      // 8e. Clone Template Pages into StorePages
+      if (activeTemplate?.pages && activeTemplate.pages.length > 0) {
+        for (const page of activeTemplate.pages) {
+          await tx.storePage.create({
+            data: {
+              companyId: company.id,
+              slug: page.slug,
+              title: page.title,
+              isSystem: page.isSystem,
+              sections: page.sections as any,
+              version: page.version || 1,
+              isPublished: true,
+            },
+          });
+        }
+      } else {
+        // Fallback to in-memory registry template pages if DB templates are not yet seeded
+        const fallbackTemplate =
+          getTemplatesByIndustry(resolvedIndustry as any)[0] || ALL_TEMPLATES[0];
+        for (const page of fallbackTemplate.pages) {
+          await tx.storePage.create({
+            data: {
+              companyId: company.id,
+              slug: page.slug,
+              title: page.title,
+              isSystem: page.isSystem,
+              sections: page.sections as any,
+              version: page.version || 1,
+              isPublished: true,
+            },
+          });
+        }
+      }
+
+      // 8f. Create Company-Scoped SiteSetting
+      await tx.siteSetting.create({
+        data: {
+          companyId: company.id,
+          companyName: resolvedBrandName,
+          whatsappNumber: phone.trim(),
+          primaryColor: "#1A1A1A",
+          accentColor: "#C9A96E",
+          backgroundColor: "#F5F0EB",
+        },
+      });
+
+      return { user, company };
+    });
+
+    const displayUserName = result.user.companyName || name.trim();
+
+    // 9. Dispatch Dedicated Signup OTP Email
     triggerSignupOTP({
-      userId: user.id,
-      toEmail: user.email,
-      userName: user.companyName,
+      userId: result.user.id,
+      toEmail: result.user.email,
+      userName: displayUserName,
       otpCode,
       expiresInMinutes: 15,
     }).catch((err) => console.error("[Registration] Signup OTP email failed:", err));
 
     triggerWelcomeEmail({
-      userId: user.id,
-      toEmail: user.email,
-      userName: user.companyName,
+      userId: result.user.id,
+      toEmail: result.user.email,
+      userName: displayUserName,
       docUrl: "https://cimessinvest.com/doc",
     }).catch((err) => console.error("[Registration] Welcome email failed:", err));
 
@@ -107,8 +269,13 @@ export async function POST(req: Request) {
         success: true,
         requiresVerification: true,
         message: "Registration initiated. A 6-digit verification code has been sent to your email.",
-        email: user.email,
-        role: user.role,
+        email: result.user.email,
+        brandName: resolvedBrandName,
+        industry: result.company.industry,
+        role: "OWNER",
+        companyId: result.company.id,
+        companySlug: result.company.slug,
+        trialEndsAt: result.company.trialEndsAt,
       },
       { status: 201 }
     );

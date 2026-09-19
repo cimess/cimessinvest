@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -12,12 +11,18 @@ import {
   Sparkles, 
   RefreshCw, 
   ArrowUpRight,
-  Globe
+  Globe,
+  Users,
+  Calendar,
+  AlertTriangle,
+  Activity
 } from "lucide-react";
-import axios from "axios";
 import { api } from "@/app/lib/utils/apiClient";
 
+export type TimeframeOption = "monthly" | "yearly" | "total";
+
 export interface AnalyticsData {
+  timeframe: string;
   totalVisits: number;
   whatsappClicks: number;
   conversionRate: number;
@@ -32,202 +37,369 @@ export interface AnalyticsData {
     percentage: number;
     views: number;
   }[];
+  uploadedDesigns: number;
+  merchant: {
+    monthly: number;
+    yearly: number;
+    total: number;
+    highestMonth: number;
+    monthlyComparisonRatio: number;
+    trafficLimit: number;
+    whatsappClicks: number;
+    conversionRate: number;
+  };
+  allMerchants: {
+    monthly: number;
+    yearly: number;
+    total: number;
+  };
+  monthlyHistory: {
+    month: string;
+    visits: number;
+    whatsappClicks: number;
+    isHighest: boolean;
+    ratioToHighest: number;
+  }[];
 }
 
+const ZERO_ANALYTICS: AnalyticsData = {
+  timeframe: "monthly",
+  totalVisits: 0,
+  whatsappClicks: 0,
+  conversionRate: 0,
+  topCollection: "None",
+  monthlyGrowth: 0,
+  deviceBreakdown: {
+    mobilePercentage: 0,
+    desktopPercentage: 0,
+  },
+  categoryInterest: [],
+  uploadedDesigns: 0,
+  merchant: {
+    monthly: 0,
+    yearly: 0,
+    total: 0,
+    highestMonth: 0,
+    monthlyComparisonRatio: 0,
+    trafficLimit: 0,
+    whatsappClicks: 0,
+    conversionRate: 0,
+  },
+  allMerchants: {
+    monthly: 0,
+    yearly: 0,
+    total: 0,
+  },
+  monthlyHistory: [],
+};
+
 export default function AnalyticsDashboardPage() {
-  const { data: session } = useSession();
-  
+  const [timeframe, setTimeframe] = useState<TimeframeOption>("monthly");
   const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  const authorizationKey = (session?.user as any)?.authorizationKey || "[ENCRYPTION_KEY]";
-  const companyName = (session?.user as any)?.companyName || "cimessinvest";
-  const email = session?.user?.email || "manager@cimessinvest.com";
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  // Fetch Analytics Metrics from External API
-  const fetchAnalytics = useCallback(async () => {
+  // Fetch Analytics Metrics from Database via API
+  const fetchAnalytics = useCallback(async (activeTimeframe: TimeframeOption) => {
     setLoading(true);
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_EXTERNAL_API_URL || "https://api.example.com";
+      const response = await api.get<{
+        success?: boolean;
+        analytics?: AnalyticsData;
+        totalVisits?: number;
+      }>(`/api/analytics?timeframe=${activeTimeframe}`);
 
-      // --- UNCOMMENT REAL API POST CALL WHEN ENDPOINT IS LIVE ---
-      /*
-      const response = await api.post(`${apiUrl}/analytics/metrics`, {
-        authorisedKey: authorizationKey,
-        data: {
-          companyName,
-          email,
-        }
-      });
+      // Support both wrapped payload ({ analytics: ... }) and direct root payload
+      const payload = response.data?.analytics || (response.data?.success ? (response.data as unknown as AnalyticsData) : null);
 
-      if (response.data && response.data.success) {
-        setData(response.data.analytics);
+      if (payload && (payload.totalVisits !== undefined || payload.merchant !== undefined)) {
+        setData(payload);
         return;
       }
-      */
-      throw new Error("External API not connected yet");
-    } catch (err) {
-      if (err instanceof axios.AxiosError) {
-        console.warn("External API fetch notice:", err.response?.data?.message);
-      }
-      setError("Displaying atelier performance metrics.");
-
-      // Default Demonstration Metrics
-      setData({
-        totalVisits: 14820,
-        whatsappClicks: 1640,
-        conversionRate: 11.06,
-        topCollection: "Ceremonial Agbada",
-        monthlyGrowth: 24.5,
-        deviceBreakdown: {
-          mobilePercentage: 78,
-          desktopPercentage: 22,
-        },
-        categoryInterest: [
-          { name: "Ceremonial", percentage: 45, views: 6669 },
-          { name: "Signature Kaftans", percentage: 30, views: 4446 },
-          { name: "Executive Suits", percentage: 15, views: 2223 },
-          { name: "Artisanal Tunics", percentage: 10, views: 1482 },
-        ],
-      });
+      throw new Error("Unable to read analytics payload from server.");
+    } catch (err: unknown) {
+      console.error("Analytics fetch error:", err);
+      // Fallback strictly to ZERO on network / API errors to avoid misleading numbers
+      setData({ ...ZERO_ANALYTICS, timeframe: activeTimeframe });
+      setError(
+        "Analytics data is currently unreachable due to a network connection error. All figures have been set to 0 to prevent inaccurate readings."
+      );
     } finally {
       setLoading(false);
     }
-  }, [authorizationKey, companyName, email]);
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchAnalytics();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [fetchAnalytics]);
+    fetchAnalytics(timeframe);
+  }, [fetchAnalytics, timeframe]);
+
+
+  // Active Merchant visits for currently selected timeframe
+  const activeMerchantVisits =
+    timeframe === "yearly"
+      ? data?.merchant.yearly ?? 0
+      : timeframe === "total"
+      ? data?.merchant.total ?? 0
+      : data?.merchant.monthly ?? 0;
 
   return (
     <div className="p-6 sm:p-10 space-y-8 bg-[#1A1A1A] min-h-screen text-[#F5F0EB] font-body">
       {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#C9A96E]/20 pb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 border-b border-[#C9A96E]/20 pb-6">
         <div>
           <span className="text-xs uppercase tracking-[0.25em] text-[#C9A96E] font-semibold flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-[#C9A96E]" />
-            Atelier Insights
+            Atelier Insights & Telemetry
           </span>
           <h1 className="text-3xl font-heading text-[#F5F0EB] mt-1 font-bold">
-            Traffic & WhatsApp Engagement
+            Traffic, Conversion & Benchmark Analytics
           </h1>
           <p className="text-xs text-[#E0D5C9]/60 font-light mt-1">
-            Real-time analytics on client website visits and WhatsApp fitting requests.
+            Real database metrics comparing monthly performance, WhatsApp inquiry conversion, and platform-wide totals.
           </p>
         </div>
 
-        <button
-          onClick={fetchAnalytics}
-          disabled={loading}
-          className="px-4 py-2.5 bg-white/5 border border-[#C9A96E]/30 text-[#C9A96E] text-xs font-semibold uppercase tracking-wider hover:bg-[#C9A96E] hover:text-[#1A1A1A] transition-colors flex items-center space-x-2 rounded cursor-pointer self-start sm:self-auto disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Sync Analytics</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Timeframe Switcher Tabs */}
+          <div className="flex items-center bg-black/60 border border-white/10 rounded-lg p-1 text-xs">
+            <button
+              onClick={() => setTimeframe("monthly")}
+              className={`px-3 py-1.5 rounded-md font-semibold tracking-wide transition-colors ${
+                timeframe === "monthly"
+                  ? "bg-[#C9A96E] text-[#1A1A1A]"
+                  : "text-[#A09585] hover:text-[#F5F0EB]"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setTimeframe("yearly")}
+              className={`px-3 py-1.5 rounded-md font-semibold tracking-wide transition-colors ${
+                timeframe === "yearly"
+                  ? "bg-[#C9A96E] text-[#1A1A1A]"
+                  : "text-[#A09585] hover:text-[#F5F0EB]"
+              }`}
+            >
+              Yearly
+            </button>
+            <button
+              onClick={() => setTimeframe("total")}
+              className={`px-3 py-1.5 rounded-md font-semibold tracking-wide transition-colors ${
+                timeframe === "total"
+                  ? "bg-[#C9A96E] text-[#1A1A1A]"
+                  : "text-[#A09585] hover:text-[#F5F0EB]"
+              }`}
+            >
+              All-Time Total
+            </button>
+          </div>
+
+          <button
+            onClick={() => fetchAnalytics(timeframe)}
+            disabled={mounted ? loading : false}
+            className="px-4 py-2 bg-white/5 border border-[#C9A96E]/30 text-[#C9A96E] text-xs font-semibold uppercase tracking-wider hover:bg-[#C9A96E] hover:text-[#1A1A1A] transition-colors flex items-center space-x-2 rounded cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Sync</span>
+          </button>
+        </div>
       </div>
+
+      {/* Zero Network Error Notification Banner */}
+      {error && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs rounded-lg flex items-start gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold text-amber-300">Offline / Network Warning</p>
+            <p className="text-amber-200/80 leading-relaxed">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* KPI Highlight Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Total Visits */}
+        {/* Card 1: Merchant Visits (Timeframe specific) */}
         <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[#E0D5C9]/60">
-            <span className="text-xs uppercase tracking-widest font-light">Site Impressions</span>
+            <span className="text-xs uppercase tracking-widest font-light">
+              Your Visits ({timeframe === "monthly" ? "This Month" : timeframe === "yearly" ? "This Year" : "Lifetime"})
+            </span>
             <Eye className="w-4 h-4 text-[#C9A96E]" />
           </div>
           <div className="flex items-baseline justify-between">
             <h2 className="text-3xl font-heading font-bold text-[#F5F0EB]">
-              {data?.totalVisits.toLocaleString() || "0"}
+              {activeMerchantVisits.toLocaleString()}
             </h2>
-            <span className="text-xs text-emerald-400 flex items-center">
+            <span className="text-xs text-emerald-400 flex items-center font-mono">
               <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
-              +{data?.monthlyGrowth}%
+              +{data?.monthlyGrowth || 0}%
             </span>
           </div>
-          <p className="text-[10px] text-[#E0D5C9]/50 font-light">Total catalog pageviews</p>
+          <p className="text-[10px] text-[#E0D5C9]/50 font-light">
+            Verified page visits for your atelier storefront
+          </p>
         </div>
 
-        {/* Card 2: WhatsApp Consultation Requests */}
+        {/* Card 2: Monthly Comparison (Current month divided by highest month) */}
         <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[#E0D5C9]/60">
-            <span className="text-xs uppercase tracking-widest font-light">WhatsApp Leads</span>
-            <MessageSquare className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-3xl font-heading font-bold text-[#F5F0EB]">
-              {data?.whatsappClicks.toLocaleString() || "0"}
-            </h2>
-            <span className="text-xs text-[#C9A96E]">High Intent</span>
-          </div>
-          <p className="text-[10px] text-[#E0D5C9]/50 font-light">Direct WhatsApp fitting inquiries</p>
-        </div>
-
-        {/* Card 3: Fitting Conversion Rate */}
-        <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[#E0D5C9]/60">
-            <span className="text-xs uppercase tracking-widest font-light">Conversion Rate</span>
+            <span className="text-xs uppercase tracking-widest font-light">Peak Comparison</span>
             <TrendingUp className="w-4 h-4 text-[#C9A96E]" />
           </div>
           <div className="flex items-baseline justify-between">
             <h2 className="text-3xl font-heading font-bold text-[#F5F0EB]">
-              {data?.conversionRate || 0}%
+              {data?.merchant.monthlyComparisonRatio ?? 0}%
             </h2>
-            <span className="text-xs text-emerald-400">Optimal</span>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-[#C9A96E]/15 text-[#C9A96E] border border-[#C9A96E]/30 font-mono">
+              vs Peak
+            </span>
           </div>
-          <p className="text-[10px] text-[#E0D5C9]/50 font-light">Visits to WhatsApp button clicks</p>
+          <p className="text-[10px] text-[#E0D5C9]/50 font-light">
+            Month ({data?.merchant.monthly ?? 0}) ÷ Peak Month ({data?.merchant.highestMonth ?? 0})
+          </p>
         </div>
 
-        {/* Card 4: Top Catalog Category */}
+        {/* Card 3: WhatsApp Conversion Rate (Clicks after visiting page) */}
         <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[#E0D5C9]/60">
-            <span className="text-xs uppercase tracking-widest font-light">Most Viewed</span>
-            <BarChart3 className="w-4 h-4 text-[#C9A96E]" />
+            <span className="text-xs uppercase tracking-widest font-light">Inquiry Conversion</span>
+            <MessageSquare className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-heading font-bold text-[#F5F0EB] truncate">
-              {data?.topCollection || "N/A"}
+            <h2 className="text-3xl font-heading font-bold text-[#F5F0EB]">
+              {data?.conversionRate ?? 0}%
             </h2>
+            <span className="text-xs text-emerald-400 font-mono">
+              {data?.whatsappClicks ?? 0} clicks
+            </span>
           </div>
-          <p className="text-[10px] text-[#E0D5C9]/50 font-light">Highest client engagement</p>
+          <p className="text-[10px] text-[#E0D5C9]/50 font-light">
+            {data?.whatsappClicks ?? 0} WhatsApp clicks from {activeMerchantVisits.toLocaleString()} page visits
+          </p>
+        </div>
+
+        {/* Card 4: Monthly Traffic Quota Capacity */}
+        <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-2">
+          <div className="flex items-center justify-between text-[#E0D5C9]/60">
+            <span className="text-xs uppercase tracking-widest font-light">
+              Monthly Traffic Quota
+            </span>
+            <Activity className="w-4 h-4 text-[#C9A96E]" />
+          </div>
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-3xl font-heading font-bold text-[#F5F0EB]">
+              {Math.max(0, (data?.merchant.trafficLimit || 2000) - (data?.merchant.monthly || 0)).toLocaleString()}
+            </h2>
+            <span className="text-[11px] text-[#A09585] font-mono">
+              {Math.min(100, Math.round(((data?.merchant.monthly || 0) / (data?.merchant.trafficLimit || 2000)) * 100))}% used
+            </span>
+          </div>
+          <p className="text-[10px] text-[#E0D5C9]/50 font-light">
+            {(data?.merchant.monthly ?? 0).toLocaleString()} of {(data?.merchant.trafficLimit || 2000).toLocaleString()} monthly visits used
+          </p>
         </div>
       </div>
 
-      {/* Analytics Breakdown Grid */}
+      {/* Monthly Benchmark History (Monthly divide by highest month) */}
+      <div className="p-6 bg-black/40 border border-[#C9A96E]/20 rounded-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-white/10 pb-4 gap-2">
+          <div>
+            <h3 className="text-lg font-heading font-bold text-[#F5F0EB] flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#C9A96E]" />
+              Monthly Benchmark History (Divided by Peak Month)
+            </h3>
+            <p className="text-xs text-[#E0D5C9]/60 font-light">
+              Each month divided by your highest recorded month ({(data?.merchant.highestMonth ?? 0).toLocaleString()} visits) to measure relative performance.
+            </p>
+          </div>
+          <span className="text-xs font-mono text-[#C9A96E] bg-[#C9A96E]/10 px-3 py-1 rounded border border-[#C9A96E]/30 w-fit">
+            Peak Ceiling: {(data?.merchant.highestMonth ?? 0).toLocaleString()} visits
+          </span>
+        </div>
+
+        {data?.monthlyHistory && data.monthlyHistory.length > 0 ? (
+          <div className="space-y-4">
+            {data.monthlyHistory.map((m) => (
+              <div key={m.month} className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#F5F0EB]">{m.month}</span>
+                    {m.isHighest && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold uppercase tracking-wider">
+                        Peak Month
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[#C9A96E] font-mono">
+                    {m.visits.toLocaleString()} visits ({m.ratioToHighest}% of peak)
+                  </span>
+                </div>
+                <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      m.isHighest
+                        ? "bg-gradient-to-r from-emerald-500 to-[#C9A96E]"
+                        : "bg-gradient-to-r from-[#C9A96E] to-[#F5F0EB]"
+                    }`}
+                    style={{ width: `${Math.min(100, Math.max(m.ratioToHighest, 2))}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-xs text-[#E0D5C9]/50">
+            No historical visit telemetry recorded yet.
+          </div>
+        )}
+      </div>
+
+      {/* Analytics Breakdown Grid: Catalog Categories & Device Traffic */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Collection Category Popularity Progress Bars */}
+        {/* Left Column: Collection Category Popularity */}
         <div className="lg:col-span-2 p-6 bg-black/40 border border-[#C9A96E]/20 rounded-lg space-y-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
               <h3 className="text-lg font-heading font-bold text-[#F5F0EB]">
-                Catalog Category Interest
+                Catalog Category Distribution
               </h3>
               <p className="text-xs text-[#E0D5C9]/60 font-light">
-                Breakdown of client interest across native wear collections.
+                Breakdown of client engagement across bespoke garment categories.
               </p>
             </div>
             <Globe className="w-4 h-4 text-[#C9A96E]" />
           </div>
 
           <div className="space-y-4">
-            {data?.categoryInterest.map((cat) => (
-              <div key={cat.name} className="space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-[#F5F0EB]">{cat.name}</span>
-                  <span className="text-[#C9A96E] font-mono">{cat.percentage}% ({cat.views.toLocaleString()} views)</span>
+            {data?.categoryInterest && data.categoryInterest.length > 0 ? (
+              data.categoryInterest.map((cat) => (
+                <div key={cat.name} className="space-y-1.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="font-semibold text-[#F5F0EB]">{cat.name}</span>
+                    <span className="text-[#C9A96E] font-mono">
+                      {cat.percentage}% ({cat.views.toLocaleString()} visits)
+                    </span>
+                  </div>
+                  <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/10">
+                    <div
+                      className="bg-gradient-to-r from-[#C9A96E] to-[#F5F0EB] h-full rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.max(cat.percentage, 2))}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/10">
-                  <div
-                    className="bg-gradient-to-r from-[#C9A96E] to-[#F5F0EB] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${cat.percentage}%` }}
-                  />
-                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-xs text-[#E0D5C9]/50">
+                No catalog items uploaded yet.
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -255,7 +427,7 @@ export default function AnalyticsDashboardPage() {
                 </div>
               </div>
               <span className="text-lg font-bold font-mono text-[#C9A96E]">
-                {data?.deviceBreakdown.mobilePercentage}%
+                {data?.deviceBreakdown.mobilePercentage ?? 0}%
               </span>
             </div>
 
@@ -271,7 +443,18 @@ export default function AnalyticsDashboardPage() {
                 </div>
               </div>
               <span className="text-lg font-bold font-mono text-[#E0D5C9]">
-                {data?.deviceBreakdown.desktopPercentage}%
+                {data?.deviceBreakdown.desktopPercentage ?? 0}%
+              </span>
+            </div>
+
+            {/* Catalog Upload Stat */}
+            <div className="p-4 bg-black/40 border border-[#C9A96E]/20 rounded-lg flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-[#F5F0EB]">Uploaded Designs</p>
+                <p className="text-[10px] text-[#E0D5C9]/50">Active in database</p>
+              </div>
+              <span className="text-lg font-bold font-mono text-[#C9A96E]">
+                {data?.uploadedDesigns ?? 0}
               </span>
             </div>
           </div>

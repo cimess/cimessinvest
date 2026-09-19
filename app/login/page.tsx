@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Clock } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isExpired = searchParams?.get("expired") === "true";
+
   const [formData, setFormData] = useState({ email: "", password: "", rememberMe: false });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,10 +106,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="p-4 bg-red-950/40 border border-red-500/40 text-red-300 text-xs rounded-sm">
-              {error}
+          {/* Session Expiration / Expulsion Alert */}
+          {isExpired && (
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-sm flex items-start gap-3 text-amber-300 text-xs animate-fadeIn">
+              <Clock className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+              <span className="leading-relaxed">
+                Your session has expired. Please sign in to continue.
+              </span>
             </div>
           )}
 
@@ -169,6 +182,17 @@ export default function LoginPage() {
               </label>
             </div>
 
+            {/* Contextual Error Alert right above Submit CTA */}
+            {error && (
+              <div
+                ref={errorRef}
+                className="p-3.5 bg-red-950/60 border border-red-500/50 text-red-300 text-xs rounded-sm flex items-start gap-2.5 animate-fadeIn shadow-lg shadow-red-950/20"
+              >
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed font-medium">{error}</span>
+              </div>
+            )}
+
             {/* Submit CTA */}
             <button
               type="submit"
@@ -190,5 +214,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#1A1A1A]" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { KeyRound, Mail, Lock, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
+import { KeyRound, Mail, Lock, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -14,6 +14,13 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [error]);
 
   // STEP 1: Request OTP Code
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -134,11 +141,6 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Status Messages */}
-        {error && (
-          <div className="p-3 bg-red-950/60 border border-red-700 text-red-300 text-xs rounded flex items-center gap-2">
-            <span>⚠️ {error}</span>
-          </div>
-        )}
         {message && (
           <div className="p-3 bg-emerald-950/60 border border-emerald-700 text-emerald-300 text-xs rounded flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -167,6 +169,17 @@ export default function ForgotPasswordPage() {
                 />
               </div>
             </div>
+
+            {/* Contextual Error in Step 1 */}
+            {error && (
+              <div
+                ref={errorRef}
+                className="p-3 bg-red-950/60 border border-red-500/50 text-red-300 text-xs rounded-xl flex items-start gap-2 animate-fadeIn"
+              >
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -201,6 +214,17 @@ export default function ForgotPasswordPage() {
                 />
               </div>
             </div>
+
+            {/* Contextual Error in Step 2 */}
+            {error && (
+              <div
+                ref={errorRef}
+                className="p-3 bg-red-950/60 border border-red-500/50 text-red-300 text-xs rounded-xl flex items-start gap-2 animate-fadeIn"
+              >
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -259,6 +283,17 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
             </div>
+
+            {/* Contextual Error in Step 3 */}
+            {error && (
+              <div
+                ref={errorRef}
+                className="p-3 bg-red-950/60 border border-red-500/50 text-red-300 text-xs rounded-xl flex items-start gap-2 animate-fadeIn"
+              >
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"

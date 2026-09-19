@@ -39,10 +39,61 @@ export async function POST(req: Request) {
     }
 
     const effectiveAdminId = adminId || userId;
-    const { resourceType, fileSize } = await req.json();
+    const body = await req.json();
+    const {
+      resourceType: rawResourceType,
+      fileType,
+      fileSize,
+      itemGroupId,
+      targetKey,
+      assetType,
+    } = body;
 
-    // Check if user (or their workspace admin) can upload the file
-    const uploadCheck = await canUserUpload(effectiveAdminId, fileSize);
+    const isHero =
+      targetKey === "heroVideo" ||
+      targetKey === "hero" ||
+      assetType === "hero" ||
+      assetType === "heroVideo";
+
+    // STRICT HERO VALIDATION: Reject any image upload attempt for hero media
+    if (isHero) {
+      const isImg =
+        rawResourceType === "image" ||
+        (typeof fileType === "string" && fileType.toLowerCase().startsWith("image/"));
+
+      if (isImg) {
+        return NextResponse.json(
+          {
+            error:
+              "Hero media must strictly be a video (MP4, WebM). Images are strictly prohibited as hero background.",
+          },
+          { status: 400 }
+        );
+      }
+
+      if (rawResourceType && rawResourceType !== "video") {
+        return NextResponse.json(
+          {
+            error:
+              "Hero media must strictly be a video. Non-video assets cannot be uploaded as hero background.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const resourceType: "video" | "image" = isHero
+      ? "video"
+      : rawResourceType === "video" || (typeof fileType === "string" && fileType.startsWith("video/"))
+      ? "video"
+      : "image";
+
+    const targetCompanyId = (session.user as any)?.activeCompanyId || (session.user as any)?.companyId;
+    const isCompany = Boolean(targetCompanyId);
+    const targetEntityId = targetCompanyId || effectiveAdminId;
+
+    // Check if company workspace (or user) can upload the file
+    const uploadCheck = await canUserUpload(targetEntityId, fileSize, isCompany);
     if (!uploadCheck.allowed) {
       return NextResponse.json(
         { error: uploadCheck.message || "Storage quota exceeded or file too large" },
@@ -59,11 +110,26 @@ export async function POST(req: Request) {
     }
 
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const folder = effectiveAdminId ? `cimessinvest-catalog/tenants/${effectiveAdminId}` : "cimessinvest-catalog";
+    const baseFolder = effectiveAdminId ? `cimessinvest-catalog/tenants/${effectiveAdminId}` : "cimessinvest-catalog";
+    const folder = isHero
+      ? `${baseFolder}/hero`
+      : itemGroupId
+      ? `${baseFolder}/${itemGroupId}`
+      : baseFolder;
+    const tags = isHero
+      ? "hero,hero_video,landing"
+      : itemGroupId
+      ? `item_${itemGroupId},catalog`
+      : undefined;
+
+    const paramsToSign: Record<string, any> = { timestamp, folder };
+    if (tags) {
+      paramsToSign.tags = tags;
+    }
 
     // 2. Generate Cloudinary Signature
     const signature = cloudinary.utils.api_sign_request(
-      { timestamp, folder },
+      paramsToSign,
       process.env.CLOUDINARY_API_SECRET!
     );
 
@@ -73,7 +139,9 @@ export async function POST(req: Request) {
       apiKey: process.env.CLOUDINARY_API_KEY,
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       folder,
-      resourceType, // "image" or "video"
+      tags,
+      itemGroupId,
+      resourceType, // strictly "video" when isHero is true
     });
   } catch (error) {
     return NextResponse.json({ error: "Failed to generate signature" }, { status: 500 });

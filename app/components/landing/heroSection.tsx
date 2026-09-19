@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HeroData } from "@/app/lib/content/types";
 import { buildWhatsAppUrl } from "@/app/lib/utils/whatsapp";
+import { isImageUrl } from "@/app/lib/utils/media";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -23,6 +24,9 @@ export default function HeroSection({ data, whatsappNumber, ctaLabel }: HeroSect
     whatsappNumber,
     "Hello, I am inquiring from your website hero section to book a private fitting."
   );
+
+  const rawMediaSrc = data.mediaSrc;
+  const mediaSrc = rawMediaSrc && !isImageUrl(rawMediaSrc) ? rawMediaSrc : "/bg-img/video1.mp4";
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -57,23 +61,16 @@ export default function HeroSection({ data, whatsappNumber, ctaLabel }: HeroSect
       className="relative w-full h-screen min-h-[650px] flex items-center justify-center overflow-hidden bg-[var(--color-primary,#1A1A1A)]"
     >
       <div ref={mediaRef} className="absolute inset-0 w-full h-full">
-        {data.mediaType === "video" ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster={data.posterSrc}
-            className="w-full h-full object-cover opacity-60"
-          >
-            <source src={data.mediaSrc} type="video/mp4" />
-          </video>
-        ) : (
-          <div
-            className="w-full h-full bg-cover bg-center opacity-60"
-            style={{ backgroundImage: `url(${data.mediaSrc})` }}
-          />
-        )}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={data.posterSrc}
+          className="w-full h-full object-cover opacity-60"
+        >
+          <source src={mediaSrc} type="video/mp4" />
+        </video>
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-primary,#1A1A1A)] via-black/40 to-black/60" />

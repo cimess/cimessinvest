@@ -27,6 +27,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "192.168.0.197:3000",
     "192.168.0.197",
+    "*.192.168.0.197.sslip.io:3000",
+    "*.192.168.0.197.sslip.io",
+    "*.sslip.io:3000",
+    "*.sslip.io",
+    "*.localhost:3000",
+    "*.localhost",
+    "localhost:3000",
+    "localhost",
   ],
 
     experimental: {

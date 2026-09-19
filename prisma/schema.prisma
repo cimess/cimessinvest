@@ -1,18 +1,30 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql" 
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum IndustryCategory {
+  FASHION_ATELIER
+  FASHION_BOUTIQUE
+  FITNESS_GYM
+  EDITORIAL_BLOG
+  FOOD_BEVERAGE
+  GENERAL_RETAIL
 }
 
 enum PlanType {
+  FREE_TRIAL
   STARTER
   PROFESSIONAL
   ENTERPRISE
@@ -21,6 +33,31 @@ enum PlanType {
 enum SubscriptionStatus {
   ACTIVE
   INACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum CompanyStatus {
+  ACTIVE
+  TRIAL_EXPIRED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MemberRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum MemberStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PlatformRole {
+  SUPERADMIN
+  PLATFORM_ADMIN
 }
 
 enum UserRole {
@@ -36,82 +73,318 @@ enum TransactionStatus {
   FAILED
 }
 
-// 1. Manager Identity & Auth Table
+enum AppealStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TicketType {
+  CUSTOMER_DISPUTE
+  MERCHANT_SUPPORT
+}
+
+enum TicketCategory {
+  UNFULFILLED_ORDER
+  DEFECTIVE_PRODUCT
+  FRAUD_SUSPICION
+  PAYMENT_ISSUE
+  UI_BUG
+  FEATURE_REQUEST
+  GENERAL_FEEDBACK
+  OTHER
+}
+
+enum TicketStatus {
+  PENDING
+  INVESTIGATING
+  RESOLVED
+  REJECTED
+}
+
+enum OrderSettlementStatus {
+  PENDING_24H
+  SETTLED
+  HELD_DISPUTED
+  REFUNDED
+}
+
+// -----------------------------------------------------------------------------
+// 1. TEMPLATE MODELS (SuperAdmin Platform-Managed Master Blueprints)
+// -----------------------------------------------------------------------------
+
+model Template {
+  id            String           @id @default(cuid())
+  name          String           // e.g. "Atelier Editorial", "IronCore Fitness"
+  slug          String           @unique // "atelier-editorial-v1"
+  industry      IndustryCategory @default(FASHION_ATELIER)
+  brandVibe     String           @default("ROYAL_LUXURY") // "ROYAL_LUXURY", "BOLD_MINIMAL", "EDITORIAL", "INDUSTRIAL"
+  version       Int              @default(1)
+  description   String?
+  thumbnailUrl  String?
+  allowedBlocks String[]         @default([]) // Allowed SDUI component block types
+  isActive      Boolean          @default(true) // SuperAdmin can enable/disable
+
+  pages         TemplatePage[]
+  companies     Company[]
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([industry, isActive])
+}
+
+model TemplatePage {
+  id          String   @id @default(cuid())
+  templateId  String
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  slug        String   // "home", "lookbook", "fittings", "equipments", "checkout", etc.
+  title       String   // "Home", "Lookbook", "Our Equipment"
+  isSystem    Boolean  @default(false)
+  sections    Json     // Array of SDUI block configurations
+  version     Int      @default(1)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([templateId, slug])
+  @@index([templateId])
+}
+
+// -----------------------------------------------------------------------------
+// 2. MULTI-TENANT SHOP ENTITY (Company / Atelier / Store)
+// -----------------------------------------------------------------------------
+
+model Company {
+  id                     String             @id @default(cuid())
+  name                   String             // Brand display name (e.g. "Ade Tailors")
+  slug                   String             @unique // Subdomain: [slug].yourdomain.ng
+  industry               IndustryCategory   @default(FASHION_ATELIER)
+  status                 CompanyStatus      @default(ACTIVE)
+
+  planSelected           PlanType           @default(FREE_TRIAL)
+  subscription_status    SubscriptionStatus @default(INACTIVE)
+  subscription_id        String?
+  trialEndsAt            DateTime?
+
+  activeTemplateId       String?
+  activeTemplate         Template?          @relation(fields: [activeTemplateId], references: [id], onDelete: SetNull)
+
+  // Brand Voice / AI Copywriting
+  brandBio               String?
+  brandTone              String?
+  aiCreditsRemaining     Int                @default(10)
+
+  // Quotas & Resource Tracking
+  trafficLimit           Int                @default(2000)
+  monthlyVisits          Int                @default(0)
+  trafficNotified80      Boolean            @default(false)
+  trafficNotified100     Boolean            @default(false)
+  lastTrafficReset       DateTime           @default(now())
+
+  storageLimit           Int                @default(1024) // in MB
+  storageUsed            Int                @default(0)    // in MB
+
+  // Fintech / Paystack Integration & Database Balances (in Kobo)
+  paystackSubaccountCode String?            // ACCT_xxxxxxx for automated split payout
+  bankInfo               Json?              // Bank code, account number, verified name
+  pendingBalanceKobo     Int                @default(0) // Available sales awaiting 24h bank settlement
+  settledBalanceKobo     Int                @default(0) // Cleared and transferred to merchant bank
+  disputedBalanceKobo    Int                @default(0) // Frozen funds under active buyer dispute
+  todaySalesKobo         Int                @default(0) // Total sales volume credited today
+  lastSalesDate          DateTime?          // Date used to track/reset today's volume rollover
+
+  // Relational Children
+  members                CompanyMember[]
+  invites                Invite[]
+  pages                  StorePage[]
+  products               Product[]
+  images                 Image[]
+  siteSetting            SiteSetting?
+  analytics              AnalyticsMetrics[]
+  subscriptions          SubscriptionTransaction[]
+  orders                 Order[]
+  appeals                AppealRequest[]
+  customQuotes           CustomPlanQuote[]
+  tickets                PlatformTicket[]
+
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([slug])
+  @@index([industry, status])
+}
+
+// -----------------------------------------------------------------------------
+// 3. MULTI-TENANT MEMBERSHIP & RBAC
+// -----------------------------------------------------------------------------
+
+model CompanyMember {
+  id          String       @id @default(cuid())
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        MemberRole   @default(MANAGER)
+  status      MemberStatus @default(ACTIVE)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([companyId, userId])
+  @@index([companyId, status])
+  @@index([userId])
+}
+
+model StorePage {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  slug        String   // "home", "lookbook", "equipments", "news", etc.
+  title       String
+  isSystem    Boolean  @default(false)
+  sections    Json     // Customized SDUI block tree
+  version     Int      @default(1)
+  isPublished Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([companyId, slug])
+  @@index([companyId, isPublished])
+}
+
+// -----------------------------------------------------------------------------
+// 4. USER IDENTITY & AUTH
+// -----------------------------------------------------------------------------
+
 model User {
   id                  String             @id @default(cuid())
-  companyName         String
+  companyName         String?            // Transitional display name
   email               String             @unique
   phone               String
   password            String             // Hashed password
+  fullName            String?
   authorizationKey    String             // 1-Time External Authorization Key
+  role                UserRole           @default(ADMIN) // Backwards-compatible
+  platformRole        PlatformRole?      // SUPERADMIN | PLATFORM_ADMIN | null
+
+  memberships         CompanyMember[]
+  invitesCreated      Invite[]           @relation("InvitedByUser")
+
+  // Transitional / Legacy single-company fields (maintained during Stage 2 refactor)
   paymentVerified     Boolean            @default(false)
-  planSelected        PlanType           @default(STARTER)
-  subscription_id     String?            // e.g., "sub_123"
+  planSelected        PlanType           @default(FREE_TRIAL)
+  subscription_id     String?
   subscription_status SubscriptionStatus @default(INACTIVE)
-  storageUsed         Int?               // in MB 
-  storageLimit        Int?               // in MB
-  
-  // Traffic & Quota Tracking
+  storageUsed         Int?
+  storageLimit        Int?
   monthlyVisits       Int                @default(0)
   trafficLimit        Int?               @default(2000)
   trafficNotified80   Boolean            @default(false)
   trafficNotified100  Boolean            @default(false)
   lastTrafficReset    DateTime           @default(now())
 
-  transactions        Transaction[]
-  customQuotes        CustomPlanQuote[]
-  role                UserRole           @default(ADMIN)
-
-  // --- Team Parent-Child Relation ---
+  // Legacy user parent-child self relation (transitional)
   adminId             String?
   admin               User?              @relation("AdminManagers", fields: [adminId], references: [id], onDelete: Cascade)
   managers            User[]             @relation("AdminManagers")
-  invites             Invite[]
+  legacyInvites       Invite[]           @relation("LegacyAdminInvites")
+  transactions        Transaction[]
+  legacyQuotes        CustomPlanQuote[]  @relation("LegacyUserQuotes")
 
   // OTP Password Reset fields
   resetToken          String?
   resetTokenExpiry    DateTime?
-  
+
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  adminId   String
-  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String      @id @default(cuid())
+  token       String      @unique
+  companyId   String?
+  company     Company?    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  inviterId   String?
+  inviter     User?       @relation("InvitedByUser", fields: [inviterId], references: [id], onDelete: Cascade)
+  role        MemberRole  @default(MANAGER)
 
+  // Legacy fields
+  adminId     String?
+  admin       User?       @relation("LegacyAdminInvites", fields: [adminId], references: [id], onDelete: Cascade)
+
+  expiresAt   DateTime
+  used        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+
+  @@index([companyId, token])
   @@index([adminId])
 }
 
-model CustomPlanQuote {
-  id                     String   @id @default(cuid())
-  userId                 String
-  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan                   PlanType @default(ENTERPRISE)
-  authorizedAmountKobo   Int      // Amount in Kobo
-  authorizedStorageMB    Int      // Storage in MB
-  authorizedTrafficLimit Int?     // Monthly Traffic Limit
-  notes                  String?
-  status                 String   @default("APPROVED") // "APPROVED" | "CLAIMED" | "EXPIRED"
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+// -----------------------------------------------------------------------------
+// 5. FINTECH & TRANSACTIONS (IMMUTABLE LEDGERS)
+// -----------------------------------------------------------------------------
 
-  @@index([userId, status])
+// SaaS Subscriptions (Tailor -> Platform revenue)
+model SubscriptionTransaction {
+  id                 String            @id @default(cuid())
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  reference          String            @unique // "SUB_..."
+  amount             Int               // Amount in Kobo
+  planSelected       PlanType
+  customStorageMB    Int?
+  status             TransactionStatus @default(PENDING)
+  paystackAccessCode String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([companyId, createdAt(sort: Desc)])
 }
 
+// Storefront Customer Purchases (Shopper -> Tailor split charge or Negotiated WhatsApp Invoices)
+model Order {
+  id                 String            @id @default(cuid())
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  reference          String            @unique // "ORD_..." or "INV_..."
+  invoiceNumber      String?           // e.g. "INV-5082"
+  orderType          String            @default("CATALOG") // "CATALOG" | "INVOICE"
+  amountKobo         Int               // Final payable amount in kobo
+  originalAmountKobo Int?              // Original catalog price before discount
+  discountKobo       Int?              @default(0) // Negotiated discount in kobo
+  shippingKobo       Int               @default(0)
+  platformFeeKobo    Int               @default(0)
+  merchantNetKobo    Int               @default(0)
+  status             TransactionStatus     @default(PENDING)
+  settlementStatus   OrderSettlementStatus @default(PENDING_24H)
+  settledAt          DateTime?
+  customerEmail      String
+  customerName       String?
+  customerPhone      String?
+  items              Json                  // Snapshot of items purchased
+  notes              String?               // Custom measurements, tailored specs, or negotiation agreement
+  paystackAccessCode String?
+  disputeTickets     PlatformTicket[]
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([companyId, status])
+  @@index([companyId, settlementStatus])
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([invoiceNumber])
+}
+
+// Legacy Transaction model kept for current payment.service until Stage 5
 model Transaction {
   id                 String            @id @default(cuid())
   userId             String
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   reference          String            @unique
-  amount             Int               // Amount in Kobo (e.g. 500000 = 5000 NGN)
+  amount             Int
   planSelected       PlanType
-  customStorageMB    Int?              // Custom/Negotiated storage limit for Enterprise plan
+  customStorageMB    Int?
   status             TransactionStatus @default(PENDING)
   paystackAccessCode String?
   createdAt          DateTime          @default(now())
@@ -119,48 +392,188 @@ model Transaction {
 
   @@index([userId, createdAt(sort: Desc)])
 }
-// 2. Garment Catalog Images Table
-model Image {
-  id        String   @id @default(cuid())
-  url       String   // Image URL
-  title     String?  // Garment name (e.g. "Royal Agbada Ensemble")
-  size      Int? // in bytes
-  type      String? // Image or Video
-  category  String   // Collection category (e.g. "Agbada", "Senator", "Joggers")
-  group     String?  @default("Native") // "Native" | "Modern"
-  placement String?  @default("both") // "collection" | "story" | "both"
-  adminId   String?  // Scoped to specific atelier administrator
-  createdAt DateTime @default(now())
 
-  @@index([category, createdAt(sort: Desc)])
-  @@index([group, createdAt(sort: Desc)])
-  @@index([adminId])
+// -----------------------------------------------------------------------------
+// 6. PRODUCTS & CATALOG
+// -----------------------------------------------------------------------------
+
+model Product {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  priceKobo   Int
+  stock       Int      @default(0)
+  images      String[] @default([])
+  category    String   // e.g. "Agbada", "Free Weights", "T-Shirts"
+  attributes  Json?    // Optional bespoke sizing, fabric, or equipment specs
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId, category])
+  @@index([companyId, isAvailable])
 }
-// 3. Site Theme & Settings Table
+
+// Garment / Media Catalog Images Table
+model Image {
+  id              String   @id @default(cuid())
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  adminId         String?  // Legacy
+  url             String
+  additionalUrls  String[] @default([])
+  title           String?
+  description     String?
+  priceKobo       Int?     @default(3500000)
+  itemGroupId     String?  // Cloudinary unified asset grouping ID
+  size            Int?     // in bytes
+  type            String?  // Image or Video
+  category        String?
+  group           String?  @default("Native")
+  placement       String?  @default("both")
+  isPlatformAsset Boolean  @default(false) // If true, excluded from merchant storageUsed
+  createdAt       DateTime @default(now())
+
+  @@index([companyId])
+  @@index([category, createdAt(sort: Desc)])
+  @@index([adminId])
+  @@index([itemGroupId])
+}
+
+// -----------------------------------------------------------------------------
+// 7. SITE SETTINGS & THEMES
+// -----------------------------------------------------------------------------
+
 model SiteSetting {
   id                String   @id @default(cuid())
+  companyId         String?  @unique
+  company           Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   primaryColor      String   @default("#1A1A1A")
   accentColor       String   @default("#C9A96E")
+  themeColor        String   @default("#C9A96E")
+  layoutMode        String   @default("GRID_2X2") // "GRID_2X2" | "LIST"
   backgroundColor   String   @default("#F5F0EB")
+  brandFont         String   @default("Bodoni Moda")
+  headingFont       String   @default("Cormorant Garamond")
+  bodyFont          String   @default("Jost")
   showDefaultImages Boolean  @default(true)
   appendDefaults    Boolean  @default(false)
   removeAllDefaults Boolean  @default(false)
   whatsappNumber    String?
   companyName       String?
 
-  // --- Landing Page Customization Fields ---
-  heroVideoUrl       String?
-  tailorBioText      String?
-  tailorBioImage     String?
-  heroGridImages     String[] @default([])
-  rawMaterialImages  String[] @default([])
+  heroVideoUrl      String?
+  tailorBioText     String?
+  tailorBioImage    String?
+  heroGridImages    String[] @default([])
+  rawMaterialImages String[] @default([])
+
+  // Store Physical Location & SEO Grounding
+  physicalAddress   String?
+  city              String?  @default("Lagos")
+  state             String?  @default("Lagos State")
+  country           String?  @default("Nigeria")
+  openingHours      String?  @default("Mo-Sa 09:00-18:00")
 
   updatedAt         DateTime @updatedAt
 }
-// 4. Analytics & Conversion Metrics Table
+
+// -----------------------------------------------------------------------------
+// 8. ANALYTICS & GOVERNANCE
+// -----------------------------------------------------------------------------
+
 model AnalyticsMetrics {
   id             String   @id @default(cuid())
-  date           DateTime @default(now()) @unique
+  companyId      String?
+  company        Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
   pageViews      Int      @default(0)
   whatsappClicks Int      @default(0)
+
+  @@index([companyId, date])
+}
+
+model AppealRequest {
+  id          String       @id @default(cuid())
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reason      String
+  contactInfo String?
+  status      AppealStatus @default(PENDING)
+  reviewedBy  String?
+  reviewNote  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([companyId, status])
+}
+
+model CustomPlanQuote {
+  id                     String   @id @default(cuid())
+  companyId              String?
+  company                Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId                 String?
+  user                   User?    @relation("LegacyUserQuotes", fields: [userId], references: [id], onDelete: Cascade)
+  plan                   PlanType @default(ENTERPRISE)
+  authorizedAmountKobo   Int
+  authorizedStorageMB    Int
+  authorizedTrafficLimit Int?
+  notes                  String?
+  status                 String   @default("APPROVED")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([companyId, status])
+  @@index([userId, status])
+}
+
+// -----------------------------------------------------------------------------
+// 9. PLATFORM CONFIGURATION & RUNTIME SETTINGS
+// -----------------------------------------------------------------------------
+
+model PlatformConfig {
+  id                 String   @id @default("default")
+  platformFeePercent Float    @default(5.0) // Platform commission percentage (e.g. 5.0 for 5%)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// 10. CUSTOMER DISPUTES & MERCHANT SUPPORT TICKETS
+// -----------------------------------------------------------------------------
+
+model PlatformTicket {
+  id             String         @id @default(cuid())
+  ticketNumber   String         @unique // e.g. "DSP-1049" or "REP-2031"
+  type           TicketType     @default(CUSTOMER_DISPUTE)
+  category       TicketCategory @default(UNFULFILLED_ORDER)
+  status         TicketStatus   @default(PENDING)
+
+  companyId      String?
+  company        Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  orderId        String?
+  order          Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderReference String?
+
+  submitterEmail String
+  submitterName  String?
+  submitterPhone String?
+  role           String?        // "CUSTOMER" | "MERCHANT"
+
+  subject        String
+  description    String
+
+  adminNotes     String?
+  resolvedBy     String?
+  refundStatus   String?        // "NONE" | "QUEUED" | "SUCCESS" | "FAILED"
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([companyId, status])
+  @@index([type, status])
+  @@index([orderReference])
+  @@index([ticketNumber])
 }

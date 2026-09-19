@@ -18,6 +18,8 @@ import {
   Lock,
   Layers,
   Sparkle,
+  Share2,
+  Images,
 } from "lucide-react";
 import Image from "next/image";
 import { api } from "@/app/lib/utils/apiClient";
@@ -28,6 +30,7 @@ import {
   PLACEMENT_OPTIONS,
   resolveGroupForCategory,
 } from "@/app/lib/content/categories";
+import { copyToClipboard } from "@/app/lib/utils/clipboard";
 
 interface CollectionItem {
   id: string;
@@ -37,6 +40,10 @@ interface CollectionItem {
   placement?: string;
   type: string;
   url: string;
+  additionalUrls?: string[];
+  images?: string[];
+  price?: number;
+  description?: string;
   createdAt: string;
   isStatic?: boolean;
 }
@@ -116,12 +123,23 @@ export default function CollectionsPage() {
 
   // Form State for Adding New Item
   const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("35000");
+  const [description, setDescription] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<WearGroupId>("Native");
   const [category, setCategory] = useState("Agbada");
   const [isCustomTag, setIsCustomTag] = useState(false);
   const [customTag, setCustomTag] = useState("");
   const [placement, setPlacement] = useState<PlacementOption>("both");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<string[]>([]);
+
+  useEffect(() => {
+    const urls = selectedFiles.map((file) => URL.createObjectURL(file));
+    setFilePreviews(urls);
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [selectedFiles]);
 
   // Upload Progress & State Handling
   const [uploadStep, setUploadStep] = useState<UploadStep>("IDLE");
@@ -201,83 +219,110 @@ export default function CollectionsPage() {
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedFile || !title.trim()) {
-      setUploadError("Please select a media file and enter an item title.");
+    if (selectedFiles.length === 0 || !title.trim()) {
+      setUploadError("Please select at least one media file and enter an item title.");
       return;
     }
 
     const finalCategory = isCustomTag && customTag.trim() ? customTag.trim() : category;
-
     setUploadError(null);
-    const isVideo = selectedFile.type.startsWith("video/");
-    const resourceType = isVideo ? "video" : "image";
-    const maxAllowedSize = isVideo ? 80 * 1024 * 1024 : 10 * 1024 * 1024;
 
-    if (selectedFile.size > maxAllowedSize) {
-      setUploadError(
-        `File is too large! Maximum limit is ${isVideo ? "80MB for videos" : "10MB for images"}.`,
-      );
-      return;
+    // Validate size of each file
+    for (const file of selectedFiles) {
+      const isVideo = file.type.startsWith("video/");
+      const maxAllowedSize = isVideo ? 80 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (file.size > maxAllowedSize) {
+        setUploadError(
+          `File "${file.name}" is too large! Limit is ${isVideo ? "80MB for videos" : "10MB for images"}.`
+        );
+        return;
+      }
     }
 
     try {
-      // STEP 1: Request HMAC Signature from Server
-      setUploadStep("SIGNING");
-      setUploadMessage("Step 1/3: Authorizing secure signature with Cloud server...");
+      const itemGroupId = `grp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const uploadedUrls: string[] = [];
+      let totalBytes = 0;
+      let primaryType = "image";
 
-      const signRes = await fetch("/api/cloudinary/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resourceType, fileSize: selectedFile.size }),
-      });
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const isVideo = file.type.startsWith("video/");
+        const resourceType = isVideo ? "video" : "image";
+        if (i === 0) primaryType = resourceType;
+        totalBytes += file.size;
 
-      if (!signRes.ok) {
-        const err = await signRes.json();
-        throw new Error(err.error || "Failed to authorize upload signature.");
+        // STEP 1: Request HMAC Signature for each file with shared itemGroupId
+        setUploadStep("SIGNING");
+        setUploadMessage(`Step 1/3: Authorizing signature for asset ${i + 1} of ${selectedFiles.length}...`);
+
+        const signRes = await fetch("/api/cloudinary/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resourceType, fileSize: file.size, itemGroupId }),
+        });
+
+        if (!signRes.ok) {
+          const err = await signRes.json();
+          throw new Error(err.error || "Failed to authorize upload signature.");
+        }
+
+        const { signature, timestamp, apiKey, cloudName, folder, tags } = await signRes.json();
+
+        // STEP 2: Direct Binary Upload to Cloudinary CDN
+        setUploadStep("UPLOADING_CLOUDINARY");
+        setUploadMessage(
+          `Step 2/3: Uploading ${isVideo ? "video" : "image"} (${i + 1}/${selectedFiles.length}) directly to Cloud CDN...`
+        );
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", apiKey);
+        formData.append("timestamp", timestamp.toString());
+        formData.append("signature", signature);
+        formData.append("folder", folder);
+        if (tags) {
+          formData.append("tags", tags);
+        }
+
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+          { method: "POST", body: formData }
+        );
+        const cloudinaryData = await uploadRes.json();
+
+        if (!uploadRes.ok || !cloudinaryData.secure_url) {
+          throw new Error(cloudinaryData.error?.message || `Upload of ${file.name} failed.`);
+        }
+
+        uploadedUrls.push(cloudinaryData.secure_url);
       }
 
-      const { signature, timestamp, apiKey, cloudName, folder } = await signRes.json();
-
-      // STEP 2: Direct Binary Upload to Cloudinary CDN
-      setUploadStep("UPLOADING_CLOUDINARY");
-      setUploadMessage(`Step 2/3: Uploading ${isVideo ? "video" : "image"} directly to Cloud CDN server...`);
-
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("api_key", apiKey);
-      formData.append("timestamp", timestamp.toString());
-      formData.append("signature", signature);
-      formData.append("folder", folder);
-
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-        { method: "POST", body: formData },
-      );
-      const cloudinaryData = await uploadRes.json();
-
-      if (!uploadRes.ok || !cloudinaryData.secure_url) {
-        throw new Error(cloudinaryData.error?.message || "Upload rejected.");
-      }
-
-      // STEP 3: Persist Metadata to Database
+      // STEP 3: Persist Metadata to Database with Multi-Image URLs
       setUploadStep("SAVING_DB");
-      setUploadMessage("Step 3/3: Synchronizing asset metadata into database storage...");
+      setUploadMessage("Step 3/3: Synchronizing multi-image asset into catalog database...");
+
+      const parsedPrice = price ? Math.max(0, Number(price)) : 35000;
 
       const dbRes = await api.post("/api/collections", {
-        url: cloudinaryData.secure_url,
+        url: uploadedUrls[0],
+        additionalUrls: uploadedUrls.slice(1),
         title: title.trim(),
         category: finalCategory,
         group: selectedGroup,
         placement: placement,
-        size: cloudinaryData.bytes,
-        type: cloudinaryData.resource_type,
+        price: parsedPrice,
+        description: description.trim() || undefined,
+        itemGroupId,
+        size: totalBytes,
+        type: primaryType,
       });
 
       const savedItem = await dbRes.data;
 
       // STEP 4: Success Transition
       setUploadStep("SUCCESS");
-      setUploadMessage("Asset successfully published to your catalog!");
+      setUploadMessage("Piece and multi-image gallery successfully published to your catalog!");
 
       setTimeout(() => {
         setItems((prev) => [
@@ -287,17 +332,23 @@ export default function CollectionsPage() {
             category: savedItem.category || finalCategory,
             group: savedItem.group || selectedGroup,
             placement: savedItem.placement || placement,
-            type: savedItem.type || resourceType,
-            url: savedItem.url || cloudinaryData.secure_url,
+            type: savedItem.type || primaryType,
+            url: savedItem.url || uploadedUrls[0],
+            additionalUrls: savedItem.additionalUrls || uploadedUrls.slice(1),
+            images: savedItem.images || uploadedUrls,
+            price: savedItem.price || parsedPrice,
+            description: savedItem.description || description.trim() || undefined,
             createdAt: new Date().toISOString().split("T")[0],
           },
           ...prev,
         ]);
         setIsModalOpen(false);
         setTitle("");
+        setPrice("35000");
+        setDescription("");
         setCustomTag("");
         setIsCustomTag(false);
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setUploadStep("IDLE");
       }, 1500);
     } catch (err: unknown) {
@@ -343,8 +394,9 @@ export default function CollectionsPage() {
     }
   };
 
-  const handleCopyLink = (id: string, itemUrl: string) => {
-    navigator.clipboard.writeText(itemUrl);
+  const handleCopyLink = async (id: string) => {
+    const checkoutUrl = `${window.location.origin}/checkout/${id}`;
+    await copyToClipboard(checkoutUrl);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -510,9 +562,17 @@ export default function CollectionsPage() {
                     <Tag className="w-2.5 h-2.5" />
                     {item.category}
                   </span>
-                  <span className="bg-black/80 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider text-white/70 w-fit">
-                    {itemGroup === "Native" ? "Native Wear" : "Modern Wear"}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="bg-black/80 px-2 py-0.5 rounded text-[9px] uppercase tracking-wider text-white/70 w-fit">
+                      {itemGroup === "Native" ? "Native Wear" : "Modern Wear"}
+                    </span>
+                    {((item.images && item.images.length > 1) || (item.additionalUrls && item.additionalUrls.length > 0)) && (
+                      <span className="bg-[#C9A96E]/90 text-black px-2 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider flex items-center gap-1">
+                        <Images className="w-2.5 h-2.5" />
+                        {item.images?.length || (item.additionalUrls?.length || 0) + 1}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Placement Badge on Top Right */}
@@ -524,19 +584,30 @@ export default function CollectionsPage() {
                 </div>
 
                 {/* Action Buttons: Visible on Mobile Touch Devices, Hover on Desktop */}
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20 sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-300 sm:items-center sm:justify-center sm:gap-3">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20 sm:inset-0 sm:bg-black/60 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-300 sm:items-center sm:justify-center sm:gap-2.5">
                   <button
-                    onClick={() => handleCopyLink(item.id, item.url)}
-                    title="Copy Media URL"
-                    className="p-2 sm:p-2.5 bg-[#1A1A1A]/90 text-[#C9A96E] rounded-full border border-[#C9A96E]/40 hover:bg-[#C9A96E] hover:text-[#1A1A1A] transition-colors"
+                    type="button"
+                    onClick={() => handleCopyLink(item.id)}
+                    title="Copy Shareable Checkout Link"
+                    className="p-2 sm:p-2.5 bg-[#1A1A1A]/90 text-[#C9A96E] rounded-full border border-[#C9A96E]/40 hover:bg-[#C9A96E] hover:text-[#1A1A1A] transition-colors cursor-pointer"
                   >
                     {copiedId === item.id ? (
-                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                     ) : (
-                      <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     )}
                   </button>
+                  <a
+                    href={`/checkout/${item.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Preview Customer Checkout Page"
+                    className="p-2 sm:p-2.5 bg-[#1A1A1A]/90 text-[#F5F0EB] rounded-full border border-white/20 hover:bg-white hover:text-black transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </a>
                   <button
+                    type="button"
                     onClick={() =>
                       handleDeleteItem(item.id, item.url, item.type, item.isStatic)
                     }
@@ -552,10 +623,18 @@ export default function CollectionsPage() {
               {/* Item Meta Details */}
               <div className="p-4 flex items-center justify-between gap-2 mt-auto">
                 <div className="space-y-0.5 min-w-0">
-                  <h3 className="text-sm font-semibold text-[#F5F0EB] tracking-wide truncate">
-                    {item.title}
-                  </h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-semibold text-[#F5F0EB] tracking-wide truncate">
+                      {item.title}
+                    </h3>
+                  </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#E0D5C9]/50 font-light">
+                    {item.price && (
+                      <>
+                        <span className="text-[#C9A96E] font-semibold">₦{item.price.toLocaleString()}</span>
+                        <span>•</span>
+                      </>
+                    )}
                     <span>{placementDisplay}</span>
                     <span>•</span>
                     <span>{item.createdAt}</span>
@@ -685,34 +764,120 @@ export default function CollectionsPage() {
             )}
 
             <form onSubmit={handleAddItem} className="space-y-4">
-              {/* Item Title */}
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-[#C9A96E] mb-1">
-                  Item Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  disabled={isUploading || uploadStep === "SUCCESS"}
-                  placeholder="e.g. Royal Agbada Ensemble or Luxury Joggers"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full h-10 px-3 bg-black/60 border border-white/10 rounded text-xs text-[#F5F0EB] focus:outline-none focus:border-[#C9A96E] disabled:opacity-50"
-                />
+              {/* Item Title & Price Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A96E] mb-1">
+                    Item Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    disabled={isUploading || uploadStep === "SUCCESS"}
+                    placeholder="e.g. Royal Agbada Ensemble"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full h-10 px-3 bg-black/60 border border-white/10 rounded text-xs text-[#F5F0EB] focus:outline-none focus:border-[#C9A96E] disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-widest text-[#C9A96E] mb-1">
+                    Price (₦ NGN)
+                  </label>
+                  <input
+                    type="number"
+                    disabled={isUploading || uploadStep === "SUCCESS"}
+                    placeholder="35000"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full h-10 px-3 bg-black/60 border border-white/10 rounded text-xs text-[#F5F0EB] focus:outline-none focus:border-[#C9A96E] disabled:opacity-50"
+                  />
+                </div>
               </div>
 
-              {/* Media File */}
+              {/* Multiple Media Files Dropzone & Preview Strip */}
               <div>
-                <label className="block text-xs uppercase tracking-widest text-[#C9A96E] mb-1">
-                  Media File (Image / Video)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs uppercase tracking-widest text-[#C9A96E]">
+                    Media Photos / Videos (Select 1 or more) *
+                  </label>
+                  {selectedFiles.length > 0 && (
+                    <span className="text-[11px] text-[#C9A96E] font-semibold">
+                      {selectedFiles.length} item{selectedFiles.length > 1 ? "s" : ""} selected
+                    </span>
+                  )}
+                </div>
                 <input
                   type="file"
-                  required
+                  multiple
                   disabled={isUploading || uploadStep === "SUCCESS"}
                   accept="image/*,video/*"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full text-xs text-[#F5F0EB] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#C9A96E] file:text-[#1A1A1A] hover:file:bg-[#F5F0EB] disabled:opacity-50"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      setSelectedFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                    }
+                  }}
+                  className="w-full text-xs text-[#F5F0EB] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#C9A96E] file:text-[#1A1A1A] hover:file:bg-[#F5F0EB] disabled:opacity-50 cursor-pointer"
+                />
+
+                {/* Pre-upload thumbnail preview strip */}
+                {filePreviews.length > 0 && (
+                  <div className="mt-2.5 p-2.5 bg-black/50 border border-white/10 rounded-xl space-y-2">
+                    <div className="text-[10px] text-[#E0D5C9]/60 flex items-center justify-between">
+                      <span>First photo will be used as the primary cover</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFiles([])}
+                        className="text-red-400 hover:underline cursor-pointer"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 overflow-x-auto py-1">
+                      {filePreviews.map((previewUrl, idx) => (
+                        <div
+                          key={idx}
+                          className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#C9A96E]/40 shrink-0 bg-black"
+                        >
+                          <img
+                            src={previewUrl}
+                            alt={`Preview ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 inset-x-0 bg-[#C9A96E] text-[#1A1A1A] text-[8px] font-bold uppercase text-center py-0.5">
+                              Cover
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFiles((prev) => prev.filter((_, i) => i !== idx));
+                            }}
+                            className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/80 text-white hover:text-red-400 flex items-center justify-center text-[9px] cursor-pointer"
+                            title="Remove photo"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bespoke Description / Tailoring Notes */}
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-[#C9A96E] mb-1">
+                  Bespoke Notes / Story (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  disabled={isUploading || uploadStep === "SUCCESS"}
+                  placeholder="e.g. Handcrafted with authentic Nigerian Aso Oke and tailored stitching."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full p-2.5 bg-black/60 border border-white/10 rounded text-xs text-[#F5F0EB] focus:outline-none focus:border-[#C9A96E] disabled:opacity-50 resize-none"
                 />
               </div>
 

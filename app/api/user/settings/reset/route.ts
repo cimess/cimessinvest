@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { auth } from "@/app/auth";
 import { v2 as cloudinary } from "cloudinary";
+import { revalidateBrandCache } from "@/app/lib/cache/brandCache";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,7 +17,7 @@ function getPublicIdFromUrl(url: string): string {
   return pathWithoutVersion.substring(0, pathWithoutVersion.lastIndexOf("."));
 }
 
-import { revalidateBrandCache } from "@/app/lib/cache/brandCache";
+
 
 export async function POST() {
   try {

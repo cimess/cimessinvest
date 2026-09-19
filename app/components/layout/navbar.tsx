@@ -53,8 +53,8 @@ export default function Navbar({ brandName, whatsappNumber, ctaLabel }: NavbarPr
 
         {/* 3. Desktop Nav Links */}
         <div className="hidden md:flex items-center space-x-10 text-sm tracking-widest uppercase font-medium text-[var(--color-primary,#1A1A1A)] relative z-10">
-          <Link href="/" className="hover:text-[var(--color-accent,#C9A96E)] transition-colors">The Story</Link>
-          <Link href="/collections" className="hover:text-[var(--color-accent,#C9A96E)] transition-colors">Collections</Link>
+          <Link href="/" className="hover:text-[var(--color-accent,#C9A96E)] transition-colors">Home</Link>
+          <Link href="/store" className="hover:text-[var(--color-accent,#C9A96E)] transition-colors">Store</Link>
           <Link href="/login" className="hover:text-[var(--color-accent,#C9A96E)] transition-colors">Sign In</Link>
         </div>
 
@@ -82,14 +82,14 @@ export default function Navbar({ brandName, whatsappNumber, ctaLabel }: NavbarPr
             onClick={() => setMobileMenuOpen(false)}
             className="hover:text-[var(--color-accent,#C9A96E)] transition-colors py-2 font-semibold"
           >
-            The Story
+            Home
           </Link>
           <Link 
-            href="/collections" 
+            href="/store" 
             onClick={() => setMobileMenuOpen(false)}
             className="hover:text-[var(--color-accent,#C9A96E)] transition-colors py-2 font-semibold"
           >
-            Collections
+            Store
           </Link>
           <Link 
             href="/login" 

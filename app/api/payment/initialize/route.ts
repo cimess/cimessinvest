@@ -1,16 +1,34 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { initializePaystackTransaction, PlanType } from "@/app/api/service/payment.service";
-
+import { prisma } from "@/app/lib/prisma/prisma";
 
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session || !session.user) {
+    const body = await req.json();
+    const { planSelected, callbackUrl, email } = body;
+
+    let userId = session?.user?.id;
+    let userEmail = session?.user?.email;
+    let userRole = (session?.user?.role || "").toUpperCase();
+
+    if (!userId && email) {
+      const foundUser = await prisma.user.findFirst({
+        where: { email: { equals: email.trim(), mode: "insensitive" } },
+        select: { id: true, email: true, role: true },
+      });
+      if (foundUser) {
+        userId = foundUser.id;
+        userEmail = foundUser.email;
+        userRole = (foundUser.role || "ADMIN").toUpperCase();
+      }
+    }
+
+    if (!userId || !userEmail) {
       return NextResponse.json({ message: "Unauthorized user session" }, { status: 401 });
     }
 
-    const userRole = (session.user.role || "").toUpperCase();
     if (userRole === "MANAGER") {
       return NextResponse.json(
         { message: "Forbidden: Store managers are not permitted to manage billing or initiate payments." },
@@ -18,22 +36,82 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
-    const { planSelected, callbackUrl } = body;
-
     const validPlans: PlanType[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
     const plan: PlanType = validPlans.includes((planSelected || "").toUpperCase())
       ? (planSelected.toUpperCase() as PlanType)
       : "STARTER";
+
+    // If request is explicitly for trial activation (e.g., onboarding 14-day trial)
+    if (body.trial === true || body.activateTrial === true) {
+      const isPro = plan === "PROFESSIONAL";
+      const storageLimit = isPro ? 2000 : 500;
+      const trafficLimit = isPro ? 15000 : 2000;
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          planSelected: plan,
+          storageLimit,
+          trafficLimit,
+        },
+        select: {
+          id: true,
+          email: true,
+          planSelected: true,
+          storageLimit: true,
+          trafficLimit: true,
+          subscription_status: true,
+        },
+      });
+
+      const targetCompanyId =
+        session?.user?.activeCompanyId ||
+        session?.user?.companyId;
+
+      let updatedCompany = null;
+      if (targetCompanyId) {
+        updatedCompany = await prisma.company.update({
+          where: { id: targetCompanyId },
+          data: {
+            planSelected: plan as any,
+            storageLimit,
+            trafficLimit,
+          },
+        }).catch(() => null);
+      } else {
+        const membership = await prisma.companyMember.findFirst({
+          where: { userId, status: "ACTIVE" },
+          select: { companyId: true },
+        });
+        if (membership?.companyId) {
+          updatedCompany = await prisma.company.update({
+            where: { id: membership.companyId },
+            data: {
+              planSelected: plan as any,
+              storageLimit,
+              trafficLimit,
+            },
+          }).catch(() => null);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        plan,
+        trial: true,
+        message: `${plan === "PROFESSIONAL" ? "Professional" : "Starter"} plan activated successfully.`,
+        user: updatedUser,
+        company: updatedCompany,
+      });
+    }
 
     // 1. Check if an approved CustomPlanQuote exists for this user (Superadmin authorized deal)
     let authorizedCustomAmountKobo: number | undefined;
     let authorizedCustomStorageMB: number | undefined;
 
     if (plan === "ENTERPRISE") {
-      const { prisma } = await import("@/app/lib/prisma/prisma");
       const activeQuote = await prisma.customPlanQuote.findFirst({
-        where: { userId: session.user.id, status: "APPROVED" },
+        where: { userId, status: "APPROVED" },
         orderBy: { createdAt: "desc" },
       });
 
@@ -44,8 +122,8 @@ export async function POST(req: Request) {
     }
 
     const paymentInitResult = await initializePaystackTransaction({
-      userId: session.user.id,
-      email: session.user.email || "",
+      userId,
+      email: userEmail,
       planSelected: plan,
       customAmountKobo: authorizedCustomAmountKobo,
       customStorageMB: authorizedCustomStorageMB,

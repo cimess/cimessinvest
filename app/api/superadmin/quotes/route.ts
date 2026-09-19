@@ -37,8 +37,8 @@ export async function GET() {
       quotes: quotes.map((q) => ({
         id: q.id,
         userId: q.userId,
-        companyName: q.user.companyName,
-        email: q.user.email,
+        companyName: q.user?.companyName || "Unknown Company",
+        email: q.user?.email || "unknown@user.com",
         plan: q.plan,
         authorizedAmountNGN: q.authorizedAmountKobo / 100,
         authorizedStorageMB: q.authorizedStorageMB,

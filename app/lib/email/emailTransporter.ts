@@ -27,21 +27,16 @@ export async function sendEmail({
   const apiKey = process.env.RESEND_API_KEY;
   const defaultFrom =
     process.env.EMAIL_FROM ||
-    "Aimuan Thankgod <founder@cimessinvest.com>";
+    "cimessinvest <founder@cimessinvest.com>";
 
   const sender = from || defaultFrom;
 
   try {
     if (!apiKey) {
-      console.warn("[EmailTransporter] RESEND_API_KEY is not set. Logging email payload to console:");
-      console.log(`--- SIMULATED EMAIL ---`);
-      console.log(`From: ${sender}`);
-      console.log(`To: ${to}`);
-      console.log(`Subject: ${subject}`);
-      console.log(`-----------------------`);
+      console.error("[EmailTransporter] RESEND_API_KEY is not configured. Email cannot be delivered.");
       return {
-        success: true,
-        messageId: `simulated-${Date.now()}`,
+        success: false,
+        error: "Email service is not configured (RESEND_API_KEY missing).",
       };
     }
 

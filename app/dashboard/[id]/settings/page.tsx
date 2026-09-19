@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { api } from "@/app/lib/utils/apiClient";
+import { copyToClipboard } from "@/app/lib/utils/clipboard";
 import Link from "next/link";
 import { 
   HardDrive, 
@@ -141,9 +142,9 @@ export default function UserSettingsPage() {
     }
   };
 
-  const handleCopyInvite = () => {
+  const handleCopyInvite = async () => {
     if (generatedInviteUrl) {
-      navigator.clipboard.writeText(generatedInviteUrl);
+      await copyToClipboard(generatedInviteUrl);
       setCopiedInvite(true);
       setTimeout(() => setCopiedInvite(false), 2500);
     }

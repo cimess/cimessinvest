@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma/prisma";
 import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
+import { checkRateLimit } from "@/app/lib/security/rateLimiter";
 
 /**
  * POST /api/auth/verify-otp
@@ -8,6 +9,17 @@ import { getSafeErrorMessage } from "@/app/lib/utils/errorHandler";
  */
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate limiting (max 10 requests per 15 minutes per IP)
+    const rateLimit = await checkRateLimit(req, {
+      keyPrefix: "auth-verify-otp",
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+      customMessage: "Too many OTP verification attempts. Please wait 15 minutes before trying again.",
+    });
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const { email, otpCode } = await req.json();
 
     if (!email || !otpCode) {
@@ -19,6 +31,12 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findFirst({
       where: { email: { equals: trimmedEmail, mode: "insensitive" } },
+      select: {
+        id: true,
+        email: true,
+        resetToken: true,
+        resetTokenExpiry: true,
+      },
     });
 
     if (!user || !user.resetToken || !user.resetTokenExpiry) {

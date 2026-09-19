@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/app/auth";
+import { clearSessionCookies } from "@/app/lib/auth/sessionCookies";
+import { RESERVED_SUBDOMAINS } from "@/app/lib/constants/subdomains";
 
 // 1. Strict Matrix Permissions (Hierarchy Access Control for Pages and APIs)
 const ROLE_PERMISSIONS: Record<string, string[]> = {
@@ -11,25 +13,97 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 // Helper function to safely clear all session cookie variants from the response
 function clearInvalidCookies(req: NextRequest, response: NextResponse) {
-  const cookieNames = [
-    "__Secure-authjs.session-token",
-    "authjs.session-token",
-    "__Secure-next-auth.session-token",
-    "next-auth.session-token",
-  ];
-  cookieNames.forEach((name) => {
-    if (req.cookies.has(name)) {
-      response.cookies.delete(name);
-      response.cookies.delete({
-        name,
-        path: "/",
-        secure: name.startsWith("__Secure-"),
-      });
+  clearSessionCookies(response);
+}
+
+function extractSubdomain(hostStr: string): string | null {
+  if (!hostStr) return null;
+  const hostname = hostStr.split(":")[0].toLowerCase().trim();
+
+  // 1. Mobile & local development wildcard: [subdomain].[ipv4].sslip.io
+  if (hostname.endsWith(".sslip.io")) {
+    const parts = hostname.replace(/\.sslip\.io$/, "").split(".");
+    // Expecting: [slug, ipPart1, ipPart2, ipPart3, ipPart4]
+    if (parts.length === 5) {
+      const slug = parts[0];
+      if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
+        return slug;
+      }
     }
-  });
+    return null;
+  }
+
+  // 2. Production wildcard: [subdomain].cimessinvest.com
+  if (hostname.endsWith(".cimessinvest.com")) {
+    const parts = hostname.replace(/\.cimessinvest\.com$/, "").split(".");
+    if (parts.length === 1) {
+      const slug = parts[0];
+      if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
+        return slug;
+      }
+    }
+    return null;
+  }
+
+  // 3. Localhost wildcard: [subdomain].localhost
+  if (hostname.endsWith(".localhost")) {
+    const parts = hostname.replace(/\.localhost$/, "").split(".");
+    if (parts.length === 1) {
+      const slug = parts[0];
+      if (slug && !RESERVED_SUBDOMAINS.has(slug)) {
+        return slug;
+      }
+    }
+    return null;
+  }
+
+  return null;
 }
 
 export async function proxy(req: NextRequest) {
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || req.nextUrl.host || "";
+  const path = req.nextUrl.pathname;
+  const merchantSubdomain = extractSubdomain(host);
+
+  // 0. SUBDOMAIN EDGE INGRESS REWRITES
+  if (merchantSubdomain) {
+    // Let static assets and APIs pass through directly
+    if (
+      path.startsWith("/_next") ||
+      path.startsWith("/api") ||
+      path.startsWith("/bg-img") ||
+      path === "/favicon.ico"
+    ) {
+      return addSecurityHeaders(NextResponse.next());
+    }
+
+    // Root of merchant subdomain (e.g. adeleke.192.168.0.197.sslip.io:3000/ or adeleke.localhost:3000/)
+    // Rewrites destination to the merchant's dedicated template landing page
+    if (path === "/" || path === "") {
+      const rewriteUrl = req.nextUrl.clone();
+      rewriteUrl.pathname = `/landing/${merchantSubdomain}`;
+      return addSecurityHeaders(NextResponse.rewrite(rewriteUrl));
+    }
+
+    // If visitor hits /store or /store/ on merchant subdomain, rewrite to /store/[merchantSubdomain]
+    if (path === "/store" || path === "/store/") {
+      const rewriteUrl = req.nextUrl.clone();
+      rewriteUrl.pathname = `/store/${merchantSubdomain}`;
+      return addSecurityHeaders(NextResponse.rewrite(rewriteUrl));
+    }
+
+    // Direct checkout or individual store/landing assets under the merchant subdomain
+    if (path.startsWith("/checkout") || path.startsWith("/store/") || path.startsWith("/landing/")) {
+      return addSecurityHeaders(NextResponse.next());
+    }
+  }
+
+  // 0B. STRICT ORPHANED /store GUARD ON ROOT PLATFORM
+  // If someone navigates to domain.com/store with no merchant specified, NEVER leak an arbitrary merchant!
+  if (!merchantSubdomain && (path === "/store" || path === "/store/")) {
+    return addSecurityHeaders(NextResponse.redirect(new URL("/", req.url)));
+  }
+
   // 1. Dynamic cookie name detection (handles Secure/Dev & Authjs/NextAuth variations)
   const cookieNames = [
     "__Secure-authjs.session-token",
@@ -43,13 +117,19 @@ export async function proxy(req: NextRequest) {
   const session = await auth();
   const token = session?.user;
 
-  const path = req.nextUrl.pathname;
-
   // 3. PUBLIC & STATIC ALLOWLIST (Bypass checks for static assets, public storefront, collections, image preview)
   if (
     path === "/" || 
-    path.startsWith("/collections") ||
-    path.startsWith("/image") ||
+    path.startsWith("/landing") ||
+    path.startsWith("/store") ||
+    path.startsWith("/checkout") ||
+    path.startsWith("/pay") ||
+    path.startsWith("/appeal") ||
+    path.startsWith("/api/appeal") ||
+    path.startsWith("/api/v1/store") ||
+    path.startsWith("/api/checkout") ||
+    path.startsWith("/sitemap") ||
+    path.startsWith("/robots") ||
     path.startsWith("/invite") ||
     path.startsWith("/api/team/join") ||
     path === "/superadmin/login" ||
@@ -59,13 +139,16 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/_next") ||
     path.startsWith("/bg-img") ||
     path.startsWith("/api/auth") ||
+    path.startsWith("/api/bank") ||
     path.startsWith("/api/registration") ||
-    path.startsWith("/api/register") ||
     path.startsWith("/api/payment/webhook") ||
+    path.startsWith("/api/payment/initialize") ||
+    path.startsWith("/api/payment/check-status") ||
     path.startsWith("/api/verifyToken") ||
     path.startsWith("/api/image") ||
     path.startsWith("/api/collections") ||
     path.startsWith("/api/health") ||
+    path.startsWith("/api/workers") ||
     path.startsWith("/api/cron") ||
     path === "/favicon.ico" ||
     path === "/unauthorized"
@@ -98,24 +181,23 @@ export async function proxy(req: NextRequest) {
   if (!token) {
     if (path.startsWith("/api/")) {
       const response = NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized: Session expired ", code: "SESSION_EXPIRED" },
         { status: 401 }
       );
-      if (activeCookieName) {
-        clearInvalidCookies(req, response);
-      }
+      clearSessionCookies(response);
       return addSecurityHeaders(response);
     }
 
     // Direct unauthenticated superadmin access to dedicated superadmin login
     if (path.startsWith("/superadmin")) {
       const superadminLoginResponse = NextResponse.redirect(new URL("/superadmin/login", req.url));
-      clearInvalidCookies(req, superadminLoginResponse);
+      clearSessionCookies(superadminLoginResponse);
       return addSecurityHeaders(superadminLoginResponse);
     }
 
-    const sessionExpiredResponse = NextResponse.redirect(new URL("/", req.url));
-    clearInvalidCookies(req, sessionExpiredResponse);
+    const redirectTarget = activeCookieName ? "/login?expired=true" : "/login";
+    const sessionExpiredResponse = NextResponse.redirect(new URL(redirectTarget, req.url));
+    clearSessionCookies(sessionExpiredResponse);
     return addSecurityHeaders(sessionExpiredResponse);
   }
 
@@ -205,12 +287,13 @@ function addSecurityHeaders(response: NextResponse) {
 // 11. HIGH-PERFORMANCE MATCHER CONFIGURATION
 export const config = {
   matcher: [
-    "/",
-    "/login",
-    "/signup",
-    "/invite/:path*",
-    "/dashboard/:path*",
-    "/superadmin/:path*",
-    "/api/:path*",
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public asset extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .woff, .woff2)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff|woff2)$).*)",
   ],
 };

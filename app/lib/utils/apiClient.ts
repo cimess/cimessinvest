@@ -18,11 +18,29 @@ export const api= axios.create({
   timeout:50000, // 10 seconds timeout limit
 });
 
-// 2. Global Interceptors (Optional but recommended)
+// 2. Global Interceptors (Session expulsion & API error logging)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle global API errors here (e.g., token expiration, logging)
+    // Automated Expulsion: Catch expired sessions, deleted accounts, or unauthorized calls
+    if (typeof window !== "undefined") {
+      const status = error.response?.status;
+      const data = error.response?.data;
+      const isAuthError =
+        status === 401 ||
+        (status === 404 && data?.error === "User not found") ||
+        data?.code === "SESSION_EXPIRED" ||
+        data?.code === "USER_NOT_FOUND";
+
+      if (isAuthError) {
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith("/login") && !currentPath.startsWith("/superadmin/login")) {
+          // Cleanly redirect to login with expired notice flag
+          window.location.href = "/login?expired=true";
+        }
+      }
+    }
+
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
