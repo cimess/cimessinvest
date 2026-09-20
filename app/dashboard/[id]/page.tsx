@@ -27,6 +27,10 @@ export default function ManagerDashboardPage() {
     activeTemplateSlug?: string;
   } | null>(null);
 
+  const [siteSetting, setSiteSetting] = useState<{
+    tailorBioImage?: string | null;
+  } | null>(null);
+
   const [analytics, setAnalytics] = useState<{
     totalVisits: number;
     whatsappClicks: number;
@@ -35,10 +39,13 @@ export default function ManagerDashboardPage() {
 
   useEffect(() => {
     api
-      .get<{ success?: boolean; company?: any }>("/api/company/settings")
+      .get<{ success?: boolean; company?: any; siteSetting?: any }>("/api/company/settings")
       .then((res) => {
         if (res.data?.company) {
           setCompany(res.data.company);
+        }
+        if (res.data?.siteSetting) {
+          setSiteSetting(res.data.siteSetting);
         }
       })
       .catch(() => null);
@@ -83,26 +90,46 @@ export default function ManagerDashboardPage() {
     <div className="p-6 sm:p-10 space-y-8 bg-[#1A1A1A] min-h-screen text-[#F5F0EB]">
       {/* Dashboard Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#C9A96E]/20 pb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs uppercase tracking-[0.25em] text-[#C9A96E] font-semibold">
-              {company?.name || "Merchant"} Management
-            </span>
-            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300">
-              {isGym ? "Fitness & Athletic Gym" : "Fashion & Atelier"}
-            </span>
-            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#C9A96E]/15 text-[#C9A96E] border border-[#C9A96E]/30">
-              {company?.activeTemplateSlug || (isGym ? "IronCore Gym" : "Atelier Haute Couture")}
-            </span>
+        <div className="flex items-center gap-4">
+          {/* Circular Merchant Profile Avatar */}
+          <div className="relative shrink-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full p-0.5 border-2 border-[#C9A96E] shadow-lg shadow-[#C9A96E]/20 overflow-hidden bg-black/60 flex items-center justify-center">
+              <img
+                src={siteSetting?.tailorBioImage || "/bg-img/native10.jpg"}
+                alt={company?.name || "Merchant"}
+                className="w-full h-full object-cover rounded-full"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+                }}
+              />
+            </div>
+            <div
+              className="absolute bottom-0 right-0 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500 border-2 border-[#1A1A1A] shadow-sm"
+              title="Store Online"
+            />
           </div>
-          <h1 className="text-3xl font-heading text-[#F5F0EB]">
-            Store Performance & Analytics
-          </h1>
+
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-xs uppercase tracking-[0.25em] text-[#C9A96E] font-semibold">
+                {company?.name || "Merchant"} Management
+              </span>
+              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-white/10 text-zinc-300">
+                {isGym ? "Fitness & Athletic Gym" : "Fashion & Atelier"}
+              </span>
+              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#C9A96E]/15 text-[#C9A96E] border border-[#C9A96E]/30">
+                {company?.activeTemplateSlug || (isGym ? "IronCore Gym" : "Atelier Haute Couture")}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-heading text-[#F5F0EB]">
+              Store Performance & Analytics
+            </h1>
+          </div>
         </div>
 
         <Link
           href={`/dashboard/${dashboardId}/landing-settings`}
-          className="px-5 py-2.5 bg-[#C9A96E] text-[#1A1A1A] text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#F5F0EB] transition-colors flex items-center space-x-2 self-start sm:self-auto rounded-lg shadow-lg shadow-[#C9A96E]/20"
+          className="px-5 py-2.5 bg-[#C9A96E] text-[#1A1A1A] text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#F5F0EB] transition-colors flex items-center space-x-2 self-start sm:self-auto rounded-lg shadow-lg shadow-[#C9A96E]/20 shrink-0"
         >
           <LayoutTemplate className="w-4 h-4" />
           <span>Storefront & Template Studio</span>

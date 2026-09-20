@@ -87,7 +87,7 @@ export async function checkCompanyStorage(
   }
 
   let storageUsedMB = company.storageUsed ?? 0;
-  const storageLimitMB = company.storageLimit ?? 1024;
+  const storageLimitMB = company.storageLimit ?? (company.planSelected === "FREE_TRIAL" ? 100 : 500);
 
   if (syncWithMediaTable) {
     const aggregateResult = await prisma.image.aggregate({
@@ -225,7 +225,7 @@ export async function checkUserStorage(
   }
 
   let storageUsedMB = user.storageUsed ?? 0;
-  const storageLimitMB = user.storageLimit ?? 500;
+  const storageLimitMB = user.storageLimit ?? (user.planSelected === "FREE_TRIAL" ? 100 : 500);
 
   if (syncWithMediaTable) {
     const aggregateResult = await prisma.image.aggregate({

@@ -34,6 +34,7 @@ export default function GymHeroSection({ copy, media, context }: GymHeroSectionP
   const containerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const headline = copy?.headline || "FORGE YOUR ULTIMATE PHYSIQUE";
   const subheadline =
@@ -80,6 +81,14 @@ export default function GymHeroSection({ copy, media, context }: GymHeroSectionP
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [mediaSrc]);
+
   return (
     <section
       ref={containerRef}
@@ -88,6 +97,7 @@ export default function GymHeroSection({ copy, media, context }: GymHeroSectionP
       {/* Background Media - Strictly Video */}
       <div ref={mediaRef} className="absolute inset-0 w-full h-full">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted

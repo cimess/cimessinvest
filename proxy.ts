@@ -72,6 +72,7 @@ export async function proxy(req: NextRequest) {
       path.startsWith("/_next") ||
       path.startsWith("/api") ||
       path.startsWith("/bg-img") ||
+      path.startsWith("/templates") ||
       path === "/favicon.ico"
     ) {
       return addSecurityHeaders(NextResponse.next());
@@ -138,6 +139,7 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/api/brand") ||
     path.startsWith("/_next") ||
     path.startsWith("/bg-img") ||
+    path.startsWith("/templates") ||
     path.startsWith("/api/auth") ||
     path.startsWith("/api/bank") ||
     path.startsWith("/api/registration") ||
@@ -292,8 +294,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public asset extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .woff, .woff2)
+     * - public asset extensions (.svg, .png, .jpg, .jpeg, .gif, .webp, .woff, .woff2, .mp4, .webm, .ogg)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff|woff2)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff|woff2|mp4|webm|ogg)$).*)",
   ],
 };

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, email, phone, password, brandName, industry, templateSlug } = body;
+    const { name, email, phone, password, brandName, industry, templateSlug, profileImage } = body;
 
     // 1. Vital Fields Input Validation
     if (!name || !email || !phone || !password) {
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
           planSelected: "FREE_TRIAL",
           subscription_status: "ACTIVE",
           storageUsed: 0,
-          storageLimit: 1024,
+          storageLimit: 100,
           resetToken: `${otpCode}:0`,
           resetTokenExpiry: expiryDate,
         },
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
           aiCreditsRemaining: 10,
           trafficLimit: 2000,
           monthlyVisits: 0,
-          storageLimit: 1024,
+          storageLimit: 100,
           storageUsed: 0,
         },
       });
@@ -240,6 +240,7 @@ export async function POST(req: NextRequest) {
           primaryColor: "#1A1A1A",
           accentColor: "#C9A96E",
           backgroundColor: "#F5F0EB",
+          tailorBioImage: profileImage || null,
         },
       });
 

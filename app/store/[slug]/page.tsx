@@ -159,7 +159,7 @@ export default async function MerchantStorePage({ params }: Props) {
     storeName: siteSetting?.companyName?.trim() || company.name,
     slug: company.slug,
     industry: company.industry,
-    avatar: siteSetting?.tailorBioImage || null,
+    avatar: siteSetting?.tailorBioImage || "/bg-img/native10.jpg",
     bio: siteSetting?.tailorBioText?.trim() || company.brandBio?.trim() || "Quality craftsmanship & personalized service.",
     location: [siteSetting?.city, siteSetting?.state].filter(Boolean).join(", ") || "Lagos, Nigeria",
     physicalAddress: siteSetting?.physicalAddress || null,

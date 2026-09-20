@@ -252,23 +252,14 @@ export default function StorefrontClient({ store }: { store: StorefrontData }) {
             className="w-24 h-24 rounded-full p-0.5 border-2 shadow-md overflow-hidden bg-white mx-auto flex items-center justify-center"
             style={{ borderColor: store.themeColor }}
           >
-            {store.avatar ? (
-              <img
-                src={store.avatar}
-                alt={store.storeName}
-                className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
-                }}
-              />
-            ) : (
-              <div 
-                className="w-full h-full flex items-center justify-center text-xl font-bold text-white uppercase rounded-full"
-                style={{ backgroundColor: store.themeColor }}
-              >
-                {store.storeName.slice(0, 2)}
-              </div>
-            )}
+            <img
+              src={store.avatar || "/bg-img/native10.jpg"}
+              alt={store.storeName}
+              className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+              }}
+            />
           </div>
           {/* Verified Badge */}
           <div 

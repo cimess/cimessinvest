@@ -74,8 +74,15 @@ export default function GymStorefront({ slots }: GymStorefrontProps) {
 
           {/* Gym Brand Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E63946] flex items-center justify-center text-white shadow-lg shadow-[#E63946]/30">
-              <Dumbbell className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-900 flex items-center justify-center shrink-0 shadow-lg">
+              <img
+                src={slots?.bioImage || "/bg-img/native10.jpg"}
+                alt={brandName}
+                className="w-full h-full object-cover rounded-xl"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+                }}
+              />
             </div>
             <span className="font-heading font-black text-xl tracking-wider text-white uppercase">
               {brandName}

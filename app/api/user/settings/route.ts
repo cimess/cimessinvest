@@ -76,6 +76,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const effectivePlan = company?.planSelected || user.planSelected;
+    const defaultStorageLimit = effectivePlan === "FREE_TRIAL" ? 100 : 500;
+    const resolvedUserLimit = user.storageLimit || defaultStorageLimit;
+
     return NextResponse.json({
       success: true,
       user: {
@@ -85,10 +89,10 @@ export async function GET(req: NextRequest) {
         phone: user.phone,
         role: user.role,
         memberRole: activeMembership?.role || "OWNER",
-        planSelected: company?.planSelected || user.planSelected,
+        planSelected: effectivePlan,
         paymentVerified: user.paymentVerified,
         storageUsed: storageStats?.storageUsedMB ?? user.storageUsed ?? 0,
-        storageLimit: storageStats?.storageLimitMB ?? user.storageLimit ?? 1024,
+        storageLimit: storageStats?.storageLimitMB ?? user.storageLimit ?? defaultStorageLimit,
         monthlyVisits: trafficStats?.monthlyVisits ?? company?.monthlyVisits ?? user.monthlyVisits ?? 0,
         trafficLimit: trafficStats?.trafficLimit ?? company?.trafficLimit ?? user.trafficLimit ?? 2000,
       },
@@ -104,7 +108,7 @@ export async function GET(req: NextRequest) {
             brandTone: company.brandTone,
             aiCreditsRemaining: company.aiCreditsRemaining,
             storageUsedMB: storageStats?.storageUsedMB ?? company.storageUsed,
-            storageLimitMB: storageStats?.storageLimitMB ?? company.storageLimit,
+            storageLimitMB: storageStats?.storageLimitMB ?? company.storageLimit ?? defaultStorageLimit,
             monthlyVisits: trafficStats?.monthlyVisits ?? company.monthlyVisits,
             trafficLimit: trafficStats?.trafficLimit ?? company.trafficLimit,
             paystackSubaccountCode: company.paystackSubaccountCode,
@@ -114,14 +118,14 @@ export async function GET(req: NextRequest) {
       platformFeePercent: await getPlatformFeePercent(),
       storage: storageStats || {
         storageUsedMB: user.storageUsed || 0,
-        storageLimitMB: user.storageLimit || 1024,
-        remainingStorageMB: (user.storageLimit || 1024) - (user.storageUsed || 0),
-        usedPercentage: Math.round(((user.storageUsed || 0) / (user.storageLimit || 1024)) * 100),
+        storageLimitMB: resolvedUserLimit,
+        remainingStorageMB: Math.max(0, resolvedUserLimit - (user.storageUsed || 0)),
+        usedPercentage: Math.round(((user.storageUsed || 0) / resolvedUserLimit) * 100),
         formatted: {
           used: `${user.storageUsed || 0} MB`,
-          limit: `${user.storageLimit || 1024} MB`,
-          remaining: `${(user.storageLimit || 1024) - (user.storageUsed || 0)} MB`,
-          percentage: `${Math.round(((user.storageUsed || 0) / (user.storageLimit || 1024)) * 100)}%`,
+          limit: `${resolvedUserLimit} MB`,
+          remaining: `${Math.max(0, resolvedUserLimit - (user.storageUsed || 0))} MB`,
+          percentage: `${Math.round(((user.storageUsed || 0) / resolvedUserLimit) * 100)}%`,
         },
       },
       siteSetting: siteSetting || {

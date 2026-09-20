@@ -31,10 +31,20 @@ function slugify(text: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, brandName, slug, industry, templateSlug, bankInfo, planSelected } = body;
+    const { email, brandName, slug, industry, templateSlug, bankInfo, planSelected, profileImage } = body;
 
-    const resolvedPlan = planSelected === "PROFESSIONAL" ? "PROFESSIONAL" : "STARTER";
-    const resolvedStorage = resolvedPlan === "PROFESSIONAL" ? 2000 : 500;
+    const resolvedPlan =
+      planSelected === "PROFESSIONAL"
+        ? "PROFESSIONAL"
+        : planSelected === "FREE_TRIAL"
+        ? "FREE_TRIAL"
+        : "STARTER";
+    const resolvedStorage =
+      resolvedPlan === "PROFESSIONAL"
+        ? 2000
+        : resolvedPlan === "FREE_TRIAL"
+        ? 100
+        : 500;
     const resolvedTraffic = resolvedPlan === "PROFESSIONAL" ? 15000 : 2000;
 
     if (!email || !brandName) {
@@ -158,6 +168,7 @@ export async function POST(req: NextRequest) {
         primaryColor: activeTemplate.theme.primary,
         accentColor: activeTemplate.theme.accent,
         backgroundColor: activeTemplate.theme.background,
+        ...(profileImage ? { tailorBioImage: profileImage } : {}),
       },
       create: {
         companyId: company.id,
@@ -166,6 +177,7 @@ export async function POST(req: NextRequest) {
         primaryColor: activeTemplate.theme.primary,
         accentColor: activeTemplate.theme.accent,
         backgroundColor: activeTemplate.theme.background,
+        tailorBioImage: profileImage || null,
       },
     });
 

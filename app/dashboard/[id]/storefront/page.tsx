@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 import { 
   Palette, 
   LayoutGrid, 
@@ -14,7 +15,6 @@ import {
   MessageCircle, 
   Building, 
   MapPin, 
-  CreditCard,
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
@@ -33,6 +33,7 @@ const PRESET_COLORS = [
 
 export default function StorefrontSettingsPage() {
   const { data: session } = useSession();
+  const params = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -58,14 +59,6 @@ export default function StorefrontSettingsPage() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiSuggestedBio, setAiSuggestedBio] = useState<string | null>(null);
 
-  // Bank & Subaccount
-  const [bankCode, setBankCode] = useState("058"); // GTBank default
-  const [accountNumber, setAccountNumber] = useState("");
-  const [bankSaving, setBankSaving] = useState(false);
-  const [bankSaved, setBankSaved] = useState(false);
-  const [subaccountCode, setSubaccountCode] = useState<string | null>(null);
-  const [platformFeePercent, setPlatformFeePercent] = useState<number>(5.0);
-
   const errorRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (errorMsg && errorRef.current) {
@@ -82,24 +75,12 @@ export default function StorefrontSettingsPage() {
         const s = res.data.siteSetting;
         const u = res.data.user;
 
-        if (typeof res.data.platformFeePercent === "number") {
-          setPlatformFeePercent(res.data.platformFeePercent);
-        }
-
         if (c) {
           setStoreSlug(c.slug || "");
           setCompanyName(c.name || u?.companyName || "");
           setBrandBio(c.brandBio || s?.tailorBioText || "");
           setBrandTone(c.brandTone || "LUXURIOUS_BESPOKE");
           setAiCredits(c.aiCreditsRemaining ?? 10);
-          if (c.paystackSubaccountCode) {
-            setSubaccountCode(c.paystackSubaccountCode);
-            setBankSaved(true);
-          }
-          if (c.bankInfo) {
-            if (c.bankInfo.settlement_bank) setBankCode(c.bankInfo.settlement_bank);
-            if (c.bankInfo.account_number) setAccountNumber(c.bankInfo.account_number);
-          }
         } else {
           setCompanyName(u?.companyName || "");
         }
@@ -180,40 +161,6 @@ export default function StorefrontSettingsPage() {
       setErrorMsg(err?.response?.data?.error || "AI generation failed. Please try again.");
     } finally {
       setAiGenerating(false);
-    }
-  };
-
-  const handleSaveBank = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!accountNumber || accountNumber.length !== 10) {
-      setErrorMsg("Please enter a valid 10-digit NUBAN account number.");
-      return;
-    }
-
-    setBankSaving(true);
-    setErrorMsg(null);
-    try {
-      const res = await api.post("/api/merchant/subaccount", {
-        settlement_bank: bankCode,
-        account_number: accountNumber,
-        business_name: companyName || "Merchant Store",
-      });
-
-      if (res?.data?.success) {
-        const newCode = res.data.subaccountCode || res.data.company?.paystackSubaccountCode;
-        if (newCode) setSubaccountCode(newCode);
-        if (typeof res.data.platformFeePercent === "number") {
-          setPlatformFeePercent(res.data.platformFeePercent);
-        }
-        setBankSaved(true);
-        setSuccessMsg(res.data.message || "Settlement bank details verified and connected to Paystack!");
-        setTimeout(() => setSuccessMsg(null), 4000);
-      }
-
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.error || "Failed to connect bank account.");
-    } finally {
-      setBankSaving(false);
     }
   };
 
@@ -478,7 +425,7 @@ export default function StorefrontSettingsPage() {
             {aiSuggestedBio && (
               <div className="p-3 rounded-lg bg-black/60 border border-amber-400/30 space-y-2">
                 <div className="text-[11px] font-semibold text-amber-300 uppercase">AI Suggested Bio:</div>
-                <p className="text-xs text-[#F5F0EB]/90 italic leading-relaxed">"{aiSuggestedBio}"</p>
+                <p className="text-xs text-[#F5F0EB]/90 italic leading-relaxed">&ldquo;{aiSuggestedBio}&rdquo;</p>
                 <button
                   type="button"
                   onClick={() => {
@@ -581,87 +528,23 @@ export default function StorefrontSettingsPage() {
         </div>
       </form>
 
-      {/* FINTECH: PAYSTACK SPLIT SETTLEMENT ACCOUNT */}
-      <div className="bg-white/5 border border-[#C9A96E]/20 rounded-2xl p-6 space-y-4">
-        <div className="flex items-center gap-2 text-[#C9A96E]">
-          <CreditCard className="w-4 h-4" />
+      {/* FINTECH: DIRECT PAYOUT & SETTLEMENT NOTICE */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
           <h2 className="text-sm font-bold uppercase tracking-wider text-[#F5F0EB]">
-            Direct Payout & Settlement Bank Account (Paystack Split)
+            Direct Payout & Settlement Bank Account
           </h2>
+          <p className="text-xs text-[#E0D5C9]/70 mt-1 leading-relaxed">
+            Bank account number details and automated Paystack split settlement settings have been moved to the Fintech & Payments Hub.
+          </p>
         </div>
-        <p className="text-xs text-[#E0D5C9]/70 leading-relaxed">
-          When buyers pay on your store via catalog orders or custom negotiated WhatsApp invoices, 
-          funds are settled directly into this Nigerian bank account ({Number((100 - platformFeePercent).toFixed(2))}% to you, {platformFeePercent}% platform fee).
-        </p>
-
-
-        {subaccountCode && (
-          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
-            <span>Paystack Subaccount Active: <code className="font-mono font-bold">{subaccountCode}</code></span>
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-        )}
-
-        <form onSubmit={handleSaveBank} className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#E0D5C9] mb-1.5">
-              Settlement Bank
-            </label>
-            <select
-              value={bankCode}
-              onChange={(e) => setBankCode(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-[#F5F0EB] focus:border-[#C9A96E] focus:outline-none"
-            >
-              <option value="058">Guaranty Trust Bank (GTBank)</option>
-              <option value="011">First Bank of Nigeria</option>
-              <option value="033">United Bank for Africa (UBA)</option>
-              <option value="057">Zenith Bank</option>
-              <option value="232">Sterling Bank</option>
-              <option value="035">Wema Bank (ALAT)</option>
-              <option value="044">Access Bank</option>
-              <option value="999992">OPay Digital Services</option>
-              <option value="999991">PalmPay</option>
-              <option value="50515">Moniepoint Microfinance Bank</option>
-              <option value="50211">Kuda Bank</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#E0D5C9] mb-1.5">
-              10-Digit Account Number (NUBAN)
-            </label>
-            <input
-              type="text"
-              maxLength={10}
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-              placeholder="e.g. 0123456789"
-              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-[#F5F0EB] focus:border-[#C9A96E] focus:outline-none"
-              required
-            />
-          </div>
-
-          {/* Contextual Error Alert right above Subaccount Connect Button */}
-          {errorMsg && (
-            <div
-              ref={errorRef}
-              className="sm:col-span-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2 animate-fadeIn"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span className="leading-relaxed">{errorMsg}</span>
-            </div>
-          )}
-
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={bankSaving}
-              className="w-full py-2.5 px-4 rounded-xl bg-white/10 border border-white/20 text-[#F5F0EB] hover:bg-[#C9A96E] hover:text-black font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50"
-            >
-              {bankSaving ? "Verifying..." : "Connect Payout Account"}
-            </button>
-          </div>
-        </form>
+        <Link
+          href={`/dashboard/${params?.id || ""}/payment`}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C9A96E]/20 hover:bg-[#C9A96E]/30 text-[#C9A96E] border border-[#C9A96E]/30 text-xs font-semibold uppercase tracking-wider transition-all shrink-0 text-center"
+        >
+          <span>Manage Payout Account</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </div>
   );

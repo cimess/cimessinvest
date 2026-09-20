@@ -115,7 +115,7 @@ export default function TailorStorefront({ slots }: TailorStorefrontProps) {
           {/* Brand Logo */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:static md:justify-start md:flex-initial">
             <div className="pointer-events-auto">
-              <BrandLogo name={brandName} />
+              <BrandLogo name={brandName} logoImage={slots?.bioImage || "/bg-img/native10.jpg"} />
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function TailorStorefront({ slots }: TailorStorefrontProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 pb-16 border-b border-white/10">
             {/* Column 1: Brand & Atelier Vision */}
             <div className="lg:col-span-5 space-y-6">
-              <BrandLogo name={brandName} className="text-[#F5F0EB]" />
+              <BrandLogo name={brandName} logoImage={slots?.bioImage || "/bg-img/native10.jpg"} className="text-[#F5F0EB]" />
               <p className="text-xs sm:text-sm text-[#E0D5C9] font-light leading-relaxed max-w-sm">
                 Crafting architectural West African native wear and haute couture garments for royal ceremonial occasions, galas, and milestone moments.
               </p>

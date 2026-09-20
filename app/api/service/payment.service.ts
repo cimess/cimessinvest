@@ -4,10 +4,12 @@ import { validatePlanDowngradeEligibility } from "@/app/api/workers/storageWorke
 import { triggerPaymentReceiptEmail } from "@/app/api/workers/emailWorker";
 import { PaymentGatewayError, AppValidationError } from "@/app/lib/utils/errorHandler";
 
-export type PlanType = "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
+export type PaidPlanType = "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
+export type PlanType = PaidPlanType | "FREE_TRIAL";
 
 // Fixed Storage Limits by Plan (in MB)
 export const PLAN_STORAGE_LIMITS: Record<PlanType, number> = {
+  FREE_TRIAL: 100,
   STARTER: 500,
   PROFESSIONAL: 2000,
   ENTERPRISE: 10000, // Default Enterprise limit fallback if customStorageMB is not provided
@@ -15,14 +17,12 @@ export const PLAN_STORAGE_LIMITS: Record<PlanType, number> = {
 
 // Plan Pricing in Kobo (1 NGN = 100 Kobo)
 export const PLAN_PRICES_KOBO: Record<PlanType, number> = {
+  FREE_TRIAL: 0,
   STARTER: 200000,       // ₦2,000
   PROFESSIONAL: 1000000, // ₦10,000
   ENTERPRISE: 5000000,   // Default ₦50,000 fallback
 };
 
-/**
- * 1. Initialize a Paystack Transaction with Custom Enterprise Support & Downgrade Prevention
- */
 /**
  * 1. Initialize a Paystack Transaction with Custom Enterprise Support & Downgrade Prevention
  */
@@ -36,7 +36,7 @@ export async function initializePaystackTransaction({
 }: {
   userId: string;
   email: string;
-  planSelected: PlanType;
+  planSelected: PaidPlanType;
   customAmountKobo?: number;
   customStorageMB?: number;
   callbackUrl?: string;

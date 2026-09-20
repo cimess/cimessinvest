@@ -12,7 +12,9 @@ import {
   Sparkles, 
   RefreshCw,
   ExternalLink,
-  Tag
+  Tag,
+  Clock,
+  Coins
 } from "lucide-react";
 import axios from "axios";
 import { api } from "@/app/lib/utils/apiClient";
@@ -141,6 +143,100 @@ export default function NotificationsDashboardPage() {
   );
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    process.env.NEXT_PUBLIC_APP_ENV === "production";
+
+  if (isProduction) {
+    return (
+      <div className="p-6 sm:p-10 space-y-8 bg-[#1A1A1A] min-h-screen text-[#F5F0EB] font-body">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#C9A96E]/20 pb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-[0.25em] text-[#C9A96E] font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#C9A96E]" />
+                Atelier Communications
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-[#C9A96E]/15 border border-[#C9A96E]/30 text-[#C9A96E] text-[10px] font-bold uppercase tracking-wider">
+                Coming Soon
+              </span>
+            </div>
+            <h1 className="text-3xl font-heading text-[#F5F0EB] mt-1 font-bold">
+              Notifications & Live Broadcasts
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-[#E0D5C9]/70 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#C9A96E] animate-pulse" />
+              <span>Production Rollout In Progress</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Coming Soon Hero Card */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.04] to-black/60 border border-[#C9A96E]/30 rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-[#C9A96E]/10 border border-[#C9A96E]/30 flex items-center justify-center mx-auto text-[#C9A96E] shadow-xl shadow-[#C9A96E]/5">
+            <Bell className="w-8 h-8" strokeWidth={1.5} />
+          </div>
+
+          <div className="max-w-xl mx-auto space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-heading font-bold text-[#F5F0EB]">
+              Real-Time Atelier Activity Stream
+            </h2>
+            <p className="text-sm text-[#E0D5C9]/80 font-light leading-relaxed">
+              We are finalizing our high-performance webhook and push dispatch engine to keep your atelier instantly synchronized across WhatsApp fitting leads, Paystack split settlement sweeps, and bespoke order events.
+            </p>
+          </div>
+
+          {/* Planned Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 max-w-4xl mx-auto text-left">
+            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+              <div className="flex items-center gap-2 text-[#C9A96E]">
+                <MessageSquare className="w-4 h-4" />
+                <h3 className="font-heading text-sm font-bold text-[#F5F0EB]">
+                  WhatsApp Fitting Alerts
+                </h3>
+              </div>
+              <p className="text-xs text-[#E0D5C9]/70 leading-relaxed font-light">
+                Instant push notices when high-value clients request custom measurement sessions or fabric consultations.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+              <div className="flex items-center gap-2 text-[#C9A96E]">
+                <Coins className="w-4 h-4" />
+                <h3 className="font-heading text-sm font-bold text-[#F5F0EB]">
+                  24h Settlement Sweeps
+                </h3>
+              </div>
+              <p className="text-xs text-[#E0D5C9]/70 leading-relaxed font-light">
+                Automated reconciliation alerts confirming when pending customer sales mature and credit your bank account.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+              <div className="flex items-center gap-2 text-[#C9A96E]">
+                <ShieldCheck className="w-4 h-4" />
+                <h3 className="font-heading text-sm font-bold text-[#F5F0EB]">
+                  Escrow & Order Webhooks
+                </h3>
+              </div>
+              <p className="text-xs text-[#E0D5C9]/70 leading-relaxed font-light">
+                Live updates for checkout completions, fast dispute resolutions, and catalog stock alerts.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 flex items-center justify-center gap-2 text-xs text-[#A0988A]">
+            <Clock className="w-4 h-4 text-[#C9A96E]" />
+            <span>Scheduled for production rollout in the upcoming platform update. (Active in Dev mode)</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 sm:p-10 space-y-8 bg-[#1A1A1A] min-h-screen text-[#F5F0EB] font-body">

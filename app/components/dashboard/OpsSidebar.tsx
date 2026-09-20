@@ -29,6 +29,8 @@ export function OpsSidebar({
   const { data: session } = useSession();
   const companyName = (session?.user as any)?.companyName?.trim() || "cimessinvest";
 
+  const userImage = (session?.user as any)?.image;
+
   const role = (session?.user as any)?.role || "ADMIN";
   const userRole = role.toLowerCase();
   const items = modulesForRole(userRole);
@@ -61,6 +63,18 @@ export function OpsSidebar({
               onCloseMobile?.();
             }}
           >
+            {/* Merchant Avatar Thumbnail */}
+            <div className="w-8 h-8 rounded-full border border-[#C9A96E]/60 overflow-hidden bg-black/50 shrink-0 p-0.5 shadow-sm flex items-center justify-center">
+              <img
+                src={userImage || "/bg-img/native10.jpg"}
+                alt={companyName}
+                className="w-full h-full object-cover rounded-full"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+                }}
+              />
+            </div>
+
             {!collapsed && (
               <div className="min-w-0">
                 <p className="font-brand text-xs tracking-[0.25em] text-[#C9A96E] font-bold uppercase truncate">
@@ -103,6 +117,11 @@ export function OpsSidebar({
                 {mods.map((m) => {
                   const href = moduleHref(userRole, m.path);
                   const active = isActive(href);
+                  const isProduction =
+                    process.env.NODE_ENV === "production" ||
+                    process.env.NEXT_PUBLIC_APP_ENV === "production";
+                  const isSoon = isProduction && m.key === "notifications";
+
                   return (
                     <li key={m.key}>
                       <button
@@ -121,6 +140,11 @@ export function OpsSidebar({
                           {groupIcon[m.group]}
                         </span>
                         {!collapsed && <span className="tracking-wide truncate">{m.label}</span>}
+                        {!collapsed && isSoon && (
+                          <span className="ml-auto text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-[#C9A96E]/20 text-[#C9A96E] border border-[#C9A96E]/30">
+                            Soon
+                          </span>
+                        )}
                       </button>
                     </li>
                   );

@@ -37,6 +37,7 @@ export default function HeroSection({ copy, media, context }: HeroSectionProps) 
   const containerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const headline = copy?.headline || context?.brandName || "TI STICHES BESPOKE";
   const subheadline = copy?.subheadline || "Heritage Native Wear & Bespoke Tailoring";
@@ -83,6 +84,14 @@ export default function HeroSection({ copy, media, context }: HeroSectionProps) 
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [mediaSrc]);
+
   return (
     <section
       ref={containerRef}
@@ -90,6 +99,7 @@ export default function HeroSection({ copy, media, context }: HeroSectionProps) 
     >
       <div ref={mediaRef} className="absolute inset-0 w-full h-full">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted

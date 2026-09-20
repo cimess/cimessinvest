@@ -19,6 +19,7 @@ export default function HeroSection({ data, whatsappNumber, ctaLabel }: HeroSect
   const containerRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const whatsappUrl = buildWhatsAppUrl(
     whatsappNumber,
@@ -55,6 +56,14 @@ export default function HeroSection({ data, whatsappNumber, ctaLabel }: HeroSect
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [mediaSrc]);
+
   return (
     <section
       ref={containerRef}
@@ -62,6 +71,7 @@ export default function HeroSection({ data, whatsappNumber, ctaLabel }: HeroSect
     >
       <div ref={mediaRef} className="absolute inset-0 w-full h-full">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted

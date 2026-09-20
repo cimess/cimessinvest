@@ -228,23 +228,14 @@ export default function CheckoutClient({ data }: { data: CheckoutData }) {
               className="w-12 h-12 rounded-full overflow-hidden border-2 bg-[#F5F2EB] shrink-0"
               style={{ borderColor: data.store.themeColor }}
             >
-              {data.store.avatar ? (
-                <img
-                  src={data.store.avatar}
-                  alt={data.store.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
-                  }}
-                />
-              ) : (
-                <div 
-                  className="w-full h-full flex items-center justify-center text-sm font-bold text-white uppercase"
-                  style={{ backgroundColor: data.store.themeColor }}
-                >
-                  {data.store.name.slice(0, 2)}
-                </div>
-              )}
+              <img
+                src={data.store.avatar || "/bg-img/native10.jpg"}
+                alt={data.store.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+                }}
+              />
             </div>
             <div>
               <div className="flex items-center gap-1">
@@ -731,7 +722,7 @@ export default function CheckoutClient({ data }: { data: CheckoutData }) {
                 Thank You for Your Order!
               </h2>
               <p className="text-xs text-[#666] mt-1">
-                Your payment of <strong>₦${currentPayablePrice.toLocaleString()}</strong> has been safely received.
+                Your payment of <strong>₦{currentPayablePrice.toLocaleString()}</strong> has been safely received.
               </p>
             </div>
 

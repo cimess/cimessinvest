@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
-import { initializePaystackTransaction, PlanType } from "@/app/api/service/payment.service";
+import { initializePaystackTransaction, PaidPlanType } from "@/app/api/service/payment.service";
 import { prisma } from "@/app/lib/prisma/prisma";
 
 export async function POST(req: Request) {
@@ -26,7 +26,10 @@ export async function POST(req: Request) {
     }
 
     if (!userId || !userEmail) {
-      return NextResponse.json({ message: "Unauthorized user session" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Authentication required to initialize subscription." },
+        { status: 401 }
+      );
     }
 
     if (userRole === "MANAGER") {
@@ -36,9 +39,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const validPlans: PlanType[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
-    const plan: PlanType = validPlans.includes((planSelected || "").toUpperCase())
-      ? (planSelected.toUpperCase() as PlanType)
+    const validPlans: PaidPlanType[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
+    const plan: PaidPlanType = validPlans.includes((planSelected || "").toUpperCase() as PaidPlanType)
+      ? ((planSelected || "").toUpperCase() as PaidPlanType)
       : "STARTER";
 
     // If request is explicitly for trial activation (e.g., onboarding 14-day trial)

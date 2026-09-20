@@ -182,7 +182,7 @@ model Company {
   trafficNotified100 Boolean  @default(false)
   lastTrafficReset   DateTime @default(now())
 
-  storageLimit Int @default(1024) // in MB
+  storageLimit Int @default(100) // in MB (Free Trial 100MB)
   storageUsed  Int @default(0) // in MB
 
   // Fintech / Paystack Integration & Database Balances (in Kobo)

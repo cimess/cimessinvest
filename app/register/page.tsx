@@ -30,6 +30,8 @@ import {
   AlertCircle,
   Loader2,
   Search,
+  Upload,
+  X,
 } from "lucide-react";
 import { api } from "../lib/utils/apiClient";
 import { isReservedSubdomain } from "@/app/lib/constants/subdomains";
@@ -61,6 +63,7 @@ export default function RegisterPage() {
     brandName: "",
     slug: "",
     industry: "FASHION_ATELIER",
+    profileImage: "",
     email: "",
     phone: "",
     password: "",
@@ -113,6 +116,54 @@ export default function RegisterPage() {
   const [navigating, setNavigating] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"STARTER" | "PROFESSIONAL">("STARTER");
   const [payingPlan, setPayingPlan] = useState(false);
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Profile Image upload handler
+  const handleProfileImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Profile image must be less than 5MB.");
+      return;
+    }
+
+    setUploadingProfileImage(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/registration/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Failed to upload profile image.");
+      }
+
+      setAccountData((prev) => ({ ...prev, profileImage: data.url }));
+    } catch (err: unknown) {
+      const errObj = err as { message?: string };
+      setError(errObj?.message || "Failed to upload profile image. Please try again.");
+    } finally {
+      setUploadingProfileImage(false);
+      if (profileFileInputRef.current) {
+        profileFileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleRemoveProfileImage = () => {
+    setAccountData((prev) => ({ ...prev, profileImage: "" }));
+    if (profileFileInputRef.current) {
+      profileFileInputRef.current.value = "";
+    }
+  };
 
   // Real-time store availability queried from SuperAdmin database
   const [storeAvailability, setStoreAvailability] = useState<
@@ -328,6 +379,7 @@ export default function RegisterPage() {
         phone: accountData.phone,
         password: accountData.password,
         industry: accountData.industry,
+        profileImage: accountData.profileImage || null,
       });
 
       if (res.data?.requiresVerification) {
@@ -464,6 +516,7 @@ export default function RegisterPage() {
         industry: accountData.industry,
         templateSlug: selectedTemplateSlug,
         planSelected: selectedPlan,
+        profileImage: accountData.profileImage || null,
         bankInfo:
           !skipPayout && payoutData.accountNumber.length === 10
             ? {
@@ -836,6 +889,91 @@ export default function RegisterPage() {
                         ⚠️ &quot;{accountData.brandName || accountData.slug}&quot; is reserved by the platform.
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* Brand Profile Image / Logo Upload */}
+                <div className="p-4 rounded-xl border border-zinc-800 bg-[#141417] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-wider text-zinc-300 block">
+                        Brand Profile Image / Logo
+                      </label>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Featured at the top of your merchant dashboard and in your store header.
+                      </p>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold text-zinc-500 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/60">
+                      Optional
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    {/* Avatar Preview */}
+                    <div className="relative group shrink-0">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[var(--color-accent,#C9A96E)]/60 overflow-hidden bg-black/60 shadow-md flex items-center justify-center">
+                        <img
+                          src={accountData.profileImage || "/bg-img/native10.jpg"}
+                          alt="Brand Logo"
+                          className="w-full h-full object-cover rounded-full"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = "/bg-img/native10.jpg";
+                          }}
+                        />
+                      </div>
+                      {accountData.profileImage && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveProfileImage}
+                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                          title="Remove custom image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Upload Buttons & Status */}
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={profileFileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        onChange={handleProfileImageChange}
+                        className="hidden"
+                        id="profile-image-upload"
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label
+                          htmlFor="profile-image-upload"
+                          className={`px-3.5 py-2 text-xs font-medium rounded-lg border transition-all cursor-pointer inline-flex items-center gap-2 ${
+                            uploadingProfileImage
+                              ? "bg-zinc-800/50 border-zinc-700 text-zinc-400 cursor-not-allowed pointer-events-none"
+                              : "bg-[var(--color-accent,#C9A96E)]/10 border-[var(--color-accent,#C9A96E)]/40 text-[var(--color-accent,#C9A96E)] hover:bg-[var(--color-accent,#C9A96E)]/20 hover:border-[var(--color-accent,#C9A96E)]"
+                          }`}
+                        >
+                          {uploadingProfileImage ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Uploading image...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{accountData.profileImage ? "Change Image" : "Upload Profile Image"}</span>
+                            </>
+                          )}
+                        </label>
+                        {accountData.profileImage && (
+                          <span className="text-[11px] text-emerald-400 font-medium inline-flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Custom image attached
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-zinc-500">
+                        PNG, JPG, or WEBP up to 5MB. Defaults to classic template avatar if skipped.
+                      </p>
+                    </div>
                   </div>
                 </div>
 

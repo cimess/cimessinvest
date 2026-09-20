@@ -24,10 +24,38 @@ import {
   ArrowRight,
   ShieldAlert,
   Clock,
-  LifeBuoy
+  LifeBuoy,
+  Edit3,
+  Building2
 } from "lucide-react";
 import { api } from "@/app/lib/utils/apiClient";
 import Link from "next/link";
+
+export interface BankOption {
+  code: string;
+  name: string;
+}
+
+const POPULAR_NIGERIAN_BANKS: BankOption[] = [
+  { code: "058", name: "Guaranty Trust Bank (GTBank)" },
+  { code: "057", name: "Zenith Bank" },
+  { code: "044", name: "Access Bank" },
+  { code: "011", name: "First Bank of Nigeria" },
+  { code: "033", name: "United Bank for Africa (UBA)" },
+  { code: "50211", name: "Kuda Microfinance Bank" },
+  { code: "50515", name: "Moniepoint MFB" },
+  { code: "999992", name: "OPay / Paycom" },
+  { code: "999991", name: "PalmPay" },
+  { code: "232", name: "Sterling Bank" },
+  { code: "070", name: "Fidelity Bank" },
+  { code: "221", name: "Stanbic IBTC Bank" },
+  { code: "035", name: "Wema Bank / ALAT" },
+  { code: "214", name: "First City Monument Bank (FCMB)" },
+  { code: "076", name: "Polaris Bank" },
+  { code: "032", name: "Union Bank of Nigeria" },
+  { code: "301", name: "Jaiz Bank" },
+  { code: "302", name: "Taj Bank" },
+];
 
 export interface MergedTransaction {
   id: string;
@@ -63,7 +91,7 @@ export interface UserSubscriptionDetails {
   email?: string;
   role?: "ADMIN" | "USER" | "MANAGER";
   paymentVerified?: boolean;
-  planSelected?: "STARTER" | "PROFESSIONAL" | "ENTERPRISE";
+  planSelected?: "STARTER" | "PROFESSIONAL" | "ENTERPRISE" | "FREE_TRIAL";
   subscription_status?: string;
   storageUsed?: number;
   storageLimit?: number;
@@ -87,7 +115,7 @@ export default function PaymentSubscriptionPage() {
   const [transactions, setTransactions] = useState<MergedTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [initiating, setInitiating] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"STARTER" | "PROFESSIONAL" | "ENTERPRISE">("PROFESSIONAL");
+  const [selectedPlan, setSelectedPlan] = useState<"STARTER" | "PROFESSIONAL" | "ENTERPRISE" | "FREE_TRIAL">("STARTER");
   const [customAmountNGN, setCustomAmountNGN] = useState<number>(50000);
   const [customStorageMB, setCustomStorageMB] = useState<number>(10000);
   const [error, setError] = useState<string | null>(null);
@@ -134,6 +162,33 @@ export default function PaymentSubscriptionPage() {
     isLive: boolean;
   } | null>(null);
 
+  // Bank Account & Paystack Split Settlement State
+  const [bankCode, setBankCode] = useState("058");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankBusinessName, setBankBusinessName] = useState("");
+  const [bankSaving, setBankSaving] = useState(false);
+  const [bankSuccessMsg, setBankSuccessMsg] = useState<string | null>(null);
+  const [bankErrorMsg, setBankErrorMsg] = useState<string | null>(null);
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const [availableBanks, setAvailableBanks] = useState<BankOption[]>(POPULAR_NIGERIAN_BANKS);
+
+  // Fetch updated bank directory if available
+  useEffect(() => {
+    api.get<{ success: boolean; banks: { code: string; name: string }[] }>("/api/bank/list")
+      .then((res) => {
+        if (res.data?.banks && Array.isArray(res.data.banks) && res.data.banks.length > 0) {
+          const formatted = res.data.banks.map((b) => ({
+            code: String(b.code),
+            name: b.name,
+          }));
+          setAvailableBanks(formatted);
+        }
+      })
+      .catch(() => {
+        // Fallback already pre-seeded with popular banks
+      });
+  }, []);
+
   const fetchSubscriptionData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -175,7 +230,22 @@ export default function PaymentSubscriptionPage() {
         setBalanceData(balanceRes.data.balances);
       }
       if (balanceRes?.data?.subaccount) {
-        setSubaccountData(balanceRes.data.subaccount);
+        const sub = balanceRes.data.subaccount;
+        setSubaccountData(sub);
+        if (sub.accountNumber) {
+          setAccountNumber(sub.accountNumber);
+        }
+        if (sub.businessName) {
+          setBankBusinessName(sub.businessName);
+        }
+        if (sub.bankName) {
+          const matched = POPULAR_NIGERIAN_BANKS.find(
+            (b) => b.name.toLowerCase() === sub.bankName?.toLowerCase() || b.code === sub.bankName
+          );
+          if (matched) {
+            setBankCode(matched.code);
+          }
+        }
       }
     } catch (err: unknown) {
       console.warn("Error fetching payment settings:", err);
@@ -183,6 +253,45 @@ export default function PaymentSubscriptionPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleSaveBank = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBankSaving(true);
+    setBankSuccessMsg(null);
+    setBankErrorMsg(null);
+
+    const cleanAccount = accountNumber.trim();
+    if (!cleanAccount || cleanAccount.length !== 10 || !/^\d{10}$/.test(cleanAccount)) {
+      setBankErrorMsg("Please enter a valid 10-digit Nigerian NUBAN account number.");
+      setBankSaving(false);
+      return;
+    }
+
+    try {
+      const res = await api.post<{
+        success: boolean;
+        message: string;
+        subaccountCode: string;
+        platformFeePercent: number;
+      }>("/api/merchant/subaccount", {
+        settlement_bank: bankCode,
+        account_number: cleanAccount,
+        business_name: bankBusinessName.trim() || userInfo?.companyName || "Merchant Store",
+      });
+
+      if (res.data?.success) {
+        setBankSuccessMsg(res.data.message || "Settlement bank account configured successfully.");
+        setIsEditingBank(false);
+        await fetchSubscriptionData();
+      } else {
+        setBankErrorMsg((res.data as any)?.error || "Failed to configure settlement account.");
+      }
+    } catch (err: any) {
+      setBankErrorMsg(err?.response?.data?.error || err.message || "Failed to configure settlement account.");
+    } finally {
+      setBankSaving(false);
+    }
+  };
 
   const handleLoadMoreOrders = async () => {
     if (!ordersNextCursor || loadingMoreOrders) return;
@@ -468,46 +577,175 @@ export default function PaymentSubscriptionPage() {
           </div>
         </div>
 
-        {/* Subaccount Status Banner */}
-        <div className="bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-white uppercase tracking-wider text-[10px]">
-                Paystack Split Account:
-              </span>
-              {subaccountData?.isActive ? (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold text-[10px] flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span>Active Payout Gateway</span>
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold text-[10px]">
-                  Pending Setup
-                </span>
-              )}
+        {/* Bank Account & Settlement Hub */}
+        <div className="bg-black/40 border border-[#C9A96E]/20 rounded-2xl p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-[#C9A96E]/10 border border-[#C9A96E]/30 text-[#C9A96E]">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-heading text-sm font-bold text-[#F5F0EB] uppercase tracking-wider">
+                    Bank Account & Settlement Hub
+                  </h3>
+                  {subaccountData?.isActive && subaccountData?.accountNumber ? (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold text-[10px] flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Active Split Gateway</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold text-[10px] flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>Setup Required</span>
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#A0988A]">
+                  Direct NUBAN settlement via Paystack Split Payments. Customer order funds automatically route to your bank account.
+                </p>
+              </div>
             </div>
-            <div className="text-[#A0988A] flex flex-wrap gap-x-4 gap-y-1 pt-1 font-mono text-[11px]">
-              {subaccountData?.bankName && (
-                <span>Bank: <strong className="text-white">{subaccountData.bankName}</strong></span>
-              )}
-              {subaccountData?.accountNumber && (
-                <span>Account: <strong className="text-white">{subaccountData.accountNumber}</strong></span>
-              )}
-              {subaccountData?.code && (
-                <span>Subaccount: <strong className="text-[#C9A96E]">{subaccountData.code}</strong></span>
-              )}
-              <span>
-                Split: <strong className="text-white">{Number((100 - (subaccountData?.percentageCharge || 5)).toFixed(2))}%</strong> to you ({subaccountData?.percentageCharge || 5}% platform fee)
-              </span>
-            </div>
+
+            {subaccountData?.accountNumber && !isEditingBank && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditingBank(true);
+                  setBankSuccessMsg(null);
+                  setBankErrorMsg(null);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white transition-colors shrink-0 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-[#C9A96E]" />
+                <span>Update Bank</span>
+              </button>
+            )}
           </div>
 
-          <Link
-            href={`/dashboard/${params?.id || ""}/storefront`}
-            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-white transition-colors shrink-0 text-center"
-          >
-            Update Bank Account
-          </Link>
+          {bankSuccessMsg && (
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{bankSuccessMsg}</span>
+            </div>
+          )}
+
+          {bankErrorMsg && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{bankErrorMsg}</span>
+            </div>
+          )}
+
+          {/* Configured Summary View */}
+          {subaccountData?.accountNumber && !isEditingBank ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Settlement Bank</span>
+                <span className="font-semibold text-white text-sm block truncate">{subaccountData.bankName || "Commercial Bank"}</span>
+              </div>
+
+              <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">NUBAN Account Number</span>
+                <span className="font-mono font-bold text-[#F5F0EB] text-sm tracking-widest block">{subaccountData.accountNumber}</span>
+              </div>
+
+              <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Account / Business Name</span>
+                <span className="font-semibold text-white text-sm block truncate">{subaccountData.businessName || userInfo?.companyName || "Store Owner"}</span>
+              </div>
+
+              <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Split Revenue Ratio</span>
+                <span className="font-semibold text-[#C9A96E] text-sm block">
+                  {Number((100 - (subaccountData.percentageCharge || 5)).toFixed(2))}% You / {subaccountData.percentageCharge || 5}% Fee
+                </span>
+                {subaccountData.code && (
+                  <span className="text-[10px] text-[#A0988A] font-mono block">Subaccount: {subaccountData.code}</span>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Interactive Bank Form */
+            <form onSubmit={handleSaveBank} className="space-y-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#E0D5C9]">
+                    Select Settlement Bank <span className="text-rose-400">*</span>
+                  </label>
+                  <select
+                    value={bankCode}
+                    onChange={(e) => setBankCode(e.target.value)}
+                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A96E] transition-colors"
+                  >
+                    {availableBanks.map((b) => (
+                      <option key={b.code} value={b.code}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#E0D5C9]">
+                    10-Digit Account Number (NUBAN) <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    inputMode="numeric"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
+                    placeholder="0123456789"
+                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-mono placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors tracking-wider"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#E0D5C9]">
+                    Registered Business / Account Name
+                  </label>
+                  <input
+                    type="text"
+                    value={bankBusinessName}
+                    onChange={(e) => setBankBusinessName(e.target.value)}
+                    placeholder={userInfo?.companyName || "Your Atelier or Legal Name"}
+                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <p className="text-[11px] text-[#A0988A]">
+                  Connected for Paystack Split Payments. Settlement sweeps automatically reconcile and credit your account.
+                </p>
+
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  {subaccountData?.accountNumber && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingBank(false);
+                        setBankErrorMsg(null);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={bankSaving || !accountNumber || accountNumber.length !== 10}
+                    className="px-5 py-2 rounded-xl bg-[#C9A96E] hover:bg-[#B8985D] text-[#121212] text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-lg shadow-[#C9A96E]/10 cursor-pointer"
+                  >
+                    {bankSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>{bankSaving ? "Verifying & Saving..." : "Save Settlement Account"}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
         </div>
       </div>
 
@@ -821,7 +1059,7 @@ export default function PaymentSubscriptionPage() {
                 </span>
               </div>
               <p className="text-xs text-[#E0D5C9]/70">
-                14-day trial & standard social commerce features included.
+                14-day trial with 100 MB media storage & standard social commerce features included.
               </p>
             </div>
 
@@ -835,7 +1073,7 @@ export default function PaymentSubscriptionPage() {
                   {userInfo?.storageUsed || 0} MB
                 </span>
                 <span className="text-xs text-[#E0D5C9]/60">
-                  / {userInfo?.storageLimit || 1024} MB Limit
+                  / {userInfo?.storageLimit || (userInfo?.planSelected === "FREE_TRIAL" ? 100 : 500)} MB Limit
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-black/50 overflow-hidden">
@@ -844,7 +1082,11 @@ export default function PaymentSubscriptionPage() {
                   style={{
                     width: `${Math.min(
                       100,
-                      Math.round(((userInfo?.storageUsed || 0) / (userInfo?.storageLimit || 1024)) * 100)
+                      Math.round(
+                        ((userInfo?.storageUsed || 0) /
+                          (userInfo?.storageLimit || (userInfo?.planSelected === "FREE_TRIAL" ? 100 : 500))) *
+                          100
+                      )
                     )}%`,
                   }}
                 />
@@ -913,7 +1155,7 @@ export default function PaymentSubscriptionPage() {
               disabled={initiating}
               className="w-full lg:w-auto px-8 py-4 bg-[#C9A96E] text-[#1A1A1A] text-xs font-bold uppercase tracking-[0.25em] hover:bg-[#F5F0EB] transition-colors disabled:opacity-50 cursor-pointer rounded-xl flex items-center justify-center gap-2"
             >
-              {initiating ? "Redirecting to Paystack..." : `Proceed with ${selectedPlan} Plan (₦${selectedPlan === "STARTER" ? "2,000" : "10,000"})`}
+              {initiating ? "Redirecting to Paystack..." : `Proceed with ${selectedPlan==="FREE_TRIAL" ? "STARTER" : "PROFESSIONAL"} Plan (₦${selectedPlan === "FREE_TRIAL" ? "2,000" : selectedPlan=== "PROFESSIONAL" ? "10,000" : "2,000"})`}
             </button>
           </div>
 

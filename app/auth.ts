@@ -35,6 +35,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     slug: true,
                     industry: true,
                     status: true,
+                    siteSetting: {
+                      select: {
+                        tailorBioImage: true,
+                      },
+                    },
                   },
                 },
               },
@@ -71,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           industry: activeCompany?.industry || undefined,
           memberRole: activeMembership?.role || undefined,
           platformRole: user.platformRole || null,
+          image: activeCompany?.siteSetting?.tailorBioImage ?? undefined,
         };
       },
     }),
@@ -100,6 +106,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.industry = (user as any).industry;
         token.memberRole = (user as any).memberRole;
         token.platformRole = (user as any).platformRole;
+        token.image = (user as any).image || null;
       }
 
       // Dynamic company context switch via useSession().update()
@@ -112,6 +119,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (session.companyName) token.companyName = session.companyName;
         if (session.industry) token.industry = session.industry;
         if (session.memberRole) token.memberRole = session.memberRole;
+        if (session.image !== undefined) token.image = session.image;
       }
 
       // Check database to ensure user was not deleted
@@ -152,6 +160,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.industry = token.industry as string;
         session.user.memberRole = token.memberRole as string;
         session.user.platformRole = (token.platformRole as any) || null;
+        session.user.image = (token.image as string) || null;
       }
       return session;
     },
