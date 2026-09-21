@@ -141,6 +141,9 @@ export default function PaymentSubscriptionPage() {
   } | null>(null);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
+
+  
+
   // Real-Time Paystack Subaccount & Database Ledger Balances
   const [balanceData, setBalanceData] = useState<{
     todaySalesNaira: number;
@@ -166,11 +169,15 @@ export default function PaymentSubscriptionPage() {
   const [bankCode, setBankCode] = useState("058");
   const [accountNumber, setAccountNumber] = useState("");
   const [bankBusinessName, setBankBusinessName] = useState("");
+  const [bankName, setBankName] = useState("");
   const [bankSaving, setBankSaving] = useState(false);
   const [bankSuccessMsg, setBankSuccessMsg] = useState<string | null>(null);
   const [bankErrorMsg, setBankErrorMsg] = useState<string | null>(null);
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [availableBanks, setAvailableBanks] = useState<BankOption[]>(POPULAR_NIGERIAN_BANKS);
+    const [resolvedAccountName, setResolvedAccountName] = useState<string | null>(null);
+    const [isAccountConfirmed, setIsAccountConfirmed] = useState(false);
+    const [resolvingAccount, setResolvingAccount] = useState(false);
 
   // Fetch updated bank directory if available
   useEffect(() => {
@@ -210,6 +217,7 @@ export default function PaymentSubscriptionPage() {
       ]);
 
       if (settingsRes.data?.user) {
+        
         setUserInfo(settingsRes.data.user);
         if (settingsRes.data.user.planSelected) {
           setSelectedPlan(settingsRes.data.user.planSelected);
@@ -232,11 +240,14 @@ export default function PaymentSubscriptionPage() {
       if (balanceRes?.data?.subaccount) {
         const sub = balanceRes.data.subaccount;
         setSubaccountData(sub);
-        if (sub.accountNumber) {
-          setAccountNumber(sub.accountNumber);
+        if (sub?.accountNumber) {
+          setAccountNumber(sub?.accountNumber);
         }
-        if (sub.businessName) {
-          setBankBusinessName(sub.businessName);
+        if (settingsRes?.data?.user?.accountName) {
+          setBankBusinessName(settingsRes?.data?.user?.accountName||settingsRes?.data?.user?.business_name);
+        }
+        if (settingsRes?.data?.user?.bankName||settingsRes?.data?.user?.bank_name) {
+          setBankName(settingsRes?.data?.user?.user_bank_name);
         }
         if (sub.bankName) {
           const matched = POPULAR_NIGERIAN_BANKS.find(
@@ -254,45 +265,149 @@ export default function PaymentSubscriptionPage() {
     }
   }, []);
 
-  const handleSaveBank = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBankSaving(true);
-    setBankSuccessMsg(null);
-    setBankErrorMsg(null);
+    //   const cleaned = val.replace(/[^0-9]/g, "");
+    //   setPayoutData((prev) => ({ ...prev, accountNumber: cleaned }));
+    //   setResolvedAccountName(null);
+    //   setIsAccountConfirmed(false);
+    //   setError(null);
+  
+    //   if (cleaned.length === 10) {
+    //     setResolvingAccount(true);
+    //     try {
+    //       const res = await api.post<{ success: boolean; accountName?: string; error?: string }>(
+    //         "/api/bank/resolve",
+    //         {
+    //           accountNumber: cleaned,
+    //           bankCode: payoutData.bankCode,
+    //         }
+    //       );
+    //       if (res.data?.success && res.data.accountName) {
+    //         setResolvedAccountName(res.data.accountName);
+    //         setPayoutData((prev) => ({ ...prev, accountName: res.data.accountName || "" }));
+    //       } else {
+    //         setError(res.data?.error || "Could not resolve account details for this bank.");
+    //       }
+    //     } catch (err: unknown) {
+    //       const axiosErr = err as { response?: { data?: { error?: string } }; message?: string };
+    //       setError(axiosErr?.response?.data?.error || "Could not resolve account details. Please check your bank and account number.");
+    //     } finally {
+    //       setResolvingAccount(false);
+    //     }
+    //   }
+    // };
 
-    const cleanAccount = accountNumber.trim();
-    if (!cleanAccount || cleanAccount.length !== 10 || !/^\d{10}$/.test(cleanAccount)) {
-      setBankErrorMsg("Please enter a valid 10-digit Nigerian NUBAN account number.");
-      setBankSaving(false);
-      return;
+const handleSaveBank = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const cleanAccount = accountNumber.trim();
+
+  if (!cleanAccount || !/^\d{10}$/.test(cleanAccount)) {
+    setBankErrorMsg(
+      "Please enter a valid 10-digit Nigerian NUBAN account number."
+    );
+    return;
+  }
+
+  if (!bankCode) {
+    setBankErrorMsg("Please select a bank.");
+    return;
+  }
+
+  // Do NOT save here.
+  // The account should already have been resolved automatically.
+  if (!resolvedAccountName) {
+    setBankErrorMsg(
+      "Please wait for the account details to be verified before continuing."
+    );
+    return;
+  }
+
+  setBankErrorMsg(null);
+  setIsAccountConfirmed(true);
+};
+
+
+/**
+ * Actually saves the bank account after the user confirms
+ * the resolved account details.
+ */
+const handleConfirmAndSaveBank = async () => {
+  const cleanAccount = accountNumber.trim();
+
+  if (!cleanAccount || !/^\d{10}$/.test(cleanAccount)) {
+    setBankErrorMsg(
+      "Please enter a valid 10-digit Nigerian NUBAN account number."
+    );
+    return;
+  }
+
+  if (!resolvedAccountName) {
+    setBankErrorMsg(
+      "Account details could not be verified. Please check the bank and account number."
+    );
+    return;
+  }
+
+  setBankSaving(true);
+  setBankSuccessMsg(null);
+  setBankErrorMsg(null);
+
+  try {
+    const res = await api.post<{
+      success: boolean;
+      message?: string;
+      subaccountCode?: string;
+      platformFeePercent?: number;
+      error?: string;
+    }>("/api/merchant/subaccount", {
+     
+      settlement_bank: bankCode,
+      user_bank_name: bankName,
+      account_number: cleanAccount,
+      business_name:
+        bankBusinessName.trim()+" Store" ||
+        resolvedAccountName+ " Store" ||
+        "Merchant Store",
+    });
+
+    if (res.data?.success) {
+      setBankSuccessMsg(
+        res.data.message ||
+          "Settlement bank account configured successfully."
+      );
+
+      setIsAccountConfirmed(true);
+      setIsEditingBank(false);
+
+      await fetchSubscriptionData();
+    } else {
+      setBankErrorMsg(
+        res.data?.error ||
+          "Failed to configure settlement account."
+      );
+      setIsAccountConfirmed(false);
     }
+  } catch (err: unknown) {
+    const axiosErr = err as {
+      response?: {
+        data?: {
+          error?: string;
+        };
+      };
+      message?: string;
+    };
 
-    try {
-      const res = await api.post<{
-        success: boolean;
-        message: string;
-        subaccountCode: string;
-        platformFeePercent: number;
-      }>("/api/merchant/subaccount", {
-        settlement_bank: bankCode,
-        account_number: cleanAccount,
-        business_name: bankBusinessName.trim() || userInfo?.companyName || "Merchant Store",
-      });
+    setBankErrorMsg(
+      axiosErr?.response?.data?.error ||
+        axiosErr?.message ||
+        "Failed to configure settlement account."
+    );
 
-      if (res.data?.success) {
-        setBankSuccessMsg(res.data.message || "Settlement bank account configured successfully.");
-        setIsEditingBank(false);
-        await fetchSubscriptionData();
-      } else {
-        setBankErrorMsg((res.data as any)?.error || "Failed to configure settlement account.");
-      }
-    } catch (err: any) {
-      setBankErrorMsg(err?.response?.data?.error || err.message || "Failed to configure settlement account.");
-    } finally {
-      setBankSaving(false);
-    }
-  };
-
+    setIsAccountConfirmed(false);
+  } finally {
+    setBankSaving(false);
+  }
+};
   const handleLoadMoreOrders = async () => {
     if (!ordersNextCursor || loadingMoreOrders) return;
     setLoadingMoreOrders(true);
@@ -315,6 +430,82 @@ export default function PaymentSubscriptionPage() {
     }
   };
 
+
+  useEffect(() => {
+  const cleanAccount = accountNumber.trim();
+
+  // Reset resolution when account is incomplete
+  if (!/^\d{10}$/.test(cleanAccount) || !bankCode) {
+    setResolvedAccountName(null);
+    setIsAccountConfirmed(false);
+    setBankErrorMsg(null);
+    setResolvingAccount(false);
+    return;
+  }
+
+  let active = true;
+
+  const resolveAccount = async () => {
+    setResolvingAccount(true);
+    setResolvedAccountName(null);
+    setIsAccountConfirmed(false);
+    setBankErrorMsg(null);
+
+    try {
+      const res = await api.post<{
+        success: boolean;
+        accountName?: string;
+        error?: string;
+      }>("/api/bank/resolve", {
+        accountNumber: cleanAccount,
+        bankCode:"001",
+      });
+
+      if (!active) return;
+
+      if (res.data?.success && res.data.accountName) {
+        setBankBusinessName(res.data.accountName);
+        setResolvedAccountName(res.data.accountName);
+        setBankErrorMsg(null);
+      } else {
+        setBankBusinessName("");
+        setResolvedAccountName(null);
+        setBankErrorMsg(
+          res.data?.error ||
+            "Could not resolve account details for this bank."
+        );
+      }
+    } catch (err: unknown) {
+      if (!active) return;
+
+      const axiosErr = err as {
+        response?: {
+          data?: {
+            error?: string;
+          };
+        };
+        message?: string;
+      };
+
+      setResolvedAccountName(null);
+      setBankErrorMsg(
+        axiosErr?.response?.data?.error ||
+          axiosErr?.message ||
+          "Could not resolve account details. Please check your bank and account number."
+      );
+    } finally {
+      if (active) {
+        setResolvingAccount(false);
+      }
+    }
+  };
+
+  resolveAccount();
+
+  return () => {
+    active = false;
+  };
+}, [accountNumber, bankCode]);
   useEffect(() => {
     const loadSub = setTimeout(() => {
       fetchSubscriptionData();
@@ -642,8 +833,9 @@ export default function PaymentSubscriptionPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
                 <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Settlement Bank</span>
-                <span className="font-semibold text-white text-sm block truncate">{subaccountData.bankName || "Commercial Bank"}</span>
+                <span className="font-semibold text-white text-sm block truncate">{bankName||subaccountData.bankName || "Commercial Bank"}</span>
               </div>
+              
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
                 <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">NUBAN Account Number</span>
@@ -651,8 +843,8 @@ export default function PaymentSubscriptionPage() {
               </div>
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
-                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Account / Business Name</span>
-                <span className="font-semibold text-white text-sm block truncate">{subaccountData.businessName || userInfo?.companyName || "Store Owner"}</span>
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Account Name</span>
+                <span className="font-semibold text-white text-sm block truncate">{bankBusinessName||subaccountData.businessName || userInfo?.companyName || "Store Owner"}</span>
               </div>
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
@@ -666,85 +858,299 @@ export default function PaymentSubscriptionPage() {
               </div>
             </div>
           ) : (
-            /* Interactive Bank Form */
-            <form onSubmit={handleSaveBank} className="space-y-4 pt-1">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#E0D5C9]">
-                    Select Settlement Bank <span className="text-rose-400">*</span>
-                  </label>
-                  <select
-                    value={bankCode}
-                    onChange={(e) => setBankCode(e.target.value)}
-                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A96E] transition-colors"
-                  >
-                    {availableBanks.map((b) => (
-                      <option key={b.code} value={b.code}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <>
+           {/* Interactive Bank Form */}
+<form onSubmit={handleSaveBank} className="space-y-4 pt-1">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#E0D5C9]">
-                    10-Digit Account Number (NUBAN) <span className="text-rose-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={10}
-                    inputMode="numeric"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-                    placeholder="0123456789"
-                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-mono placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors tracking-wider"
-                    required
-                  />
-                </div>
+    {/* Bank */}
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-[#E0D5C9]">
+        Select Settlement Bank{" "}
+        <span className="text-rose-400">*</span>
+      </label>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#E0D5C9]">
-                    Registered Business / Account Name
-                  </label>
-                  <input
-                    type="text"
-                    value={bankBusinessName}
-                    onChange={(e) => setBankBusinessName(e.target.value)}
-                    placeholder={userInfo?.companyName || "Your Atelier or Legal Name"}
-                    className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors"
-                  />
-                </div>
-              </div>
+      <select
+        value={bankCode}
+        onChange={(e) => {
+        const selectedCode = e.target.value;
+        setBankCode(selectedCode);
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                <p className="text-[11px] text-[#A0988A]">
-                  Connected for Paystack Split Payments. Settlement sweeps automatically reconcile and credit your account.
-                </p>
+        const selectedBank = availableBanks.find((b) => b.code == selectedCode);
+        if (selectedBank) {
+        setBankName(selectedBank.name);
+        }
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  {subaccountData?.accountNumber && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingBank(false);
-                        setBankErrorMsg(null);
-                      }}
-                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={bankSaving || !accountNumber || accountNumber.length !== 10}
-                    className="px-5 py-2 rounded-xl bg-[#C9A96E] hover:bg-[#B8985D] text-[#121212] text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-lg shadow-[#C9A96E]/10 cursor-pointer"
-                  >
-                    {bankSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>{bankSaving ? "Verifying & Saving..." : "Save Settlement Account"}</span>
-                  </button>
-                </div>
-              </div>
-            </form>
+        setResolvedAccountName(null);
+        setIsAccountConfirmed(false);
+        setBankErrorMsg(null);
+        }}
+        className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#C9A96E] transition-colors"
+        >
+        {availableBanks.map((b) => (
+        <option key={b.code} value={b.code}>
+      {b.name}
+    </option>
+  ))}
+</select>
+
+    </div>
+
+    {/* Account Number */}
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-[#E0D5C9]">
+        10-Digit Account Number (NUBAN){" "}
+        <span className="text-rose-400">*</span>
+      </label>
+
+      <input
+        type="text"
+        maxLength={10}
+        inputMode="numeric"
+        value={accountNumber}
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+
+          setAccountNumber(value);
+          setResolvedAccountName(null);
+          setIsAccountConfirmed(false);
+          setBankErrorMsg(null);
+          setBankSuccessMsg(null);
+        }}
+        placeholder="0123456789"
+        className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-mono placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors tracking-wider"
+        required
+      />
+
+      {/* Account resolution status */}
+      {accountNumber.length > 0 && accountNumber.length < 10 && (
+        <p className="text-[10px] text-[#A0988A]">
+          Enter {10 - accountNumber.length} more digit
+          {10 - accountNumber.length !== 1 ? "s" : ""}.
+        </p>
+      )}
+
+      {resolvingAccount && accountNumber.length === 10 && (
+        <div className="flex items-center gap-1.5 text-[10px] text-[#C9A96E]">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          <span>Verifying account details...</span>
+        </div>
+      )}
+
+      {!resolvingAccount &&
+        resolvedAccountName &&
+        accountNumber.length === 10 && (
+          <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Account verified</span>
+          </div>
+        )}
+    </div>
+
+    {/* Business Name */}
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-[#E0D5C9]">
+       Account Name
+      </label>
+
+      <input
+        type="text"
+        value={bankBusinessName}
+        onChange={(e) => setBankBusinessName(e.target.value)}
+        placeholder={
+          userInfo?.companyName || "Your Atelier or Legal Name"
+        }
+        className="w-full bg-[#121212] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#C9A96E] transition-colors"
+      />
+    </div>
+  </div>
+
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+
+    <p className="text-[11px] text-[#A0988A]">
+      Connected for Paystack Split Payments. Settlement sweeps
+      automatically reconcile and credit your account.
+    </p>
+
+    <div className="flex items-center gap-2 self-end sm:self-auto">
+
+      {/* Cancel */}
+      {subaccountData?.accountNumber && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsEditingBank(false);
+            setResolvedAccountName(null);
+            setIsAccountConfirmed(false);
+            setBankErrorMsg(null);
+          }}
+          className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/70 hover:text-white transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+      )}
+
+      {/* This button only proceeds to confirmation */}
+      <button
+        type="submit"
+        disabled={
+          bankSaving ||
+          resolvingAccount ||
+          accountNumber.length !== 10 ||
+          !resolvedAccountName
+        }
+        className="px-5 py-2 rounded-xl bg-[#C9A96E] hover:bg-[#B8985D] text-[#121212] text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-lg shadow-[#C9A96E]/10 cursor-pointer"
+      >
+        {resolvingAccount && (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        )}
+
+        <span>
+          {resolvingAccount
+            ? "Verifying..."
+            : "Review Account"}
+        </span>
+      </button>
+    </div>
+  </div>
+</form>
+
+
+{/* Account Confirmation Card */}
+{resolvedAccountName && !isAccountConfirmed && (
+  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 space-y-3 animate-fadeIn">
+
+    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+      <ShieldCheck className="w-4 h-4" />
+      <span>Please Confirm Account Details</span>
+    </div>
+
+    <div className="p-3 bg-black/40 rounded-lg border border-amber-500/20 space-y-2">
+
+      <div>
+        <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+          Bank
+        </span>
+
+        <span className="text-sm font-semibold text-white block mt-0.5">
+          {availableBanks.find(
+            (bank) => bank.code === bankCode
+          )?.name || "Selected Bank"}
+        </span>
+      </div>
+
+      <div>
+        <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+          Account Number
+        </span>
+
+        <span className="text-sm font-bold text-white font-mono block mt-0.5 tracking-wider">
+          {accountNumber}
+        </span>
+      </div>
+
+      <div>
+        <span className="text-[10px] text-zinc-400 uppercase tracking-wider block">
+          Resolved Account Name
+        </span>
+
+        <span className="text-sm font-bold text-emerald-400 font-mono block mt-0.5">
+          {resolvedAccountName}
+        </span>
+      </div>
+
+    </div>
+
+    <p className="text-[11px] text-amber-200/70">
+      Please make sure the account name above matches the bank
+      account you want to use for settlement.
+    </p>
+
+    <div className="flex items-center gap-2 pt-1">
+
+      {/* THIS is where the actual POST happens */}
+      <button
+        type="button"
+        onClick={handleConfirmAndSaveBank}
+        disabled={bankSaving}
+        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-md"
+      >
+        {bankSaving ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <Check className="w-3.5 h-3.5" />
+        )}
+
+        <span>
+          {bankSaving ? "Linking Account..." : "Confirm & Link"}
+        </span>
+      </button>
+
+      {/* Change account */}
+      <button
+        type="button"
+        onClick={() => {
+          setResolvedAccountName(null);
+          setIsAccountConfirmed(false);
+          setAccountNumber("");
+          setBankErrorMsg(null);
+        }}
+        disabled={bankSaving}
+        className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-300 text-xs rounded-lg transition-all"
+      >
+        Change
+      </button>
+
+    </div>
+  </div>
+)}
+
+
+{/* Verified State */}
+{isAccountConfirmed && resolvedAccountName && (
+  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-xs flex items-center justify-between animate-fadeIn">
+
+    <div className="flex items-center gap-2.5">
+
+      <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+        <CheckCircle2 className="w-4 h-4" />
+      </div>
+
+      <div>
+        <span className="font-bold text-white block">
+          {resolvedAccountName}
+        </span>
+
+        <span className="text-[11px] text-zinc-400">
+          {
+            availableBanks.find(
+              (bank) => bank.code === bankCode
+            )?.name || "Selected Bank"
+          }
+          {" • "}
+          {accountNumber}
+          {" • Verified"}
+        </span>
+      </div>
+
+    </div>
+
+    <button
+      type="button"
+      onClick={() => {
+        setIsAccountConfirmed(false);
+        setResolvedAccountName(null);
+      }}
+      className="text-[11px] text-zinc-400 hover:text-white underline cursor-pointer"
+    >
+      Change
+    </button>
+
+  </div>
+)}
+
+            
+                            </>
           )}
         </div>
       </div>

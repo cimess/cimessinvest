@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { settlement_bank, account_number, business_name } = body;
+    const { settlement_bank, account_number, business_name, user_bank_name } = body;
 
     if (!settlement_bank || !account_number) {
       return NextResponse.json(
@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     if (!targetCompanyId) {
       return NextResponse.json({ error: "No active merchant store found." }, { status: 404 });
     }
+  
 
     const membership = user?.memberships?.find((m) => m.companyId === targetCompanyId);
     if (membership?.role !== "OWNER" && user?.role !== "SUPERADMIN") {
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
         paystackSubaccountCode: subaccountCode,
         bankInfo: {
           settlement_bank,
+          user_bank_name,
           account_number,
           business_name: business_name || user?.companyName,
           verifiedAt: new Date().toISOString(),

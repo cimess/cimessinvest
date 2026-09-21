@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
 
     const activeMembership = user.memberships?.find((m) => m.company?.id === targetCompanyId) || user.memberships?.[0] || null;
     const company = activeMembership?.company || null;
+    console.log(company,"company")
 
     let storageStats = null;
     let trafficStats = null;
@@ -111,7 +112,7 @@ export async function GET(req: NextRequest) {
             storageLimitMB: storageStats?.storageLimitMB ?? company.storageLimit ?? defaultStorageLimit,
             monthlyVisits: trafficStats?.monthlyVisits ?? company.monthlyVisits,
             trafficLimit: trafficStats?.trafficLimit ?? company.trafficLimit,
-            paystackSubaccountCode: company.paystackSubaccountCode,
+            paystackSubaccountCode: null,
             bankInfo: company.bankInfo,
           }
         : null,
