@@ -85,6 +85,16 @@ export interface StoreOrder {
   checkoutUrl: string;
 }
 
+type SubaccountData = {
+  code: string | null;
+  bankName: string | null;
+  accountNumber: string | null;
+  businessName: string | null;
+  percentageCharge: number;
+  isActive: boolean;
+  isLive: boolean;
+};
+
 export interface UserSubscriptionDetails {
   id?: string;
   companyName?: string;
@@ -155,21 +165,18 @@ export default function PaymentSubscriptionPage() {
     autoSettledTodayNaira?: number;
   } | null>(null);
 
-  const [subaccountData, setSubaccountData] = useState<{
-    code: string | null;
-    bankName: string | null;
-    accountNumber: string | null;
-    businessName: string | null;
-    percentageCharge: number;
-    isActive: boolean;
-    isLive: boolean;
-  } | null>(null);
+  const [subaccountData, setSubaccountData] = useState<SubaccountData>({
+    code:  null,
+    bankName:  null,
+    accountNumber: null,
+    businessName:  null,
+    percentageCharge: 0,
+    isActive: false,
+    isLive: false,
+  });
 
   // Bank Account & Paystack Split Settlement State
-  const [bankCode, setBankCode] = useState("058");
   const [accountNumber, setAccountNumber] = useState("");
-  const [bankBusinessName, setBankBusinessName] = useState("");
-  const [bankName, setBankName] = useState("");
   const [bankSaving, setBankSaving] = useState(false);
   const [bankSuccessMsg, setBankSuccessMsg] = useState<string | null>(null);
   const [bankErrorMsg, setBankErrorMsg] = useState<string | null>(null);
@@ -243,18 +250,13 @@ export default function PaymentSubscriptionPage() {
         if (sub?.accountNumber) {
           setAccountNumber(sub?.accountNumber);
         }
-        if (settingsRes?.data?.user?.accountName) {
-          setBankBusinessName(settingsRes?.data?.user?.accountName||settingsRes?.data?.user?.business_name);
-        }
-        if (settingsRes?.data?.user?.bankName||settingsRes?.data?.user?.bank_name) {
-          setBankName(settingsRes?.data?.user?.user_bank_name);
-        }
+
         if (sub.bankName) {
           const matched = POPULAR_NIGERIAN_BANKS.find(
             (b) => b.name.toLowerCase() === sub.bankName?.toLowerCase() || b.code === sub.bankName
           );
           if (matched) {
-            setBankCode(matched.code);
+            setSubaccountData((prev) => ({ ...prev, code: matched.code }));
           }
         }
       }
@@ -265,7 +267,7 @@ export default function PaymentSubscriptionPage() {
     }
   }, []);
 
-    //   const cleaned = val.replace(/[^0-9]/g, "");
+
     //   setPayoutData((prev) => ({ ...prev, accountNumber: cleaned }));
     //   setResolvedAccountName(null);
     //   setIsAccountConfirmed(false);
@@ -308,7 +310,7 @@ const handleSaveBank = async (e: React.FormEvent) => {
     return;
   }
 
-  if (!bankCode) {
+  if (!subaccountData.code) {
     setBankErrorMsg("Please select a bank.");
     return;
   }
@@ -361,12 +363,12 @@ const handleConfirmAndSaveBank = async () => {
       error?: string;
     }>("/api/merchant/subaccount", {
      
-      settlement_bank: bankCode,
-      user_bank_name: bankName,
+      settlement_bank: subaccountData?.code,
+      user_bank_name: subaccountData?.bankName,
       account_number: cleanAccount,
       business_name:
-        bankBusinessName.trim()+" Store" ||
-        resolvedAccountName+ " Store" ||
+        subaccountData?.businessName?.trim() ||
+        resolvedAccountName ||
         "Merchant Store",
     });
 
@@ -431,11 +433,15 @@ const handleConfirmAndSaveBank = async () => {
   };
 
 
-  useEffect(() => {
+
+
+  const resolveAccount = async () => {
+
+
   const cleanAccount = accountNumber.trim();
 
   // Reset resolution when account is incomplete
-  if (!/^\d{10}$/.test(cleanAccount) || !bankCode) {
+  if (!/^\d{10}$/.test(cleanAccount) || !subaccountData.code) {
     setResolvedAccountName(null);
     setIsAccountConfirmed(false);
     setBankErrorMsg(null);
@@ -444,8 +450,6 @@ const handleConfirmAndSaveBank = async () => {
   }
 
   let active = true;
-
-  const resolveAccount = async () => {
     setResolvingAccount(true);
     setResolvedAccountName(null);
     setIsAccountConfirmed(false);
@@ -464,11 +468,11 @@ const handleConfirmAndSaveBank = async () => {
       if (!active) return;
 
       if (res.data?.success && res.data.accountName) {
-        setBankBusinessName(res.data.accountName);
+        setSubaccountData((prev) => ({ ...prev, businessName: res.data.accountName || "" }));
         setResolvedAccountName(res.data.accountName);
         setBankErrorMsg(null);
       } else {
-        setBankBusinessName("");
+        setSubaccountData((prev) => ({ ...prev, businessName: "" }));
         setResolvedAccountName(null);
         setBankErrorMsg(
           res.data?.error ||
@@ -500,12 +504,9 @@ const handleConfirmAndSaveBank = async () => {
     }
   };
 
-  resolveAccount();
+  ;
 
-  return () => {
-    active = false;
-  };
-}, [accountNumber, bankCode]);
+
   useEffect(() => {
     const loadSub = setTimeout(() => {
       fetchSubscriptionData();
@@ -833,18 +834,18 @@ const handleConfirmAndSaveBank = async () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
                 <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Settlement Bank</span>
-                <span className="font-semibold text-white text-sm block truncate">{bankName||subaccountData.bankName || "Commercial Bank"}</span>
+                <span className="font-semibold text-white text-sm block truncate">{subaccountData?.bankName||""}</span>
               </div>
               
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
-                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">NUBAN Account Number</span>
+                <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Account Number</span>
                 <span className="font-mono font-bold text-[#F5F0EB] text-sm tracking-widest block">{subaccountData.accountNumber}</span>
               </div>
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
                 <span className="text-[10px] uppercase font-mono text-[#A0988A] tracking-wider block">Account Name</span>
-                <span className="font-semibold text-white text-sm block truncate">{bankBusinessName||subaccountData.businessName || userInfo?.companyName || "Store Owner"}</span>
+                <span className="font-semibold text-white text-sm block truncate">{subaccountData.businessName || userInfo?.companyName || "Store Owner"}</span>
               </div>
 
               <div className="bg-white/5 border border-white/5 rounded-xl p-3 space-y-1">
@@ -853,7 +854,7 @@ const handleConfirmAndSaveBank = async () => {
                   {Number((100 - (subaccountData.percentageCharge || 5)).toFixed(2))}% You / {subaccountData.percentageCharge || 5}% Fee
                 </span>
                 {subaccountData.code && (
-                  <span className="text-[10px] text-[#A0988A] font-mono block">Subaccount: {subaccountData.code}</span>
+                  <span className="text-[10px] text-[#A0988A] font-mono block">Subaccount: {subaccountData.businessName}</span>
                 )}
               </div>
             </div>
@@ -871,14 +872,18 @@ const handleConfirmAndSaveBank = async () => {
       </label>
 
       <select
-        value={bankCode}
+        value={subaccountData.code||'001'}
         onChange={(e) => {
         const selectedCode = e.target.value;
-        setBankCode(selectedCode);
+        setSubaccountData((prev) => ({ ...prev, code: selectedCode }));
 
         const selectedBank = availableBanks.find((b) => b.code == selectedCode);
         if (selectedBank) {
-        setBankName(selectedBank.name);
+       setSubaccountData((prev) => ({
+        ...prev,
+        bankName: selectedBank.name,
+        code: selectedBank.code,
+      }));
         }
 
         setResolvedAccountName(null);
@@ -955,8 +960,8 @@ const handleConfirmAndSaveBank = async () => {
 
       <input
         type="text"
-        value={bankBusinessName}
-        onChange={(e) => setBankBusinessName(e.target.value)}
+        value={subaccountData.businessName||""}
+        onChange={(e) => setSubaccountData((prev) => ({ ...prev, businessName: e.target.value }))}
         placeholder={
           userInfo?.companyName || "Your Atelier or Legal Name"
         }
@@ -993,11 +998,11 @@ const handleConfirmAndSaveBank = async () => {
       {/* This button only proceeds to confirmation */}
       <button
         type="submit"
+        onClick={resolveAccount}
         disabled={
           bankSaving ||
           resolvingAccount ||
-          accountNumber.length !== 10 ||
-          !resolvedAccountName
+          accountNumber.length !== 10 
         }
         className="px-5 py-2 rounded-xl bg-[#C9A96E] hover:bg-[#B8985D] text-[#121212] text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-lg shadow-[#C9A96E]/10 cursor-pointer"
       >
@@ -1034,7 +1039,7 @@ const handleConfirmAndSaveBank = async () => {
 
         <span className="text-sm font-semibold text-white block mt-0.5">
           {availableBanks.find(
-            (bank) => bank.code === bankCode
+            (bank) => bank.code === subaccountData.code
           )?.name || "Selected Bank"}
         </span>
       </div>
@@ -1124,7 +1129,7 @@ const handleConfirmAndSaveBank = async () => {
         <span className="text-[11px] text-zinc-400">
           {
             availableBanks.find(
-              (bank) => bank.code === bankCode
+              (bank) => bank.code === subaccountData.code
             )?.name || "Selected Bank"
           }
           {" • "}
