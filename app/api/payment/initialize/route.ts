@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
-import { initializePaystackTransaction, PaidPlanType } from "@/app/api/service/payment.service";
+import { initializePaystackTransaction, PaidPlanType, PlanType } from "@/app/api/service/payment.service";
 import { prisma } from "@/app/lib/prisma/prisma";
 
 export async function POST(req: Request) {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (userRole === "MANAGER") {
+    if (userRole !== "ADMIN") {
       return NextResponse.json(
         { message: "Forbidden: Store managers are not permitted to manage billing or initiate payments." },
         { status: 403 }
@@ -40,20 +40,25 @@ export async function POST(req: Request) {
     }
 
     const validPlans: PaidPlanType[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
-    const plan: PaidPlanType = validPlans.includes((planSelected || "").toUpperCase() as PaidPlanType)
-      ? ((planSelected || "").toUpperCase() as PaidPlanType)
-      : "STARTER";
+    const paidPlan: PaidPlanType = validPlans.includes(planSelected)?((planSelected || "").toUpperCase() as PaidPlanType):"STARTER";
+    const trialPlan = planSelected==="FREE_TRIAL"&&"FREE_TRIAL"
+      
 
     // If request is explicitly for trial activation (e.g., onboarding 14-day trial)
-    if (body.trial === true || body.activateTrial === true) {
-      const isPro = plan === "PROFESSIONAL";
-      const storageLimit = isPro ? 2000 : 500;
-      const trafficLimit = isPro ? 15000 : 2000;
+    if (body.trial === true || body.activateTrial === true ) {
+      if (trialPlan !=="FREE_TRIAL"){
+        return NextResponse.json(
+          { message: "Invalid trial plan." },
+          { status: 400 }
+        );
+      }
+      const storageLimit = 100;
+      const trafficLimit =  1000;
 
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
-          planSelected: plan,
+          planSelected: trialPlan,
           storageLimit,
           trafficLimit,
         },
@@ -66,7 +71,8 @@ export async function POST(req: Request) {
           subscription_status: true,
         },
       });
-
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
       const targetCompanyId =
         session?.user?.activeCompanyId ||
         session?.user?.companyId;
@@ -76,10 +82,13 @@ export async function POST(req: Request) {
         updatedCompany = await prisma.company.update({
           where: { id: targetCompanyId },
           data: {
-            planSelected: plan as any,
-            storageLimit,
-            trafficLimit,
-          },
+       planSelected: trialPlan as any,
+       subscription_status: "ACTIVE",
+       status: "ACTIVE",
+       storageLimit,
+       trafficLimit,
+       trialEndsAt,
+},
         }).catch(() => null);
       } else {
         const membership = await prisma.companyMember.findFirst({
@@ -89,20 +98,23 @@ export async function POST(req: Request) {
         if (membership?.companyId) {
           updatedCompany = await prisma.company.update({
             where: { id: membership.companyId },
-            data: {
-              planSelected: plan as any,
-              storageLimit,
-              trafficLimit,
-            },
+           data: {
+                  planSelected: trialPlan as any,
+                  subscription_status: "ACTIVE",
+                  status: "ACTIVE",
+                  storageLimit,
+                  trafficLimit,
+                  trialEndsAt,
+},
           }).catch(() => null);
         }
       }
 
       return NextResponse.json({
         success: true,
-        plan,
+        plan: trialPlan,
         trial: true,
-        message: `${plan === "PROFESSIONAL" ? "Professional" : "Starter"} plan activated successfully.`,
+        message: `${trialPlan === "FREE_TRIAL" ? "Free Trial" : ""} plan activated successfully.`,
         user: updatedUser,
         company: updatedCompany,
       });
@@ -112,7 +124,7 @@ export async function POST(req: Request) {
     let authorizedCustomAmountKobo: number | undefined;
     let authorizedCustomStorageMB: number | undefined;
 
-    if (plan === "ENTERPRISE") {
+    if (paidPlan === "ENTERPRISE") {
       const activeQuote = await prisma.customPlanQuote.findFirst({
         where: { userId, status: "APPROVED" },
         orderBy: { createdAt: "desc" },
@@ -127,7 +139,7 @@ export async function POST(req: Request) {
     const paymentInitResult = await initializePaystackTransaction({
       userId,
       email: userEmail,
-      planSelected: plan,
+      planSelected: paidPlan,
       customAmountKobo: authorizedCustomAmountKobo,
       customStorageMB: authorizedCustomStorageMB,
       callbackUrl,

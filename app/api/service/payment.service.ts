@@ -336,6 +336,7 @@ export async function finalizeTransactionVerification(reference: string) {
         planSelected: transaction.planSelected as any,
         subscription_status: "ACTIVE",
         storageLimit: newStorageLimitMB,
+        trialEndsAt:null,
         trafficLimit: newTrafficLimit,
       },
     });

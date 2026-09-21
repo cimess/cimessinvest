@@ -11,12 +11,12 @@ export async function GET(req: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization");
 
-    // Protect Cron route (fail closed if CRON_SECRET is not configured or token mismatches)
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
     }
 
     const now = new Date();
+
     const activeUsers = await prisma.user.findMany({
       where: { subscription_status: "ACTIVE" },
       select: {
@@ -31,6 +31,20 @@ export async function GET(req: NextRequest) {
           take: 1,
           select: { createdAt: true },
         },
+        memberships: {
+          where: { status: "ACTIVE" },
+          take: 1,
+          select: {
+            companyId: true,
+            company: {
+              select: {
+                id: true,
+                trialEndsAt: true,
+                planSelected: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -38,18 +52,26 @@ export async function GET(req: NextRequest) {
     let expiredDeactivated = 0;
 
     for (const user of activeUsers) {
-      // Calculate 30-day subscription cycle from latest completed payment or account creation
       const lastTransaction = user.transactions[0] || null;
+      const membership = user.memberships[0] || null;
+      const company = membership?.company || null;
 
-      const subStartDate = lastTransaction ? lastTransaction.createdAt : user.updatedAt;
-      const subEndDate = new Date(subStartDate);
-      subEndDate.setDate(subEndDate.getDate() + 30);
+      const isTrial = user.planSelected === "FREE_TRIAL";
+
+      const subEndDate =
+        isTrial && company?.trialEndsAt
+          ? new Date(company.trialEndsAt)
+          : (() => {
+              const startDate = lastTransaction ? lastTransaction.createdAt : user.updatedAt;
+              const endDate = new Date(startDate);
+              endDate.setDate(endDate.getDate() + 30);
+              return endDate;
+            })();
 
       const diffMs = subEndDate.getTime() - now.getTime();
       const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
       const formattedEndDate = subEndDate.toISOString().split("T")[0];
 
-      // 1. Subscription 1-Week Warning (7 days left)
       if (daysRemaining === 7) {
         await triggerSubscriptionDueEmail({
           userId: user.id,
@@ -59,14 +81,26 @@ export async function GET(req: NextRequest) {
           renewalDate: formattedEndDate,
           planName: user.planSelected,
         });
+
         emailsSent++;
       }
-      
-      // 2. Subscription Has Ended (0 days or past due) -> Deactivate & Send Expiry Notice
+
       if (daysRemaining <= 0) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { subscription_status: "INACTIVE" },
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { subscription_status: "INACTIVE" },
+          });
+
+          if (membership?.companyId) {
+            await tx.company.update({
+              where: { id: membership.companyId },
+              data: {
+                subscription_status: "INACTIVE",
+                status: isTrial ? "TRIAL_EXPIRED" : "SUSPENDED",
+              },
+            });
+          }
         });
 
         await triggerSubscriptionDueEmail({

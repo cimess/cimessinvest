@@ -1073,7 +1073,7 @@ export default function PaymentSubscriptionPage() {
                   {userInfo?.storageUsed || 0} MB
                 </span>
                 <span className="text-xs text-[#E0D5C9]/60">
-                  / {userInfo?.storageLimit || (userInfo?.planSelected === "FREE_TRIAL" ? 100 : 500)} MB Limit
+                  / {userInfo?.storageLimit || (userInfo?.planSelected === "FREE_TRIAL" ? 100 :userInfo?.planSelected === "PROFESSIONAL" ? 2000 :userInfo?.planSelected === "ENTERPRISE" ? 10000: 500)} MB Limit
                 </span>
               </div>
               <div className="w-full h-2 rounded-full bg-black/50 overflow-hidden">
@@ -1152,10 +1152,10 @@ export default function PaymentSubscriptionPage() {
 
             <button
               onClick={handleProceedToPayment}
-              disabled={initiating}
+              disabled={initiating||selectedPlan==="FREE_TRIAL"}
               className="w-full lg:w-auto px-8 py-4 bg-[#C9A96E] text-[#1A1A1A] text-xs font-bold uppercase tracking-[0.25em] hover:bg-[#F5F0EB] transition-colors disabled:opacity-50 cursor-pointer rounded-xl flex items-center justify-center gap-2"
             >
-              {initiating ? "Redirecting to Paystack..." : `Proceed with ${selectedPlan==="FREE_TRIAL" ? "STARTER" : "PROFESSIONAL"} Plan (₦${selectedPlan === "FREE_TRIAL" ? "2,000" : selectedPlan=== "PROFESSIONAL" ? "10,000" : "2,000"})`}
+              {initiating ? "Redirecting to Paystack..." : ` ${selectedPlan==="FREE_TRIAL"?"Select Plan":selectedPlan==="STARTER" ? "Proceed with STARTER" : "Proceed with PROFESSIONAL " }`}
             </button>
           </div>
 

@@ -114,7 +114,7 @@ export default function RegisterPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [createdCompany, setCreatedCompany] = useState<{ id: string; name: string; slug: string } | null>(null);
   const [navigating, setNavigating] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"STARTER" | "PROFESSIONAL">("STARTER");
+  const [selectedPlan, setSelectedPlan] = useState<"STARTER" | "PROFESSIONAL"|"FREE_TRIAL">("STARTER");
   const [payingPlan, setPayingPlan] = useState(false);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
   const profileFileInputRef = useRef<HTMLInputElement>(null);
@@ -453,20 +453,22 @@ export default function RegisterPage() {
   };
 
   // Handle Plan Selection (Starter / Free Trial or Pro Trial)
-  const handleSelectPlan = async (plan: "STARTER" | "PROFESSIONAL") => {
-    setSelectedPlan(plan);
+  const handleSelectPlan = async () => {
+
     setLoading(true);
     setError(null);
     try {
       await api.post("/api/payment/initialize", {
-        planSelected: plan,
-        trial: true,
+        planSelected: "FREE_TRIAL",
+        trial: true ,
         email: accountData.email,
       });
+      setSelectedPlan("FREE_TRIAL");
       setCurrentStep("template");
     } catch {
-      // Even if user record is still pending onboarding finalization, advance smoothly
-      // as /api/registration/complete persists planSelected upon final step
+      // On failure, do NOT advance or persist a premium plan — reset to safe default
+      setSelectedPlan("STARTER");
+      setError("Could not confirm plan selection. Continuing with Starter plan.");
       setCurrentStep("template");
     } finally {
       setLoading(false);
@@ -474,8 +476,8 @@ export default function RegisterPage() {
   };
 
   // Handle Direct Paystack Payment for Professional Plan
-  const handlePayForPro = async () => {
-    setSelectedPlan("PROFESSIONAL");
+  const handlePayForPro = async (plan:"PROFESSIONAL"|"STARTER") => {
+    setSelectedPlan(plan);
     setPayingPlan(true);
     setError(null);
 
@@ -485,7 +487,7 @@ export default function RegisterPage() {
         authorization_url: string;
         reference: string;
       }>("/api/payment/initialize", {
-        planSelected: "PROFESSIONAL",
+        planSelected: plan,
         email: accountData.email,
         callbackUrl: `${window.location.origin}/dashboard/${createdCompany?.id || "1"}/payment/callback`,
       });
@@ -1208,7 +1210,85 @@ export default function RegisterPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Free Trial Card */}
+              
+<div
+  onClick={() => handleSelectPlan()}
+  className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+    selectedPlan === "FREE_TRIAL"
+      ? "bg-[#18181D] border-[var(--color-accent,#C9A96E)] ring-1 ring-[var(--color-accent,#C9A96E)] shadow-xl shadow-[var(--color-accent,#C9A96E)]/5"
+      : "bg-[#18181D]/60 border-zinc-800 hover:border-zinc-700"
+  }`}
+>
+  <div className="space-y-3">
+    <div className="flex items-center justify-between">
+      <span className="text-xs uppercase font-bold tracking-wider text-zinc-300">
+        Free Trial
+      </span>
+
+      {selectedPlan === "FREE_TRIAL" && (
+        <span className="w-5 h-5 rounded-full bg-[var(--color-accent,#C9A96E)] text-[#1A1A1A] flex items-center justify-center">
+          <Check className="w-3 h-3 stroke-[3]" />
+        </span>
+      )}
+    </div>
+
+    <div>
+      <span className="text-2xl font-extrabold text-white">₦0</span>
+      <span className="text-xs text-zinc-400"> / 14 days</span>
+    </div>
+
+    <p className="text-[11px] text-zinc-400 leading-relaxed font-light">
+      Try the platform with basic storefront tools before choosing a paid plan.
+    </p>
+
+    <ul className="space-y-2 pt-2 border-t border-zinc-800 text-[11px] text-zinc-300">
+      <li className="flex items-center gap-2">
+        <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
+        <span>1 Admin Owner Seat</span>
+      </li>
+
+      <li className="flex items-center gap-2">
+        <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
+        <span>100 MB Media Storage</span>
+      </li>
+
+      <li className="flex items-center gap-2">
+        <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
+        <span>WhatsApp Direct Checkout</span>
+      </li>
+
+      <li className="flex items-center gap-2">
+        <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
+        <span>Standard Traffic (2,000 visits/mo)</span>
+      </li>
+
+      <li className="flex items-center gap-2">
+        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+        <span className="text-emerald-300 font-medium">
+          14-Day Free Trial
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <div className="pt-5 mt-4 border-t border-zinc-800">
+    <button
+      type="button"
+      disabled={loading}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleSelectPlan();
+      }}
+      className="w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+    >
+      <span>Start Free Trial</span>
+      <ArrowRight className="w-3.5 h-3.5" />
+    </button>
+  </div>
+</div>
+```
                 {/* Starter Plan Card */}
                 <div
                   onClick={() => setSelectedPlan("STARTER")}
@@ -1252,10 +1332,6 @@ export default function RegisterPage() {
                         <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
                         <span>Standard Traffic (2,000 visits/mo)</span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="text-emerald-300 font-medium">14-Day Free Trial Included</span>
-                      </li>
                     </ul>
                   </div>
 
@@ -1265,7 +1341,7 @@ export default function RegisterPage() {
                       disabled={loading}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSelectPlan("STARTER");
+                        handlePayForPro("STARTER");
                       }}
                       className={`w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                         selectedPlan === "STARTER"
@@ -1340,7 +1416,7 @@ export default function RegisterPage() {
                       disabled={payingPlan || loading}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePayForPro();
+                        handlePayForPro("PROFESSIONAL");
                       }}
                       className="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
                     >
@@ -1355,19 +1431,6 @@ export default function RegisterPage() {
                           <span>Pay ₦10,000 with Paystack</span>
                         </>
                       )}
-                    </button>
-
-                    {/* Or continue with 14-day Pro trial */}
-                    <button
-                      type="button"
-                      disabled={loading || payingPlan}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectPlan("PROFESSIONAL");
-                      }}
-                      className="w-full py-2 bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-[11px] font-medium rounded-lg transition-all"
-                    >
-                      <span>Or start with 14-day Pro Trial (Pay Later)</span>
                     </button>
                   </div>
                 </div>

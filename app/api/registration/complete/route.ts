@@ -45,7 +45,10 @@ export async function POST(req: NextRequest) {
         : resolvedPlan === "FREE_TRIAL"
         ? 100
         : 500;
-    const resolvedTraffic = resolvedPlan === "PROFESSIONAL" ? 15000 : 2000;
+
+        const isFreeTrial = resolvedPlan === "FREE_TRIAL";
+
+    const resolvedTraffic = resolvedPlan === "PROFESSIONAL" ? 15000 :resolvedPlan === "FREE_TRIAL"?1000: 2000;
 
     if (!email || !brandName) {
       return NextResponse.json(
@@ -128,8 +131,8 @@ export async function POST(req: NextRequest) {
         industry: industryKey as any,
         status: "ACTIVE",
         planSelected: resolvedPlan,
-        subscription_status: "ACTIVE", // Active trial
-        trialEndsAt,
+        subscription_status: isFreeTrial ? "ACTIVE" : "INACTIVE",
+        trialEndsAt: isFreeTrial ? trialEndsAt : null,
         activeTemplateId: dbTemplate?.id || null,
         storageLimit: resolvedStorage,
         storageUsed: 0,
@@ -214,11 +217,11 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: {
         companyName: company.name,
-        paymentVerified: true,
-        planSelected: resolvedPlan,
-        subscription_status: "ACTIVE",
+        paymentVerified: false,
         storageLimit: resolvedStorage,
         trafficLimit: resolvedTraffic,
+        subscription_status: isFreeTrial ? "ACTIVE" : "INACTIVE",
+        planSelected: resolvedPlan,
       },
     });
 

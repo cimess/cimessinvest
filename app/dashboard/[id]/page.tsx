@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Eye,
   MessageCircle,
@@ -12,6 +12,9 @@ import {
   Scissors,
   Dumbbell,
   Sparkles,
+  Copy,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -24,8 +27,23 @@ export default function ManagerDashboardPage() {
   const [company, setCompany] = useState<{
     name: string;
     industry: string;
+    slug?: string;
     activeTemplateSlug?: string;
   } | null>(null);
+
+  const [copied, setCopied] = useState(false);
+
+  const merchantUrl = company?.slug
+    ? `https://${company.slug}.cimessinvest.com`
+    : null;
+
+  const handleCopy = useCallback(() => {
+    if (!merchantUrl) return;
+    navigator.clipboard.writeText(merchantUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [merchantUrl]);
 
   const [siteSetting, setSiteSetting] = useState<{
     tailorBioImage?: string | null;
@@ -159,6 +177,45 @@ export default function ManagerDashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Merchant Store Link Banner */}
+      {merchantUrl && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 sm:p-5 bg-black/40 border border-[#C9A96E]/30 rounded-xl">
+          <div className="flex items-center gap-2 shrink-0">
+            <ExternalLink className="w-4 h-4 text-[#C9A96E]" />
+            <span className="text-xs uppercase tracking-[0.2em] text-[#C9A96E] font-semibold">Your Store Link</span>
+          </div>
+          <div className="flex flex-1 items-center gap-2 min-w-0">
+            <a
+              href={merchantUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 min-w-0 text-sm font-mono text-[#F5F0EB]/80 hover:text-[#F5F0EB] truncate transition-colors"
+            >
+              {merchantUrl}
+            </a>
+            <button
+              onClick={handleCopy}
+              title={copied ? "Copied!" : "Copy link"}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200
+                         border border-[#C9A96E]/40 hover:border-[#C9A96E] hover:bg-[#C9A96E]/10
+                         text-[#C9A96E] hover:text-[#F5F0EB]"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Action & Management Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">

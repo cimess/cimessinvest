@@ -136,9 +136,10 @@ export async function POST(req: NextRequest) {
     });
 
     // 8. Atomic Multi-Tenant Transaction: User -> Company -> CompanyMember (OWNER) -> StorePages -> SiteSetting
-    const result = await prisma.$transaction(async (tx) => {
+    
       // 8a. Create User
-      const user = await tx.user.create({
+     const result = 
+     await prisma.user.create({
         data: {
           companyName: resolvedBrandName,
           email: trimmedEmail,
@@ -164,103 +165,20 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 8b. 14-day Free Trial end date
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 14);
-
-      // 8c. Create Company Tenant
-      const company = await tx.company.create({
-        data: {
-          name: resolvedBrandName,
-          slug: uniqueSlug,
-          industry: resolvedIndustry,
-          status: "ACTIVE",
-          planSelected: "FREE_TRIAL",
-          subscription_status: "ACTIVE",
-          trialEndsAt,
-          activeTemplateId: activeTemplate?.id || null,
-          aiCreditsRemaining: 10,
-          trafficLimit: 2000,
-          monthlyVisits: 0,
-          storageLimit: 100,
-          storageUsed: 0,
-        },
-      });
-
-      // 8d. Assign registrant as CompanyMember with role: OWNER
-      await tx.companyMember.create({
-        data: {
-          companyId: company.id,
-          userId: user.id,
-          role: "OWNER",
-          status: "ACTIVE",
-        },
-      });
-
-      // 8e. Clone Template Pages into StorePages
-      if (activeTemplate?.pages && activeTemplate.pages.length > 0) {
-        for (const page of activeTemplate.pages) {
-          await tx.storePage.create({
-            data: {
-              companyId: company.id,
-              slug: page.slug,
-              title: page.title,
-              isSystem: page.isSystem,
-              sections: page.sections as any,
-              version: page.version || 1,
-              isPublished: true,
-            },
-          });
-        }
-      } else {
-        // Fallback to in-memory registry template pages if DB templates are not yet seeded
-        const fallbackTemplate =
-          getTemplatesByIndustry(resolvedIndustry as any)[0] || ALL_TEMPLATES[0];
-        for (const page of fallbackTemplate.pages) {
-          await tx.storePage.create({
-            data: {
-              companyId: company.id,
-              slug: page.slug,
-              title: page.title,
-              isSystem: page.isSystem,
-              sections: page.sections as any,
-              version: page.version || 1,
-              isPublished: true,
-            },
-          });
-        }
-      }
-
-      // 8f. Create Company-Scoped SiteSetting
-      await tx.siteSetting.create({
-        data: {
-          companyId: company.id,
-          companyName: resolvedBrandName,
-          whatsappNumber: phone.trim(),
-          primaryColor: "#1A1A1A",
-          accentColor: "#C9A96E",
-          backgroundColor: "#F5F0EB",
-          tailorBioImage: profileImage || null,
-        },
-      });
-
-      return { user, company };
-    });
-
-    const displayUserName = result.user.companyName || name.trim();
+    const displayUserName = result.companyName || name.trim();
 
     // 9. Dispatch Dedicated Signup OTP Email
     triggerSignupOTP({
-      userId: result.user.id,
-      toEmail: result.user.email,
+      userId: result.id,
+      toEmail: result.email,
       userName: displayUserName,
       otpCode,
       expiresInMinutes: 15,
     }).catch((err) => console.error("[Registration] Signup OTP email failed:", err));
 
     triggerWelcomeEmail({
-      userId: result.user.id,
-      toEmail: result.user.email,
+      userId: result.id,
+      toEmail: result.email,
       userName: displayUserName,
       docUrl: "https://cimessinvest.com/doc",
     }).catch((err) => console.error("[Registration] Welcome email failed:", err));
@@ -270,13 +188,10 @@ export async function POST(req: NextRequest) {
         success: true,
         requiresVerification: true,
         message: "Registration initiated. A 6-digit verification code has been sent to your email.",
-        email: result.user.email,
+        email: result.email,
         brandName: resolvedBrandName,
-        industry: result.company.industry,
+        industry: "",
         role: "OWNER",
-        companyId: result.company.id,
-        companySlug: result.company.slug,
-        trialEndsAt: result.company.trialEndsAt,
       },
       { status: 201 }
     );
