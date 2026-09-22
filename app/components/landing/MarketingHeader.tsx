@@ -93,6 +93,12 @@ export default function MarketingHeader() {
 
           {/* RIGHT CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
+             <Link
+              href="/docs"
+              className="hidden sm:inline-block px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
+            >
+              Documentation
+            </Link>
             <Link
               href="/login"
               className="hidden sm:inline-block px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
@@ -145,11 +151,11 @@ export default function MarketingHeader() {
               {/* Navigation Links */}
               <div className="space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-zinc-500 px-3">
-                  Platform Navigation
+                  Platform Documentation
                 </span>
                 <div className="space-y-1 pt-1">
                   <a
-                    href="#features"
+                    href="/docs"
                     onClick={closeMenu}
                     className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-white/5 text-sm text-zinc-200 transition-colors"
                   >

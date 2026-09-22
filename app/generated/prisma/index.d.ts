@@ -9366,6 +9366,7 @@ export namespace Prisma {
     trafficNotified80: boolean | null
     trafficNotified100: boolean | null
     lastTrafficReset: Date | null
+    termsAgreed: boolean | null
     adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -9394,6 +9395,7 @@ export namespace Prisma {
     trafficNotified80: boolean | null
     trafficNotified100: boolean | null
     lastTrafficReset: Date | null
+    termsAgreed: boolean | null
     adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -9422,6 +9424,7 @@ export namespace Prisma {
     trafficNotified80: number
     trafficNotified100: number
     lastTrafficReset: number
+    termsAgreed: number
     adminId: number
     resetToken: number
     resetTokenExpiry: number
@@ -9466,6 +9469,7 @@ export namespace Prisma {
     trafficNotified80?: true
     trafficNotified100?: true
     lastTrafficReset?: true
+    termsAgreed?: true
     adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -9494,6 +9498,7 @@ export namespace Prisma {
     trafficNotified80?: true
     trafficNotified100?: true
     lastTrafficReset?: true
+    termsAgreed?: true
     adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -9522,6 +9527,7 @@ export namespace Prisma {
     trafficNotified80?: true
     trafficNotified100?: true
     lastTrafficReset?: true
+    termsAgreed?: true
     adminId?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -9637,6 +9643,7 @@ export namespace Prisma {
     trafficNotified80: boolean
     trafficNotified100: boolean
     lastTrafficReset: Date
+    termsAgreed: boolean | null
     adminId: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -9684,6 +9691,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
+    termsAgreed?: boolean
     adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -9720,6 +9728,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
+    termsAgreed?: boolean
     adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -9749,6 +9758,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
+    termsAgreed?: boolean
     adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -9778,6 +9788,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: boolean
+    termsAgreed?: boolean
     adminId?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -9785,7 +9796,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "fullName" | "authorizationKey" | "role" | "platformRole" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "monthlyVisits" | "trafficLimit" | "trafficNotified80" | "trafficNotified100" | "lastTrafficReset" | "adminId" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "companyName" | "email" | "phone" | "password" | "fullName" | "authorizationKey" | "role" | "platformRole" | "paymentVerified" | "planSelected" | "subscription_id" | "subscription_status" | "storageUsed" | "storageLimit" | "monthlyVisits" | "trafficLimit" | "trafficNotified80" | "trafficNotified100" | "lastTrafficReset" | "termsAgreed" | "adminId" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     memberships?: boolean | User$membershipsArgs<ExtArgs>
     invitesCreated?: boolean | User$invitesCreatedArgs<ExtArgs>
@@ -9835,6 +9846,7 @@ export namespace Prisma {
       trafficNotified80: boolean
       trafficNotified100: boolean
       lastTrafficReset: Date
+      termsAgreed: boolean | null
       adminId: string | null
       resetToken: string | null
       resetTokenExpiry: Date | null
@@ -10290,6 +10302,7 @@ export namespace Prisma {
     readonly trafficNotified80: FieldRef<"User", 'Boolean'>
     readonly trafficNotified100: FieldRef<"User", 'Boolean'>
     readonly lastTrafficReset: FieldRef<"User", 'DateTime'>
+    readonly termsAgreed: FieldRef<"User", 'Boolean'>
     readonly adminId: FieldRef<"User", 'String'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
@@ -25459,6 +25472,7 @@ export namespace Prisma {
     trafficNotified80: 'trafficNotified80',
     trafficNotified100: 'trafficNotified100',
     lastTrafficReset: 'lastTrafficReset',
+    termsAgreed: 'termsAgreed',
     adminId: 'adminId',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
@@ -26585,6 +26599,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFilter<"User"> | boolean
     trafficNotified100?: BoolFilter<"User"> | boolean
     lastTrafficReset?: DateTimeFilter<"User"> | Date | string
+    termsAgreed?: BoolNullableFilter<"User"> | boolean | null
     adminId?: StringNullableFilter<"User"> | string | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -26620,6 +26635,7 @@ export namespace Prisma {
     trafficNotified80?: SortOrder
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
+    termsAgreed?: SortOrderInput | SortOrder
     adminId?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
@@ -26658,6 +26674,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFilter<"User"> | boolean
     trafficNotified100?: BoolFilter<"User"> | boolean
     lastTrafficReset?: DateTimeFilter<"User"> | Date | string
+    termsAgreed?: BoolNullableFilter<"User"> | boolean | null
     adminId?: StringNullableFilter<"User"> | string | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -26693,6 +26710,7 @@ export namespace Prisma {
     trafficNotified80?: SortOrder
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
+    termsAgreed?: SortOrderInput | SortOrder
     adminId?: SortOrderInput | SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
@@ -26729,6 +26747,7 @@ export namespace Prisma {
     trafficNotified80?: BoolWithAggregatesFilter<"User"> | boolean
     trafficNotified100?: BoolWithAggregatesFilter<"User"> | boolean
     lastTrafficReset?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    termsAgreed?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
     adminId?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -28535,6 +28554,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -28569,6 +28589,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -28603,6 +28624,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28637,6 +28659,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -28671,6 +28694,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -28699,6 +28723,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28726,6 +28751,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -30895,6 +30921,11 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
+  export type BoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type UserNullableScalarRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
@@ -30941,6 +30972,7 @@ export namespace Prisma {
     trafficNotified80?: SortOrder
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
+    termsAgreed?: SortOrder
     adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -30976,6 +31008,7 @@ export namespace Prisma {
     trafficNotified80?: SortOrder
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
+    termsAgreed?: SortOrder
     adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -31004,6 +31037,7 @@ export namespace Prisma {
     trafficNotified80?: SortOrder
     trafficNotified100?: SortOrder
     lastTrafficReset?: SortOrder
+    termsAgreed?: SortOrder
     adminId?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -31052,6 +31086,14 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
   export type CompanyNullableScalarRelationFilter = {
@@ -32653,6 +32695,10 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type NullableBoolFieldUpdateOperationsInput = {
+    set?: boolean | null
+  }
+
   export type CompanyMemberUpdateManyWithoutUserNestedInput = {
     create?: XOR<CompanyMemberCreateWithoutUserInput, CompanyMemberUncheckedCreateWithoutUserInput> | CompanyMemberCreateWithoutUserInput[] | CompanyMemberUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CompanyMemberCreateOrConnectWithoutUserInput | CompanyMemberCreateOrConnectWithoutUserInput[]
@@ -33507,6 +33553,11 @@ export namespace Prisma {
     not?: NestedEnumPlatformRoleNullableFilter<$PrismaModel> | $Enums.PlatformRole | null
   }
 
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type NestedEnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.UserRole | EnumUserRoleFieldRefInput<$PrismaModel>
     in?: $Enums.UserRole[] | ListEnumUserRoleFieldRefInput<$PrismaModel>
@@ -33552,6 +33603,14 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumTransactionStatusFilter<$PrismaModel = never> = {
@@ -35070,6 +35129,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -35103,6 +35163,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -35249,6 +35310,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35282,6 +35344,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -35563,6 +35626,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -35596,6 +35660,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -35634,6 +35699,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -35667,6 +35733,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -35855,6 +35922,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35888,6 +35956,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -35940,6 +36009,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFilter<"User"> | boolean
     trafficNotified100?: BoolFilter<"User"> | boolean
     lastTrafficReset?: DateTimeFilter<"User"> | Date | string
+    termsAgreed?: BoolNullableFilter<"User"> | boolean | null
     adminId?: StringNullableFilter<"User"> | string | null
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -36123,6 +36193,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -36156,6 +36227,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -36194,6 +36266,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -36227,6 +36300,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -36373,6 +36447,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36406,6 +36481,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -36450,6 +36526,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36483,6 +36560,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -36960,6 +37038,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -36993,6 +37072,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -37042,6 +37122,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -37075,6 +37156,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -38139,6 +38221,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -38172,6 +38255,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     adminId?: string | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -38318,6 +38402,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -38351,6 +38436,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     adminId?: NullableStringFieldUpdateOperationsInput | string | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -39510,6 +39596,7 @@ export namespace Prisma {
     trafficNotified80?: boolean
     trafficNotified100?: boolean
     lastTrafficReset?: Date | string
+    termsAgreed?: boolean | null
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -39633,6 +39720,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39666,6 +39754,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39699,6 +39788,7 @@ export namespace Prisma {
     trafficNotified80?: BoolFieldUpdateOperationsInput | boolean
     trafficNotified100?: BoolFieldUpdateOperationsInput | boolean
     lastTrafficReset?: DateTimeFieldUpdateOperationsInput | Date | string
+    termsAgreed?: NullableBoolFieldUpdateOperationsInput | boolean | null
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

@@ -284,6 +284,7 @@ model User {
   trafficNotified80   Boolean            @default(false)
   trafficNotified100  Boolean            @default(false)
   lastTrafficReset    DateTime           @default(now())
+  termsAgreed         Boolean?            @default(false)
 
   // Legacy user parent-child self relation (transitional)
   adminId             String?

@@ -117,8 +117,8 @@ export default async function Footer() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#6B5E54] tracking-widest uppercase space-y-4 sm:space-y-0">
           <p>© {new Date().getFullYear()} {companyName}. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link href="/" className="hover:text-[#C9A96E]">Privacy Policy</Link>
-            <Link href="/" className="hover:text-[#C9A96E]">Terms of Atelier</Link>
+            <Link href="/privacy" className="hover:text-[#C9A96E] text-gray-400">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-[#C9A96E] text-gray-400">Terms of Service</Link>
           </div>
         </div>
       </div>

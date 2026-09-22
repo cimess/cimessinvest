@@ -19,6 +19,7 @@ import {
   Globe,
   MessageSquare
 } from "lucide-react";
+import CookieConsentBanner from "./components/cookieConsentBanner/cookieconsent";
 
 export const revalidate = 60; // ISR cache 60 seconds
 
@@ -48,7 +49,7 @@ export default async function PlatformMarketingHomePage() {
     "hasPart": activeMerchants.map((m) => ({
       "@type": "Store",
       "name": m.siteSetting?.companyName || m.name,
-      "url": `https://cimessinvest.com/store/${m.slug}`,
+      "url": `https://${m.slug}.cimessinvest.com/store/`,
     })),
   };
 
@@ -70,6 +71,8 @@ export default async function PlatformMarketingHomePage() {
       {/* Global Navigation Header with Mobile 3-Bar Menu */}
       <MarketingHeader />
 
+      {/* CookieConsentBanner Component */}
+      <CookieConsentBanner />
 
       <main className="relative z-10">
         {/* HERO SECTION (MOBILE-FIRST ARCHITECTURE) */}
@@ -374,7 +377,7 @@ export default async function PlatformMarketingHomePage() {
       {activeMerchants.length > 0 && (
         <section aria-label="Platform Merchant Directory" className="border-t border-white/5 py-3 px-4 sm:px-6 lg:px-8 bg-[#060608] text-[10px] text-zinc-600">
           <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="font-mono text-zinc-500 uppercase tracking-widest text-[9px]">Verified Stores:</span>
+            <span className="font-mono text-zinc-500 uppercase tracking-widest text-[9px]">Merchants Stores:</span>
             {activeMerchants.map((m) => (
               <Link
                 key={m.id}
@@ -398,8 +401,14 @@ export default async function PlatformMarketingHomePage() {
             </div>
             <span className="text-zinc-400 font-mono text-[11px]">
               &copy; {new Date().getFullYear()} Cimessinvest Platform. All rights reserved.
+              
             </span>
+             <div className="flex space-x-6">
+            <Link href="/privacy" className="hover:text-[#C9A96E] text-gray-400">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-[#C9A96E] text-gray-400">Terms of Service</Link>
           </div>
+          </div>
+          
           <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-zinc-400 text-xs">
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/register" className="hover:text-white transition-colors">Register</Link>

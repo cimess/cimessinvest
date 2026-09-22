@@ -380,6 +380,7 @@ export default function RegisterPage() {
         password: accountData.password,
         industry: accountData.industry,
         profileImage: accountData.profileImage || null,
+        termsAgreed: accountData.agreeToTerms,
       });
 
       if (res.data?.requiresVerification) {
@@ -442,15 +443,27 @@ export default function RegisterPage() {
     setResending(true);
     setError(null);
     try {
-      await api.post("/api/auth/forgot-password", { email: accountData.email });
-      setSuccessMsg("A new 6-digit verification code has been dispatched to your email.");
+      // Use the registration endpoint to dynamically trigger the fresh OTP logic we just wrote
+      await api.post("/api/registration", {
+        name: accountData.fullName,
+        brandName: accountData.brandName,
+        email: accountData.email,
+        phone: accountData.phone,
+        password: accountData.password,
+        industry: accountData.industry,
+        profileImage: accountData.profileImage || null,
+        termsAgreed: accountData.agreeToTerms,
+      });
+      
+      setSuccessMsg("A fresh 6-digit verification code has been dispatched to your email.");
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: string } }; message?: string };
-      setError(axiosErr?.response?.data?.error || "Failed to resend code.");
+      setError(axiosErr?.response?.data?.error || "Failed to resend code. Please try again.");
     } finally {
       setResending(false);
     }
   };
+
 
   // Handle Plan Selection (Starter / Free Trial or Pro Trial)
   const handleSelectPlan = async () => {

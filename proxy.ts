@@ -122,8 +122,11 @@ export async function proxy(req: NextRequest) {
   if (
     path === "/" || 
     path.startsWith("/landing") ||
+    path.startsWith("/privacy") ||
+    path.startsWith("/terms") ||
     path.startsWith("/store") ||
     path.startsWith("/checkout") ||
+    path.startsWith("/docs") ||
     path.startsWith("/pay") ||
     path.startsWith("/appeal") ||
     path.startsWith("/api/appeal") ||

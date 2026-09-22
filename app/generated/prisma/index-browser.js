@@ -223,6 +223,7 @@ exports.Prisma.UserScalarFieldEnum = {
   trafficNotified80: 'trafficNotified80',
   trafficNotified100: 'trafficNotified100',
   lastTrafficReset: 'lastTrafficReset',
+  termsAgreed: 'termsAgreed',
   adminId: 'adminId',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',

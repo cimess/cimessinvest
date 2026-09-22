@@ -33,12 +33,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, email, phone, password, brandName, industry, templateSlug, profileImage } = body;
+    const { name, email, phone, password, brandName, industry, templateSlug, profileImage ,termsAgreed} = body;
 
     // 1. Vital Fields Input Validation
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !phone || !password || !termsAgreed) {
       return NextResponse.json(
-        { error: "Missing required fields: name, email, phone, and password are required." },
+        { error: "Missing required fields: name, email, phone, password and terms agreement are required." },
         { status: 400 }
       );
     }
@@ -75,23 +75,6 @@ export async function POST(req: NextRequest) {
     // 3. Worker Check: Unique Email & Unexpired OTP Status
     const emailCheck = await checkEmailUniqueness(trimmedEmail);
 
-    if (!emailCheck.isUnique) {
-      if (emailCheck.hasActiveOtp) {
-        return NextResponse.json({
-          success: true,
-          requiresVerification: true,
-          pendingVerification: true,
-          email: emailCheck.user?.email || trimmedEmail,
-          message: "Continue your registration: Please enter the 6-digit verification OTP code sent to your email.",
-        });
-      }
-
-      return NextResponse.json(
-        { error: "An account with this email address already exists. Please log in." },
-        { status: 409 }
-      );
-    }
-
     // 4. Hash Password & Create Authorization Key
     const hashedPassword = await bcrypt.hash(password, 10);
     const authorizationKey = `CMS-${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
@@ -99,6 +82,47 @@ export async function POST(req: NextRequest) {
     // 5. Generate 6-Digit Email Verification OTP Code (Expires in 15 mins)
     const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiryDate = new Date();
+    expiryDate.setMinutes(expiryDate.getMinutes() + 15);
+
+    if (!emailCheck.isUnique) {
+      if (emailCheck.hasActiveOtp && emailCheck.user?.id) {
+        // BUG FIX: The user is trying to re-register. 
+        // Update their password and give them a fresh OTP, then send a new email.
+        await prisma.user.update({
+          where: { id: emailCheck.user.id },
+          data: {
+            password: hashedPassword,
+            resetToken: `${otpCode}:0`,
+            resetTokenExpiry: expiryDate,
+          }
+        });
+
+        const displayUserName = resolvedBrandName || name.trim();
+        
+        // Dispatch fresh email
+        triggerSignupOTP({
+          userId: emailCheck.user.id,
+          toEmail: trimmedEmail,
+          userName: displayUserName,
+          otpCode,
+          expiresInMinutes: 15,
+        }).catch((err) => console.error("[Registration] Resend OTP email failed:", err));
+
+        return NextResponse.json({
+          success: true,
+          requiresVerification: true,
+          email: trimmedEmail,
+          message: "We've sent a fresh 6-digit verification OTP code to your email.",
+        });
+      }
+
+      // If they are fully verified already, reject the registration.
+      return NextResponse.json(
+        { error: "An account with this email address already exists. Please log in." },
+        { status: 409 }
+      );
+    }
+    
     expiryDate.setMinutes(expiryDate.getMinutes() + 15);
 
     // 6. Generate Unique Company Slug & Validate Against Reserved Subdomains
@@ -154,6 +178,7 @@ export async function POST(req: NextRequest) {
           storageLimit: 100,
           resetToken: `${otpCode}:0`,
           resetTokenExpiry: expiryDate,
+          termsAgreed: true,
         },
         select: {
           id: true,

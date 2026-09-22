@@ -34,6 +34,22 @@
   --color-border: var(--color-border);
 }
 
+.gold-sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+
+  background:
+    radial-gradient(circle at 12% 18%, rgba(201,169,110,.35) 0 1px, transparent 2px),
+    radial-gradient(circle at 27% 62%, rgba(201,169,110,.18) 0 1px, transparent 2px),
+    radial-gradient(circle at 44% 28%, rgba(201,169,110,.30) 0 1px, transparent 2px),
+    radial-gradient(circle at 63% 78%, rgba(201,169,110,.15) 0 1px, transparent 2px),
+    radial-gradient(circle at 81% 34%, rgba(201,169,110,.28) 0 1px, transparent 2px),
+    radial-gradient(circle at 93% 82%, rgba(201,169,110,.22) 0 1px, transparent 2px);
+    
+  opacity: .7;
+}
+
 /* Base resets & typography classes */
 body {
   background-color: var(--color-bg);
