@@ -36,9 +36,17 @@ export async function POST(req: NextRequest) {
     const { name, email, phone, password, brandName, industry, templateSlug, profileImage ,termsAgreed} = body;
 
     // 1. Vital Fields Input Validation
-    if (!name || !email || !phone || !password || !termsAgreed) {
+    const missingFields = [];
+    if (!name) missingFields.push("name");
+    if (!email) missingFields.push("email");
+    if (!phone) missingFields.push("phone");
+    if (!password) missingFields.push("password");
+    if (!termsAgreed) missingFields.push("termsAgreed");
+
+    if (missingFields.length > 0) {
+      console.log("Registration API received body:", body); // Logs to your terminal so we can debug
       return NextResponse.json(
-        { error: "Missing required fields: name, email, phone, password and terms agreement are required." },
+        { error: `Missing this required fields: ${missingFields.join(", ")}` },
         { status: 400 }
       );
     }

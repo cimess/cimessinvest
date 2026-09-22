@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         bankInfo: true,
       },
     });
-    console.log(updatedCompany,"updatedCompany")
+
 
     return NextResponse.json({
       success: true,

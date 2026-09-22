@@ -182,16 +182,19 @@ export async function GET(req: NextRequest) {
         code: subaccountCode || null,
         bankName:
           paystackSubaccountData?.settlement_bank ||
+          storedBankInfo.bankName ||
           storedBankInfo.user_bank_name ||
           storedBankInfo.settlement_bank ||
           null,
         accountNumber:
           paystackSubaccountData?.account_number ||
+          storedBankInfo.accountNumber ||
           storedBankInfo.account_number ||
           null,
         businessName:
           paystackSubaccountData?.business_name ||
           storedBankInfo.business_name ||
+          storedBankInfo.accountName || 
           currentCompany.name,
         percentageCharge:
           paystackSubaccountData?.percentage_charge ??

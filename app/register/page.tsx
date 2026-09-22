@@ -443,6 +443,12 @@ export default function RegisterPage() {
     setResending(true);
     setError(null);
     try {
+      console.log("Attempting to resend OTP with data:", {
+        email: accountData.email,
+        brandName: accountData.brandName,
+        phone: accountData.phone,
+        termsAgreed: accountData.agreeToTerms,
+      });
       // Use the registration endpoint to dynamically trigger the fresh OTP logic we just wrote
       await api.post("/api/registration", {
         name: accountData.fullName,
