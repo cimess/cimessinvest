@@ -231,7 +231,7 @@ export default function FeaturedGrid({ copy, layout, dataBinding, context, store
                 }}
                 className="flex-1 py-3 bg-[var(--color-accent,#C9A96E)] text-[var(--color-primary,#1A1A1A)] font-bold text-xs uppercase tracking-widest rounded cursor-pointer"
               >
-                Visit Collection Page
+                Visit Store
               </button>
               <button
                 type="button"
