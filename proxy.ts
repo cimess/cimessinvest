@@ -145,6 +145,11 @@ export async function proxy(req: NextRequest) {
     path.startsWith("/templates") ||
     path.startsWith("/api/auth") ||
     path.startsWith("/api/bank") ||
+    path.startsWith("/image") || 
+    path.startsWith("/api/image") ||
+    path.startsWith("/api/collections") ||
+    path.startsWith("/api/health") ||
+
     path.startsWith("/api/registration") ||
     path.startsWith("/api/payment/webhook") ||
     path.startsWith("/api/payment/initialize") ||

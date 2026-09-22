@@ -145,13 +145,15 @@ export default function StorefrontClient({ store }: { store: StorefrontData }) {
   };
 
   // WhatsApp Pre-filled message generator for individual product inquiry
-  const getProductWhatsAppUrl = (product: StoreProduct) => {
-    if (!formattedWaNumber) return "#";
-    const text = encodeURIComponent(
-      `Hello ${store.storeName}, I saw "${product.name}" (${product.formattedPrice}) on your store link (${product.id}) and I would like to inquire/order.`
-    );
-    return `https://wa.me/${formattedWaNumber}?text=${text}`;
-  };
+const getProductWhatsAppUrl = (product: StoreProduct) => {
+  if (!formattedWaNumber) return "#";
+  const storeLink = `${window.location.origin}/store/${store.slug}`;
+  const text = encodeURIComponent(
+    `Hello ${store.storeName}, I saw "${product.name}" (${product.formattedPrice}) and would like to order.\n\n🔗 ${storeLink}`
+  );
+  return `https://wa.me/${formattedWaNumber}?text=${text}`;
+};
+
 
   // General WhatsApp contact link
   const generalWhatsAppUrl = formattedWaNumber

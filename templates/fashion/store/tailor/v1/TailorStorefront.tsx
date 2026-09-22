@@ -232,6 +232,7 @@ export default function TailorStorefront({ slots }: TailorStorefrontProps) {
         context={{
           whatsappNumber,
         }}
+        storeSlug={slots?.storeUrl}
       />
 
       {/* Section 4: Designer Story */}

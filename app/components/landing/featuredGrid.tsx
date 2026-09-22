@@ -11,9 +11,11 @@ import { resolveGroupForCategory } from "@/app/lib/content/categories";
 export default function FeaturedGrid({
   items,
   whatsappNumber,
+  storeSlug,
 }: {
   items: FeaturedItem[];
   whatsappNumber: string;
+  storeSlug: string;
 }) {
   const [selectedItem, setSelectedItem] = useState<FeaturedItem | null>(null);
 
@@ -59,7 +61,7 @@ export default function FeaturedGrid({
             const categorySlug = encodeURIComponent(
               item.category.toLowerCase().replace(/\s+/g, "-")
             );
-            const detailUrl = `/image/${categorySlug}/${item.id}?img=${encodeURIComponent(item.image)}`;
+            const detailUrl = `/store/${storeSlug}`;
 
             return (
               <div

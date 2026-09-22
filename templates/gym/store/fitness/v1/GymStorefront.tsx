@@ -202,6 +202,7 @@ export default function GymStorefront({ slots }: GymStorefrontProps) {
           brandName,
           whatsappNumber,
         }}
+        storeSlug={slots?.storeUrl}
       />
 
       {/* Trainer Story */}

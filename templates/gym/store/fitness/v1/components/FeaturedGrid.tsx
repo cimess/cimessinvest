@@ -30,6 +30,7 @@ export interface GymFeaturedGridProps {
     brandName?: string;
     whatsappNumber?: string;
   };
+  storeSlug?: string;
 }
 
 const DEFAULT_GYM_DISCIPLINES = [
@@ -73,6 +74,7 @@ export default function GymFeaturedGrid({
   layout,
   dataBinding,
   context,
+  storeSlug,
 }: GymFeaturedGridProps) {
   const headline = copy?.headline || "High-Performance Training Disciplines";
   const description =

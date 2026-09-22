@@ -32,9 +32,10 @@ export interface FeaturedGridProps {
     whatsappNumber?: string;
     companySlug?: string;
   };
+  storeSlug?: string;
 }
 
-export default function FeaturedGrid({ copy, layout, dataBinding, context }: FeaturedGridProps) {
+export default function FeaturedGrid({ copy, layout, dataBinding, context, storeSlug }: FeaturedGridProps) {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
   const headline = copy?.headline || "Signature Collections";
@@ -63,10 +64,15 @@ export default function FeaturedGrid({ copy, layout, dataBinding, context }: Fea
   const displayItems = items.slice(0, maxItems);
 
   const handleInquire = (item: any) => {
-    const text = `Hello, I am interested in inquiring about the bespoke "${item.title}" (${item.category || "Couture"}).`;
+    const storeLink = typeof window !== 'undefined' ? window.location.href : '';
+    // Use encodeURIComponent to ensure symbols like & and ? don't break the WhatsApp URL structure
+    const text = encodeURIComponent(
+      `Hello, I am interested in inquiring about the bespoke "${item.title}" (${item.category || "Couture"}).\n\n🔗 ${storeLink}`
+    );
     const url = buildWhatsAppUrl(whatsappNumber, text);
     window.open(url, "_blank");
   };
+
 
   return (
     <section id="featured" className="py-24 sm:py-32 bg-[var(--color-bg,#F5F0EB)] text-[var(--color-primary,#1A1A1A)]">
@@ -160,13 +166,16 @@ export default function FeaturedGrid({ copy, layout, dataBinding, context }: Fea
                     <span className="text-[10px] text-neutral-400 uppercase tracking-widest">
                       Custom Bespoke
                     </span>
-                    <Link
-                      href={`/image/${categorySlug}/${item.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs font-semibold text-[var(--color-accent,#C9A96E)] hover:underline flex items-center gap-1"
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedItem(item);
+                      }}
+                      className="text-xs font-semibold text-[var(--color-accent,#C9A96E)] hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       View Details
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -185,6 +194,56 @@ export default function FeaturedGrid({ copy, layout, dataBinding, context }: Fea
           </Link>
         </div>
       </div>
+
+      {/* Light Modal Preview for Selected Item */}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className="bg-[var(--color-primary,#1A1A1A)] border border-[var(--color-accent,#C9A96E)]/40 p-6 max-w-lg w-full text-white rounded space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative aspect-[3/4] w-full rounded overflow-hidden">
+              <Image src={selectedItem.image} alt={selectedItem.title} fill className="object-cover" />
+            </div>
+            <div>
+              <span className="text-xs uppercase tracking-widest text-[var(--color-accent,#C9A96E)]">
+                {selectedItem.category}
+              </span>
+              <h3 className="text-xl font-heading font-bold">{selectedItem.title}</h3>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleInquire(selectedItem);
+                }}
+                className="flex-1 py-3 bg-[var(--color-accent,#C9A96E)] text-[var(--color-primary,#1A1A1A)] font-bold text-xs uppercase tracking-widest rounded cursor-pointer"
+              >
+                Inquire via WhatsApp
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                   window.location.href = "/store";
+                }}
+                className="flex-1 py-3 bg-[var(--color-accent,#C9A96E)] text-[var(--color-primary,#1A1A1A)] font-bold text-xs uppercase tracking-widest rounded cursor-pointer"
+              >
+                Visit Collection Page
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="px-4 py-3 border border-zinc-700 text-xs uppercase text-gray-400 rounded cursor-pointer hover:text-white"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
