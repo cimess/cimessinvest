@@ -1270,7 +1270,7 @@ export default function RegisterPage() {
 
       <li className="flex items-center gap-2">
         <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
-        <span>100 MB Media Storage</span>
+        <span>500 MB Media Storage</span>
       </li>
 
       <li className="flex items-center gap-2">
@@ -1280,13 +1280,13 @@ export default function RegisterPage() {
 
       <li className="flex items-center gap-2">
         <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
-        <span>Standard Traffic (2,000 visits/mo)</span>
+        <span>Standard Traffic (1,000 visits/mo)</span>
       </li>
 
       <li className="flex items-center gap-2">
         <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
         <span className="text-emerald-300 font-medium">
-          14-Day Free Trial
+           Free Trial Forever
         </span>
       </li>
     </ul>
@@ -1341,7 +1341,7 @@ export default function RegisterPage() {
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />
-                        <span>500 MB High-Speed Media Storage</span>
+                        <span>500 MB High-Speed Media Storage (Scalable)</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <Check className="w-3.5 h-3.5 text-[var(--color-accent,#C9A96E)] shrink-0" />

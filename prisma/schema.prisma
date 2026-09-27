@@ -537,6 +537,7 @@ model CustomPlanQuote {
 model PlatformConfig {
   id                 String   @id @default("default")
   platformFeePercent Float    @default(5.0) // Platform commission percentage (e.g. 5.0 for 5%)
+  openSource         Boolean  @default(false)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

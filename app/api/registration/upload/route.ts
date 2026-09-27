@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    console.log("gotten to the buffer")
 
     // 4. Convert File to Buffer and upload to Cloudinary
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
         url: dataUri,
       });
     }
-
+console.log("gotten to the upload")
     const uploadResult = await new Promise<{ secure_url: string; public_id: string }>(
       (resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest) {
         uploadStream.end(buffer);
       }
     );
+    console.log("gotten to the return")
 
     return NextResponse.json({
       success: true,

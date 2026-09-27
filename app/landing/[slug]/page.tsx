@@ -73,7 +73,7 @@ export default async function MerchantLandingPage({ params }: Props) {
     notFound();
   }
 
-  if (company.status === "SUSPENDED") {
+  if (company.status !== "ACTIVE") {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex flex-col items-center justify-center p-6 text-center font-body text-[#F5F0EB]">
         <div className="max-w-md w-full bg-black/40 rounded-3xl border border-amber-500/30 p-8 shadow-2xl space-y-4">

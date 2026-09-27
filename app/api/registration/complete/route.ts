@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       resolvedPlan === "PROFESSIONAL"
         ? 2000
         : resolvedPlan === "FREE_TRIAL"
-        ? 100
+        ? 500
         : 500;
 
         const isFreeTrial = resolvedPlan === "FREE_TRIAL";

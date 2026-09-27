@@ -41,6 +41,7 @@ export async function initializePaystackTransaction({
   customStorageMB?: number;
   callbackUrl?: string;
 }) {
+
   // Determine target plan storage limit
   const targetStorageLimitMB =
     planSelected === "ENTERPRISE" && customStorageMB
@@ -63,7 +64,9 @@ export async function initializePaystackTransaction({
 
   const reference = `CMS-REF-${Date.now()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 
+
   // Save Pending Transaction in DB
+
   await prisma.transaction.create({
     data: {
       userId,
@@ -75,6 +78,8 @@ export async function initializePaystackTransaction({
     },
   });
 
+
+  
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   if (!secretKey) {
     throw new PaymentGatewayError("Paystack secret key is not configured.");
@@ -158,6 +163,15 @@ export async function initializePaystackTransaction({
 
   throw new PaymentGatewayError(paystackErrorMessage);
 }
+
+
+
+// i have added open source in the platform config, also for the open source version we dont need to initialize paystack transaction
+// instead we can just create a transaction with amount 0 and plan starter
+// also we dont need to verify the transaction and extend user capacity
+// so when open source is true, we dont need to initialize paystack transaction and verify the transaction and extend user capacity
+// i stopped at initialize paystack transaction part
+// 
 
 
 /**

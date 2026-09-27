@@ -52,7 +52,7 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      const storageLimit = 100;
+      const storageLimit = 500;
       const trafficLimit =  1000;
 
       const updatedUser = await prisma.user.update({

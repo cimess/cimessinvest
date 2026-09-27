@@ -23051,6 +23051,7 @@ export namespace Prisma {
   export type PlatformConfigMinAggregateOutputType = {
     id: string | null
     platformFeePercent: number | null
+    openSource: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -23058,6 +23059,7 @@ export namespace Prisma {
   export type PlatformConfigMaxAggregateOutputType = {
     id: string | null
     platformFeePercent: number | null
+    openSource: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -23065,6 +23067,7 @@ export namespace Prisma {
   export type PlatformConfigCountAggregateOutputType = {
     id: number
     platformFeePercent: number
+    openSource: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -23082,6 +23085,7 @@ export namespace Prisma {
   export type PlatformConfigMinAggregateInputType = {
     id?: true
     platformFeePercent?: true
+    openSource?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -23089,6 +23093,7 @@ export namespace Prisma {
   export type PlatformConfigMaxAggregateInputType = {
     id?: true
     platformFeePercent?: true
+    openSource?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -23096,6 +23101,7 @@ export namespace Prisma {
   export type PlatformConfigCountAggregateInputType = {
     id?: true
     platformFeePercent?: true
+    openSource?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -23190,6 +23196,7 @@ export namespace Prisma {
   export type PlatformConfigGroupByOutputType = {
     id: string
     platformFeePercent: number
+    openSource: boolean
     createdAt: Date
     updatedAt: Date
     _count: PlatformConfigCountAggregateOutputType | null
@@ -23216,6 +23223,7 @@ export namespace Prisma {
   export type PlatformConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     platformFeePercent?: boolean
+    openSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["platformConfig"]>
@@ -23223,6 +23231,7 @@ export namespace Prisma {
   export type PlatformConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     platformFeePercent?: boolean
+    openSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["platformConfig"]>
@@ -23230,6 +23239,7 @@ export namespace Prisma {
   export type PlatformConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     platformFeePercent?: boolean
+    openSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["platformConfig"]>
@@ -23237,11 +23247,12 @@ export namespace Prisma {
   export type PlatformConfigSelectScalar = {
     id?: boolean
     platformFeePercent?: boolean
+    openSource?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type PlatformConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "platformFeePercent" | "createdAt" | "updatedAt", ExtArgs["result"]["platformConfig"]>
+  export type PlatformConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "platformFeePercent" | "openSource" | "createdAt" | "updatedAt", ExtArgs["result"]["platformConfig"]>
 
   export type $PlatformConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PlatformConfig"
@@ -23249,6 +23260,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       platformFeePercent: number
+      openSource: boolean
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["platformConfig"]>
@@ -23676,6 +23688,7 @@ export namespace Prisma {
   interface PlatformConfigFieldRefs {
     readonly id: FieldRef<"PlatformConfig", 'String'>
     readonly platformFeePercent: FieldRef<"PlatformConfig", 'Float'>
+    readonly openSource: FieldRef<"PlatformConfig", 'Boolean'>
     readonly createdAt: FieldRef<"PlatformConfig", 'DateTime'>
     readonly updatedAt: FieldRef<"PlatformConfig", 'DateTime'>
   }
@@ -25676,6 +25689,7 @@ export namespace Prisma {
   export const PlatformConfigScalarFieldEnum: {
     id: 'id',
     platformFeePercent: 'platformFeePercent',
+    openSource: 'openSource',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -27737,6 +27751,7 @@ export namespace Prisma {
     NOT?: PlatformConfigWhereInput | PlatformConfigWhereInput[]
     id?: StringFilter<"PlatformConfig"> | string
     platformFeePercent?: FloatFilter<"PlatformConfig"> | number
+    openSource?: BoolFilter<"PlatformConfig"> | boolean
     createdAt?: DateTimeFilter<"PlatformConfig"> | Date | string
     updatedAt?: DateTimeFilter<"PlatformConfig"> | Date | string
   }
@@ -27744,6 +27759,7 @@ export namespace Prisma {
   export type PlatformConfigOrderByWithRelationInput = {
     id?: SortOrder
     platformFeePercent?: SortOrder
+    openSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -27754,6 +27770,7 @@ export namespace Prisma {
     OR?: PlatformConfigWhereInput[]
     NOT?: PlatformConfigWhereInput | PlatformConfigWhereInput[]
     platformFeePercent?: FloatFilter<"PlatformConfig"> | number
+    openSource?: BoolFilter<"PlatformConfig"> | boolean
     createdAt?: DateTimeFilter<"PlatformConfig"> | Date | string
     updatedAt?: DateTimeFilter<"PlatformConfig"> | Date | string
   }, "id">
@@ -27761,6 +27778,7 @@ export namespace Prisma {
   export type PlatformConfigOrderByWithAggregationInput = {
     id?: SortOrder
     platformFeePercent?: SortOrder
+    openSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: PlatformConfigCountOrderByAggregateInput
@@ -27776,6 +27794,7 @@ export namespace Prisma {
     NOT?: PlatformConfigScalarWhereWithAggregatesInput | PlatformConfigScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"PlatformConfig"> | string
     platformFeePercent?: FloatWithAggregatesFilter<"PlatformConfig"> | number
+    openSource?: BoolWithAggregatesFilter<"PlatformConfig"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"PlatformConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PlatformConfig"> | Date | string
   }
@@ -29873,6 +29892,7 @@ export namespace Prisma {
   export type PlatformConfigCreateInput = {
     id?: string
     platformFeePercent?: number
+    openSource?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -29880,6 +29900,7 @@ export namespace Prisma {
   export type PlatformConfigUncheckedCreateInput = {
     id?: string
     platformFeePercent?: number
+    openSource?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -29887,6 +29908,7 @@ export namespace Prisma {
   export type PlatformConfigUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     platformFeePercent?: FloatFieldUpdateOperationsInput | number
+    openSource?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -29894,6 +29916,7 @@ export namespace Prisma {
   export type PlatformConfigUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     platformFeePercent?: FloatFieldUpdateOperationsInput | number
+    openSource?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -29901,6 +29924,7 @@ export namespace Prisma {
   export type PlatformConfigCreateManyInput = {
     id?: string
     platformFeePercent?: number
+    openSource?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -29908,6 +29932,7 @@ export namespace Prisma {
   export type PlatformConfigUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     platformFeePercent?: FloatFieldUpdateOperationsInput | number
+    openSource?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -29915,6 +29940,7 @@ export namespace Prisma {
   export type PlatformConfigUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     platformFeePercent?: FloatFieldUpdateOperationsInput | number
+    openSource?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -31714,6 +31740,7 @@ export namespace Prisma {
   export type PlatformConfigCountOrderByAggregateInput = {
     id?: SortOrder
     platformFeePercent?: SortOrder
+    openSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -31725,6 +31752,7 @@ export namespace Prisma {
   export type PlatformConfigMaxOrderByAggregateInput = {
     id?: SortOrder
     platformFeePercent?: SortOrder
+    openSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -31732,6 +31760,7 @@ export namespace Prisma {
   export type PlatformConfigMinOrderByAggregateInput = {
     id?: SortOrder
     platformFeePercent?: SortOrder
+    openSource?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }

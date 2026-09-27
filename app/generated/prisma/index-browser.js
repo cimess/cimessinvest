@@ -394,6 +394,7 @@ exports.Prisma.CustomPlanQuoteScalarFieldEnum = {
 exports.Prisma.PlatformConfigScalarFieldEnum = {
   id: 'id',
   platformFeePercent: 'platformFeePercent',
+  openSource: 'openSource',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

@@ -155,18 +155,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 7. Find active template for this industry
-    let activeTemplate = await prisma.template.findFirst({
-      where: {
-        OR: [
-          ...(templateSlug ? [{ slug: templateSlug }] : []),
-          { industry: resolvedIndustry, isActive: true },
-        ],
-      },
-      include: {
-        pages: true,
-      },
-    });
-
+  
     // 8. Atomic Multi-Tenant Transaction: User -> Company -> CompanyMember (OWNER) -> StorePages -> SiteSetting
     
       // 8a. Create User
@@ -183,7 +172,7 @@ export async function POST(req: NextRequest) {
           planSelected: "FREE_TRIAL",
           subscription_status: "ACTIVE",
           storageUsed: 0,
-          storageLimit: 100,
+          storageLimit: 500,
           resetToken: `${otpCode}:0`,
           resetTokenExpiry: expiryDate,
           termsAgreed: true,

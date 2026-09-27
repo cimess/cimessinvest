@@ -7,13 +7,19 @@ import { triggerSubscriptionDueEmail } from "@/app/api/workers/emailWorker";
  * Vercel Cron Job endpoint running daily to process subscription expiry checks & warnings.
  */
 export async function GET(req: NextRequest) {
+  const platFormConfig=await prisma.platformConfig.findFirst()
+  if (platFormConfig?.openSource)return NextResponse.json({ error: "Cimessinvest is running in open source mode" }, { status: 401 });
+  
   try {
+
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization");
 
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized cron execution" }, { status: 401 });
     }
+
+    
 
     const now = new Date();
 
@@ -86,7 +92,10 @@ export async function GET(req: NextRequest) {
       }
 
       if (daysRemaining <= 0) {
+        
         await prisma.$transaction(async (tx) => {
+          const platFormConfig=await tx.platformConfig.findFirst()
+      
           await tx.user.update({
             where: { id: user.id },
             data: { subscription_status: "INACTIVE" },
@@ -101,6 +110,7 @@ export async function GET(req: NextRequest) {
               },
             });
           }
+        
         });
 
         await triggerSubscriptionDueEmail({
