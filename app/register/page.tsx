@@ -1255,7 +1255,6 @@ export default function RegisterPage() {
 
     <div>
       <span className="text-2xl font-extrabold text-white">₦0</span>
-      <span className="text-xs text-zinc-400"> / 14 days</span>
     </div>
 
     <p className="text-[11px] text-zinc-400 leading-relaxed font-light">
